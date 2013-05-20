@@ -24,7 +24,7 @@ include_dirs.append('pynfft')
 
 ext_modules = [
     Extension(
-        'pynfft.nfft',
+        name='pynfft.nfft',
         sources=[os.path.join('pynfft', 'nfft.pyx')],
         include_dirs=include_dirs,
         libraries=libraries,

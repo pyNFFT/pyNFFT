@@ -16,6 +16,7 @@
 
 import numpy as np
 cimport numpy as np
+from libc.stdlib cimport malloc, free
 from libc cimport limits
 from cnfft3 cimport *
 
@@ -47,8 +48,120 @@ _fftw_flags_dict = fftw_flags_dict.copy()
 cdef class NFFT:
 
     # where the C-related content of the class is being initialized
-    def __cinit__(self):
-        pass
+    def __cinit__(self, N, M, n=None, m=12, dtype=None, flags=None,
+                  *args, **kwargs):
+        # NOTE: use of reshape([-1, 1]) to avoid working with 0-d arrays which
+        # cannot be indexed explictly
+        N = np.asarray(N).reshape([-1, 1])
+        M_total = np.asarray(M).reshape([-1, 1])
+        n = np.asarray(n).reshape([-1, 1]) if n is not None else 2 * N
+        m = np.asarray(m).reshape([-1, 1])
+        N_total = np.asarray(np.prod(N)).reshape([-1, 1])
+        d = N.size
+
+        # make sure N and n lengths are compatible
+        if n.size != d:
+            raise ValueError("N and n must be of same size")
+
+        # make sure all size parameters fit with int32 storage dtype of
+        # nfft_plan, otherwise high risks of malloc errors
+        cdef int t
+        for t in range(0, d):
+            if not N[t, 0] > 0:
+                raise ValueError('N must be strictly positive')
+            if N[t, 0] >= <Py_ssize_t>limits.INT_MAX:
+                raise ValueError('N must be less than ', str(limits.INT_MAX))
+            if not n[t, 0] > 0:
+                raise ValueError('n must be strictly positive')
+            if n[t, 0] >= <Py_ssize_t>limits.INT_MAX:
+                raise ValueError('n must be less than ', str(limits.INT_MAX))
+        if not M_total[0, 0] > 0:
+            raise ValueError("M must be a strictly positive scalar")
+        if M_total[0, 0] >= <Py_ssize_t>limits.INT_MAX:
+            raise ValueError('M must be less than ', str(limits.INT_MAX))
+        if not m[0, 0] > 0:
+            raise ValueError("m must be a strictly positive scalar")
+        if m[0, 0] >= <Py_ssize_t>limits.INT_MAX:
+            raise ValueError('m must be less than ', str(limits.INT_MAX))
+        if not N_total[0, 0] > 0:
+            raise ValueError("M must be a strictly positive scalar")
+        if N_total[0, 0] >= <Py_ssize_t>limits.INT_MAX:
+            raise ValueError('M must be less than ', str(limits.INT_MAX))
+
+        # convert tuple of litteral precomputation flags to its expected
+        # C-compatible value. Each flag is a power of 2, which allows to compute
+        # this value using BITOR operations.
+        flags_used = []
+        cdef unsigned int _nfft_flags = 0
+        cdef unsigned int _fftw_flags = 0
+
+        nfft_flags = flags
+        if nfft_flags is None:
+            # default nfft flags, adapted from nfft.c
+            if d > 1:
+                nfft_flags = ('PRE_PHI_HUT',
+                              'PRE_PSI',
+                              'FFTW_INIT',
+                              'FFT_OUT_OF_PLACE',
+                              'NFFT_SORT_NODES',
+                              'NFFT_OMP_BLOCKWISE_ADJOINT',
+                              'FFTW_ESTIMATE',
+                              'FFTW_DESTROY_INPUT',)
+            else:
+                nfft_flags = ('PRE_PHI_HUT',
+                              'PRE_PSI',
+                              'FFTW_INIT',
+                              'FFT_OUT_OF_PLACE',
+                              'FFTW_ESTIMATE',
+                              'FFTW_DESTROY_INPUT',)
+
+        for each_flag in nfft_flags:
+            try:
+                _nfft_flags |= nfft_flags_dict[each_flag]
+                flags_used.append(each_flag)
+            except KeyError:
+                try:
+                    _fftw_flags |= fftw_flags_dict[each_flag]
+                    flags_used.append(each_flag)
+                except KeyError:
+                    raise ValueError('Invalid flag: ' + '\'' +
+                        each_flag + '\' is not a valid flag.')
+
+        # intialize plan
+
+        cdef int _d = d
+        cdef int _m = m[0, 0]
+        cdef int _M_total = M_total[0, 0]
+        cdef int _N_total = N_total[0, 0]
+
+        cdef int *_N = <int *>malloc(sizeof(int) * _d)
+        if _N == NULL:
+            raise MemoryError
+        for t in range(0, d):
+            _N[t] = N[t, 0]
+
+        cdef int *_n = <int *>malloc(sizeof(int) * _d)
+        if _n == NULL:
+            raise MemoryError
+        for t in range(0, d):
+            _n[t] = n[t, 0]
+
+        try:
+            nfft_plan_guru(&self.__plan, _d, _N, _M_total, _n,
+                           _nfft_flags, _fftw_flags)
+        except:
+            raise MemoryError
+        finally:
+            free(_N)
+            free(_n)
+
+        self._d = self.__plan.d
+        self._m = self.__plan.m
+        self._M_total = self.__plan.M_total
+        self._N_total = self.__plan.N_total
+        self._N = self.__plan.N
+        self._dtype = np.dtype(dtype) if dtype is not None else np.float64
+        self._flags = tuple(flags_used)
 
     # here, just holds the documentation of the class constructor
     def __init__(self):
@@ -56,22 +169,22 @@ cdef class NFFT:
 
     # where the C-related content of the class needs to be cleaned
     def __dealloc__(self):
-        pass
+        nfft_finalize(&self.__plan)
 
     cpdef precompute(self):
-        pass
+        nfft_precompute_one_psi(&self.__plan)
 
     cpdef trafo(self):
-        pass
+        nfft_trafo(&self.__plan)
 
     cpdef trafo_direct(self):
-        pass
+        nfft_trafo_direct(&self.__plan)
 
     cpdef adjoint(self):
-        pass
+        nfft_adjoint(&self.__plan)
 
     cpdef adjoint_direct(self):
-        pass
+        nfft_adjoint_direct(&self.__plan)
 
     def __get_f(self):
         pass

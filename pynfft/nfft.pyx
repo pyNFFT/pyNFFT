@@ -147,7 +147,7 @@ cdef class NFFT:
             _n[t] = n[t, 0]
 
         try:
-            nfft_plan_guru(&self.__plan, _d, _N, _M_total, _n,
+            nfft_init_guru(&self.__plan, _d, _N, _M_total, _n,
                            _nfft_flags, _fftw_flags)
         except:
             raise MemoryError
@@ -169,6 +169,7 @@ cdef class NFFT:
 
     # where the C-related content of the class needs to be cleaned
     def __dealloc__(self):
+        cdef nfft_plan *plan = &self.__plan
         nfft_finalize(&self.__plan)
 
     cpdef precompute(self):

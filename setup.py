@@ -60,6 +60,7 @@ setup_args = {
         'Topic :: Scientific/Engineering :: Mathematics',
         'Topic :: Multimedia :: Sound/Audio :: Analysis',
     ],
+    'packages': ['pynfft',],
     'ext_modules': ext_modules,
     'include_dirs': include_dirs,
     'package_data': package_data,

@@ -17,6 +17,7 @@
 from distutils.core import setup
 from distutils.extension import Extension
 from Cython.Build import cythonize
+from Cython.Distutils import build_ext
 from setup import setup_args, libraries, library_dirs, include_dirs
 import os
 
@@ -34,5 +35,7 @@ ext_modules = [
     )
 ]
 
+setup_args['cmdclass'] = {'build_ext': build_ext}
 setup_args['ext_modules'] = cythonize(ext_modules)
+
 setup(**setup_args)

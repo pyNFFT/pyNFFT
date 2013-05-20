@@ -214,7 +214,7 @@ cdef class NFFT:
         nfft_adjoint_direct(&self.__plan)
 
     def __get_f(self):
-        return self._f
+        return self._f.copy()
 
     def __set_f(self, new_f):
         if new_f is not None and new_f is not self._f:
@@ -225,7 +225,7 @@ cdef class NFFT:
     f = property(__get_f, __set_f)
 
     def __get_f_hat(self):
-        return self._f_hat
+        return self._f_hat.copy()
 
     def __set_f_hat(self, new_f_hat):
         if new_f_hat is not None and new_f_hat is not self._f_hat:
@@ -236,7 +236,7 @@ cdef class NFFT:
     f_hat = property(__get_f_hat, __set_f_hat)
 
     def __get_x(self):
-        return self._x
+        return self._x.copy()
 
     def __set_x(self, new_x):
         if new_x is not None and new_x is not self._x:

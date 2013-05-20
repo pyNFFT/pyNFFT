@@ -1,0 +1,9 @@
+*~
+*.a
+*.o
+*.pyc
+*.swp
+*.so
+build/
+dist/
+pynfft.egg-info/

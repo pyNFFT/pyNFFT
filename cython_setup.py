@@ -16,7 +16,7 @@
 
 from distutils.core import setup
 from distutils.extension import Extension
-from Cython.Distutils import build_ext
+from Cython.Build import cythonize
 from setup import setup_args, libraries, library_dirs, include_dirs
 import os
 
@@ -28,9 +28,11 @@ ext_modules = [
         sources=[os.path.join('pynfft', 'nfft.pyx')],
         include_dirs=include_dirs,
         libraries=libraries,
-        library_dirs=library_dirs)]
+        library_dirs=library_dirs,
+        extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
+                           '-fstrict-aliasing -ffast-math'.split(),
+    )
+]
 
-setup_args['cmdclass'] = {'build_ext': build_ext}
-setup_args['ext_modules'] = ext_modules
-
+setup_args['ext_modules'] = cythonize(ext_modules)
 setup(**setup_args)

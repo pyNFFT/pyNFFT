@@ -29,6 +29,9 @@ nfft_flags_dict = {
     'PRE_FG_PSI':PRE_FG_PSI,
     'PRE_PSI':PRE_PSI,
     'PRE_FULL_PSI':PRE_FULL_PSI,
+    'MALLOC_X':MALLOC_X,
+    'MALLOC_F_HAT':MALLOC_F_HAT,
+    'MALLOC_F':MALLOC_F,
     'FFT_OUT_OF_PLACE':FFT_OUT_OF_PLACE,
     'FFTW_INIT':FFTW_INIT,
     'NFFT_SORT_NODES':NFFT_SORT_NODES,
@@ -43,6 +46,11 @@ fftw_flags_dict = {
     'FFTW_DESTROY_INPUT':FFTW_DESTROY_INPUT,
 }
 _fftw_flags_dict = fftw_flags_dict.copy()
+
+
+# Numpy must be initialized. When using numpy from C or Cython you must
+# _always_ do that, or you will have segfaults
+np.import_array()
 
 
 cdef class NFFT:
@@ -106,14 +114,20 @@ cdef class NFFT:
                               'NFFT_SORT_NODES',
                               'NFFT_OMP_BLOCKWISE_ADJOINT',
                               'FFTW_ESTIMATE',
-                              'FFTW_DESTROY_INPUT',)
+                              'FFTW_DESTROY_INPUT',
+                              'MALLOC_X',
+                              'MALLOC_F',
+                              'MALLOC_F_HAT',)
             else:
                 nfft_flags = ('PRE_PHI_HUT',
                               'PRE_PSI',
                               'FFTW_INIT',
                               'FFT_OUT_OF_PLACE',
                               'FFTW_ESTIMATE',
-                              'FFTW_DESTROY_INPUT',)
+                              'FFTW_DESTROY_INPUT',
+                              'MALLOC_X',
+                              'MALLOC_F',
+                              'MALLOC_F_HAT',)
 
         for each_flag in nfft_flags:
             try:
@@ -164,6 +178,17 @@ cdef class NFFT:
         self._dtype = np.dtype(dtype) if dtype is not None else np.float64
         self._flags = tuple(flags_used)
 
+        cdef np.npy_intp shape[1]
+        shape[0] = self._d * self._M_total
+        self._x = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_FLOAT64, <void *>self.__plan.x)
+        shape[0] = self._M_total
+        self._f = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.f)
+        shape[0] = self._N_total
+        self._f_hat = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.f_hat)
+
     # here, just holds the documentation of the class constructor
     def __init__(self, N, M, n=None, m=12, dtype=None, flags=None,
                  *args, **kwargs):
@@ -189,7 +214,7 @@ cdef class NFFT:
         nfft_adjoint_direct(&self.__plan)
 
     def __get_f(self):
-        pass
+        return self._f
 
     def __set_f(self, new_f):
         pass
@@ -197,7 +222,7 @@ cdef class NFFT:
     f = property(__get_f, __set_f)
 
     def __get_f_hat(self):
-        pass
+        return self._f_hat
 
     def __set_f_hat(self, new_f_hat):
         pass
@@ -205,7 +230,7 @@ cdef class NFFT:
     f_hat = property(__get_f_hat, __set_f_hat)
 
     def __get_x(self):
-        pass
+        return self._x
 
     def __set_x(self, new_x):
         pass

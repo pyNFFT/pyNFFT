@@ -62,6 +62,9 @@ cdef extern from "nfft3.h":
             # Dimension, rank.
         int *N
             # Multi bandwidth.
+        int m
+            # Cut-off parameter of the window function, default value is 6 \
+            # (KAISER_BESSEL), 9 (SINC_POWER), 11 (B_SPLINE), 12 (GAUSSIAN).
         double *x
             # Nodes in time/spatial domain, size is $dM$ doubles.
 

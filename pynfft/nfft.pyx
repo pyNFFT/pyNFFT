@@ -72,3 +72,62 @@ cdef class NFFT:
 
     cpdef adjoint_direct(self):
         pass
+
+    def __get_f(self):
+        pass
+
+    def __set_f(self, new_f):
+        pass
+
+    f = property(__get_f, __set_f)
+
+    def __get_f_hat(self):
+        pass
+
+    def __set_f_hat(self, new_f_hat):
+        pass
+
+    f_hat = property(__get_f_hat, __set_f_hat)
+
+    def __get_x(self):
+        pass
+
+    def __set_x(self, new_x):
+        pass
+
+    x = property(__get_x, __set_x)
+
+    def __get_d(self):
+        pass
+
+    d = property(__get_d)
+
+    def __get_m(self):
+        pass
+
+    m = property(__get_m)
+
+    def __get_M_total(self):
+        pass
+
+    M_total = property(__get_M_total)
+
+    def __get_N_total(self):
+        pass
+
+    N_total = property(__get_N_total)
+
+    def __get_N(self):
+        pass
+
+    N = property(__get_N)
+
+    def __get_dtype(self):
+        pass
+
+    dtype = property(__get_dtype)
+
+    def __get_flags(self):
+        pass
+
+    flags = property(__get_flags)

@@ -14,4 +14,37 @@
 # Ghislain Vaillant
 # ghislain.vallant@kcl.ac.uk
 
+import numpy as np
+cimport numpy as np
+from libc cimport limits
+from cnfft3 cimport *
 
+
+cdef class NFFT:
+
+    # where the C-related content of the class is being initialized
+    def __cinit__(self):
+        pass
+
+    # here, just holds the documentation of the class constructor
+    def __init__(self):
+        pass
+
+    # where the C-related content of the class needs to be cleaned
+    def __dealloc__(self):
+        pass
+
+    cpdef precompute(self):
+        pass
+
+    cpdef trafo(self):
+        pass
+
+    cpdef trafo_direct(self):
+        pass
+
+    cpdef adjoint(self):
+        pass
+
+    cpdef adjoint_direct(self):
+        pass

@@ -18,8 +18,9 @@ cdef extern from "nfft3.h":
 
     # enums
     # =====
+
+    # precomputation flags for the NFFT component
     ctypedef enum:
-        # Precomputation flags for the NFFT component
         PRE_PHI_HUT      #(1U<< 0)
         FG_PSI           #(1U<< 1)
         PRE_LIN_PSI      #(1U<< 2)
@@ -35,7 +36,57 @@ cdef extern from "nfft3.h":
         NFFT_OMP_BLOCKWISE_ADJOINT #(1U<<12)
         PRE_ONE_PSI #(PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
 
+    # precomputation flags for the FFTW component
     ctypedef enum:
-        # Precomputation flags for the FFTW component
         FFTW_ESTIMATE
         FFTW_DESTROY_INPUT
+
+
+    # structs and types
+    # =================
+
+    # double precision complex type
+    ctypedef double fftw_complex[2]
+
+    # double precision NFFT plan
+    ctypedef struct nfft_plan:
+        int N_total
+            # Total number of Fourier coefficients.
+        int M_total
+            # Total number of samples.
+        fftw_complex *f_hat
+            # Vector of Fourier coefficients, size is N_total float_types.
+        fftw_complex *f
+            # Vector of samples, size is M_total float types.
+        int d
+            # Dimension, rank.
+        int *N
+            # Multi bandwidth.
+        double *x
+            # Nodes in time/spatial domain, size is $dM$ doubles.
+
+
+    # functions
+    # =========
+
+    void nfft_trafo_direct (nfft_plan *ths) nogil
+        # Computes a NDFT.
+
+    void nfft_adjoint_direct (nfft_plan *ths) nogil
+        # Computes an adjoint NDFT.
+
+    void nfft_trafo (nfft_plan *ths) nogil
+        # Computes a NFFT, see the definition.
+
+    void nfft_adjoint (nfft_plan *ths) nogil
+        # Computes an adjoint NFFT, see the definition.
+
+    void nfft_init_guru (nfft_plan *ths, int d, int *N, int M, int *n, int m,
+                         unsigned nfft_flags, unsigned fftw_flags)
+        # Initialisation of a transform plan, guru.
+
+    void nfft_precompute_one_psi (nfft_plan *ths) nogil
+        # Precomputation for a transform plan.
+
+    void nfft_finalize (nfft_plan *ths)
+        # Destroys a transform plan.

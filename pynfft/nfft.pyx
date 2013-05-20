@@ -267,7 +267,10 @@ cdef class NFFT:
     N_total = property(__get_N_total)
 
     def __get_N(self):
-        pass
+        N = []
+        for d in range(self._d):
+            N.append(self._N[d])
+        return tuple(N)
 
     N = property(__get_N)
 

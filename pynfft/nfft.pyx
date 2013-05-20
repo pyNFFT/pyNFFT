@@ -98,22 +98,22 @@ cdef class NFFT:
     x = property(__get_x, __set_x)
 
     def __get_d(self):
-        pass
+        return self._d
 
     d = property(__get_d)
 
     def __get_m(self):
-        pass
+        return self._m
 
     m = property(__get_m)
 
     def __get_M_total(self):
-        pass
+        return self._M_total
 
     M_total = property(__get_M_total)
 
     def __get_N_total(self):
-        pass
+        return self._N_total
 
     N_total = property(__get_N_total)
 
@@ -123,11 +123,11 @@ cdef class NFFT:
     N = property(__get_N)
 
     def __get_dtype(self):
-        pass
+        return self._dtype
 
     dtype = property(__get_dtype)
 
     def __get_flags(self):
-        pass
+        return self._flags
 
     flags = property(__get_flags)

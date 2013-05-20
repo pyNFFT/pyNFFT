@@ -20,7 +20,6 @@ from distutils.extension import Extension
 
 import os
 import numpy
-import sys
 
 include_dirs = [numpy.get_include()]
 library_dirs = []
@@ -30,10 +29,14 @@ libraries = ['nfft3', 'nfft3_threads', 'm']
 
 ext_modules = [
     Extension('pynfft.nfft',
-        sources=[os.path.join('pynfft', 'nfft.c')],
-        libraries=libraries,
-        library_dirs=library_dirs,
-        include_dirs=include_dirs)]
+              sources=[os.path.join('pynfft', 'nfft.c')],
+              libraries=libraries,
+              library_dirs=library_dirs,
+              include_dirs=include_dirs,
+              extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
+                                 '-fstrict-aliasing -ffast-math'.split(),
+              )
+]
 
 long_description = ''''''
 
@@ -59,7 +62,6 @@ setup_args = {
         'Topic :: Scientific/Engineering :: Mathematics',
         'Topic :: Multimedia :: Sound/Audio :: Analysis',
     ],
-    'packages':['pyfftw', 'pyfftw.builders', 'pyfftw.interfaces'],
     'ext_modules': ext_modules,
     'include_dirs': include_dirs,
     'package_data': package_data,

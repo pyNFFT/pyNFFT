@@ -217,7 +217,10 @@ cdef class NFFT:
         return self._f
 
     def __set_f(self, new_f):
-        pass
+        if new_f is not None and new_f is not self._f:
+            if (<object>new_f).size != self._f.size:
+                raise ValueError("Incompatible input")
+            self._f[:] = new_f.ravel()[:]
 
     f = property(__get_f, __set_f)
 
@@ -225,7 +228,10 @@ cdef class NFFT:
         return self._f_hat
 
     def __set_f_hat(self, new_f_hat):
-        pass
+        if new_f_hat is not None and new_f_hat is not self._f_hat:
+            if (<object>new_f_hat).size != self._f_hat.size:
+                raise ValueError("Incompatible input")
+            self._f_hat[:] = new_f_hat.ravel()[:]
 
     f_hat = property(__get_f_hat, __set_f_hat)
 
@@ -233,7 +239,10 @@ cdef class NFFT:
         return self._x
 
     def __set_x(self, new_x):
-        pass
+        if new_x is not None and new_x is not self._x:
+            if (<object>new_x).size != self._x.size:
+                raise ValueError("Incompatible input")
+            self._x[:] = new_x.ravel()[:]
 
     x = property(__get_x, __set_x)
 

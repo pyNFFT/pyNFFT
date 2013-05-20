@@ -35,6 +35,8 @@ ext_modules = [
         library_dirs=library_dirs,
         include_dirs=include_dirs)]
 
+long_description = ''''''
+
 version = '0.1.0'
 
 setup_args = {

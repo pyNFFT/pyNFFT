@@ -20,6 +20,30 @@ from libc cimport limits
 from cnfft3 cimport *
 
 
+cdef object nfft_flags_dict
+nfft_flags_dict = {
+    'PRE_PHI_HUT':PRE_PHI_HUT,
+    'FG_PSI':FG_PSI,
+    'PRE_LIN_PSI':PRE_LIN_PSI,
+    'PRE_FG_PSI':PRE_FG_PSI,
+    'PRE_PSI':PRE_PSI,
+    'PRE_FULL_PSI':PRE_FULL_PSI,
+    'FFT_OUT_OF_PLACE':FFT_OUT_OF_PLACE,
+    'FFTW_INIT':FFTW_INIT,
+    'NFFT_SORT_NODES':NFFT_SORT_NODES,
+    'NFFT_OMP_BLOCKWISE_ADJOINT':NFFT_OMP_BLOCKWISE_ADJOINT,
+    'PRE_ONE_PSI':PRE_ONE_PSI,
+    }
+_nfft_flags_dict = nfft_flags_dict.copy()
+
+cdef object fftw_flags_dict
+fftw_flags_dict = {
+    'FFTW_ESTIMATE':FFTW_ESTIMATE,
+    'FFTW_DESTROY_INPUT':FFTW_DESTROY_INPUT,
+}
+_fftw_flags_dict = fftw_flags_dict.copy()
+
+
 cdef class NFFT:
 
     # where the C-related content of the class is being initialized

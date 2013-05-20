@@ -165,7 +165,8 @@ cdef class NFFT:
         self._flags = tuple(flags_used)
 
     # here, just holds the documentation of the class constructor
-    def __init__(self):
+    def __init__(self, N, M, n=None, m=12, dtype=None, flags=None,
+                 *args, **kwargs):
         pass
 
     # where the C-related content of the class needs to be cleaned

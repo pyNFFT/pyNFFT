@@ -28,17 +28,16 @@ package_data = {}
 libraries = ['nfft3', 'nfft3_threads', 'm']
 
 ext_modules = [
-    Extension('pynfft.nfft',
-              sources=[os.path.join('pynfft', 'nfft.c')],
-              libraries=libraries,
-              library_dirs=library_dirs,
-              include_dirs=include_dirs,
-              extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-                                 '-fstrict-aliasing -ffast-math'.split(),
-              )
+    Extension(
+        name='pynfft.nfft',
+        sources=[os.path.join('pynfft', 'nfft.c')],
+        libraries=libraries,
+        library_dirs=library_dirs,
+        include_dirs=include_dirs,
+        extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
+                           '-fstrict-aliasing -ffast-math'.split(),
+    )
 ]
-
-long_description = ''''''
 
 version = '0.1.0'
 
@@ -49,7 +48,6 @@ setup_args = {
     'author_email': 'ghislain.vaillant@kcl.ac.uk',
     'description': 'A pythonic wrapper around NFFT',
     'url': 'https://bitbucket.org/ghisvail/pynfft',
-    'long_description': long_description,
     'classifiers': [
         'Programming Language :: Python',
         'Programming Language :: Python :: 3',

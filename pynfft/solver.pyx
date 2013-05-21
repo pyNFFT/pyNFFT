@@ -13,7 +13,10 @@
 #
 # Ghislain Vaillant
 
+import numpy as np
+cimport numpy as np
 from cnfft3 cimport *
+from nfft cimport NFFT
 
 cdef object solver_flags_dict
 solver_flags_dict = {

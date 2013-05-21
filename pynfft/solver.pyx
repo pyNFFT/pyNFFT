@@ -99,6 +99,7 @@ cdef class Solver:
         shape[0] = _N_total
         self._f_hat_iter = np.PyArray_SimpleNewFromData(
             1, shape, np.NPY_COMPLEX128, <void *>self.__plan.f_hat_iter)
+        self._f_hat_iter[:] = 0  # initial guess
 
         shape[0] = _N_total
         self._z_hat_iter = np.PyArray_SimpleNewFromData(

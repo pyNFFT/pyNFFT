@@ -31,8 +31,58 @@ _solver_flags_dict = solver_flags_dict.copy()
 cdef class Solver:
 
     def __cinit__(self, nfft_plan, flags=None):
+
+        # flags management
+        flags_used = []
+        cdef unsigned int _solver_flags = 0
+
+        solver_flags = flags
+        if solver_flags is None:
+            solver_flags = (
+                    'CGNR',
+                    'PRECOMPUTE_WEIGHT',
+                    'PRECOMPUTE_DAMP',
+                    )
+
+        for each_flag in solver_flags:
+            try:
+                _solver_flags |= solver_flags_dict[each_flag]
+                flags_used.append(each_flag)
+            except KeyError:
+                raise ValueError('Invalid flag: ' + '\'' +
+                        each_flag + '\' is not a valid flag.')
+
+        # initialize plan
+        cdef NFFT _nfft_plan = nfft_plan
+        cdef int _M_total = _nfft_plan._M_total
+        cdef int _N_total = _nfft_plan._M_total
+
         solver_init_advanced_complex(
-            &self.__plan, <nfft_mv_plan_complex *>_mv, _flags)
+            &self.__plan, <nfft_mv_plan_complex *>(_nfft_plan.__plan),
+            _solver_flags)
+
+        self._dtype = _nfft_plan.dtype
+        self._flags = tuple(flags_used)
+
+        cdef np.npy_intp shape[1]
+        shape[0] = _M_total
+        self._w = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_FLOAT64, <void *>self.__plan.w)
+        shape[0] = _N_total
+        self._w_hat = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_FLOAT64, <void *>self.__plan.w_hat)
+        shape[0] = _M_total
+        self._y = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.y)
+        shape[0] = _N_total
+        self._f_hat_iter = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.f_hat_iter)
+        shape[0] = _M_total
+        self._r_iter = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.r_iter)
+        shape[0] = _N_total
+        self._p_hat_iter = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.p_hat_iter)
 
     def __init__(self, nfft_plan, flags=None):
         pass

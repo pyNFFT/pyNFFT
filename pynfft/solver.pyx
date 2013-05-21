@@ -30,20 +30,21 @@ _solver_flags_dict = solver_flags_dict.copy()
 
 cdef class Solver:
 
-    def __cinit__(self):
-        pass
+    def __cinit__(self, nfft_plan, flags=None):
+        solver_init_advanced_complex(
+            &self.__plan, <nfft_mv_plan_complex *>_mv, _flags)
 
-    def __init__(self):
+    def __init__(self, nfft_plan, flags=None):
         pass
 
     def __dealloc__(self):
-        pass
+        solver_finalize_complex(&self.__plan)
 
     cpdef before_loop(self):
-        pass
+        solver_before_loop_complex(&self.__plan)
 
     cpdef loop_one_step(self):
-        pass
+        solver_loop_one_step_complex(&self.__plan)
 
     def __get_w(self):
         pass

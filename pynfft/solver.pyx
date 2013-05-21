@@ -58,7 +58,7 @@ cdef class Solver:
         cdef int _N_total = _nfft_plan._M_total
 
         solver_init_advanced_complex(
-            &self.__plan, <nfft_mv_plan_complex *>(_nfft_plan.__plan),
+            &self.__plan, <nfft_mv_plan_complex *>&(_nfft_plan.__plan),
             _solver_flags)
 
         self._dtype = _nfft_plan.dtype

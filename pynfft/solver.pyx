@@ -77,19 +77,39 @@ cdef class Solver:
         cdef np.npy_intp shape[1]
         cdef int _M_total = _nfft_plan._M_total
         cdef int _N_total = _nfft_plan._N_total
+
         shape[0] = _M_total
         self._w = np.PyArray_SimpleNewFromData(
             1, shape, np.NPY_FLOAT64, <void *>self.__plan.w)
+
         shape[0] = _N_total
         self._w_hat = np.PyArray_SimpleNewFromData(
             1, shape, np.NPY_FLOAT64, <void *>self.__plan.w_hat)
+
         shape[0] = _M_total
         self._y = np.PyArray_SimpleNewFromData(
             1, shape, np.NPY_COMPLEX128, <void *>self.__plan.y)
+
+        shape[0] = _M_total
+        self._r_iter = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.r_iter)
+
         shape[0] = _N_total
         self._f_hat_iter = np.PyArray_SimpleNewFromData(
             1, shape, np.NPY_COMPLEX128, <void *>self.__plan.f_hat_iter)
+
+        shape[0] = _N_total
+        self._z_hat_iter = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.z_hat_iter)
+
+        shape[0] = _N_total
+        self._p_hat_iter = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.p_hat_iter)
+
         shape[0] = _M_total
+        self._v_iter = np.PyArray_SimpleNewFromData(
+            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.v_iter)
+
 
     def __init__(self, nfft_plan, flags=None):
         pass
@@ -125,6 +145,17 @@ cdef class Solver:
 
     w_hat = property(__get_w_hat, __set_w_hat)
 
+    def __get_y(self):
+        return self._y.copy()
+
+    def __set_y(self, new_y):
+        if new_y is not None and new_y is not self._y:
+            if (<object>new_y).size != self._y.size:
+                raise ValueError("Incompatible input")
+            self._y[:] = new_y.ravel()[:]
+
+    y = property(__get_y, __set_y)
+
     def __get_f_hat_iter(self):
         return self._f_hat_iter.copy()
 
@@ -136,3 +167,46 @@ cdef class Solver:
 
     f_hat_iter = property(__get_f_hat_iter, __set_f_hat_iter)
 
+    def __get_r_iter(self):
+        return self._r_iter.copy()
+
+    def __set_r_iter(self, new_r_iter):
+        if new_r_iter is not None and new_r_iter is not self._r_iter:
+            if (<object>new_r_iter).size != self._r_iter.size:
+                raise ValueError("Incompatible input")
+            self._r_iter[:] = new_r_iter.ravel()[:]
+
+    r_iter = property(__get_r_iter, __set_r_iter)
+
+    def __get_z_hat_iter(self):
+        return self._z_hat_iter.copy()
+
+    def __set_z_hat_iter(self, new_z_hat_iter):
+        if new_z_hat_iter is not None and new_z_hat_iter is not self._z_hat_iter:
+            if (<object>new_z_hat_iter).size != self._z_hat_iter.size:
+                raise ValueError("Incompatible input")
+            self._z_hat_iter[:] = new_z_hat_iter.ravel()[:]
+
+    z_hat_iter = property(__get_z_hat_iter, __set_z_hat_iter)
+
+    def __get_p_hat_iter(self):
+        return self._p_hat_iter.copy()
+
+    def __set_p_hat_iter(self, new_p_hat_iter):
+        if new_p_hat_iter is not None and new_p_hat_iter is not self._p_hat_iter:
+            if (<object>new_p_hat_iter).size != self._p_hat_iter.size:
+                raise ValueError("Incompatible input")
+            self._p_hat_iter[:] = new_p_hat_iter.ravel()[:]
+
+    p_hat_iter = property(__get_p_hat_iter, __set_p_hat_iter)
+
+    def __get_v_iter(self):
+        return self._v_iter.copy()
+
+    def __set_v_iter(self, new_v_iter):
+        if new_v_iter is not None and new_v_iter is not self._v_iter:
+            if (<object>new_v_iter).size != self._v_iter.size:
+                raise ValueError("Incompatible input")
+            self._v_iter[:] = new_v_iter.ravel()[:]
+
+    v_iter = property(__get_v_iter, __set_v_iter)

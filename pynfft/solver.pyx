@@ -81,10 +81,12 @@ cdef class Solver:
         shape[0] = _M_total
         self._w = np.PyArray_SimpleNewFromData(
             1, shape, np.NPY_FLOAT64, <void *>self.__plan.w)
+        self._w[:] = 1  # make sure weights are initialized
 
         shape[0] = _N_total
         self._w_hat = np.PyArray_SimpleNewFromData(
             1, shape, np.NPY_FLOAT64, <void *>self.__plan.w_hat)
+        self._w_hat[:] = 1  # make sure weights are initialized
 
         shape[0] = _M_total
         self._y = np.PyArray_SimpleNewFromData(

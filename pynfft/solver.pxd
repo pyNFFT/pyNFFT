@@ -13,3 +13,17 @@
 #
 # Ghislain Vaillant
 
+from cnfft3 cimport solver_plan_complex
+
+cdef class Solver:
+    cdef solver_plan_complex __plan
+    cdef object _w
+    cdef object _w_hat
+    cdef object _y
+    cdef object _f_hat_iter
+    cdef object _r_iter
+    cdef object _p_hat_iter
+    cdef object _dtype
+    cdef object _flags
+    cpdef before_loop(self)
+    cpdef loop_one_step(self)

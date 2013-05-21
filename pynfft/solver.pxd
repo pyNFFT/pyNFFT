@@ -17,14 +17,14 @@ from cnfft3 cimport solver_plan_complex
 
 cdef class Solver:
     cdef solver_plan_complex __plan
-    cdef object *w
-    cdef object *w_hat
-    cdef object *y
-    cdef object *f_hat_iter
-    cdef object *r_iter
-    cdef object *z_hat_iter
-    cdef object *p_hat_iter
-    cdef object *v_iter
+    cdef object _w
+    cdef object _w_hat
+    cdef object _y
+    cdef object _f_hat_iter
+    cdef object _r_iter
+    cdef object _z_hat_iter
+    cdef object _p_hat_iter
+    cdef object _v_iter
     cdef object _dtype
     cdef object _flags
     cpdef before_loop(self)

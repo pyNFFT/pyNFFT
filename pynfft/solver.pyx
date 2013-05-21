@@ -31,6 +31,11 @@ solver_flags_dict = {
 _solver_flags_dict = solver_flags_dict.copy()
 
 
+# Numpy must be initialized. When using numpy from C or Cython you must
+# _always_ do that, or you will have segfaults
+np.import_array()
+
+
 cdef class Solver:
 
     def __cinit__(self, nfft_plan, flags=None):
@@ -57,17 +62,21 @@ cdef class Solver:
 
         # initialize plan
         cdef NFFT _nfft_plan = nfft_plan
-        cdef int _M_total = _nfft_plan._M_total
-        cdef int _N_total = _nfft_plan._M_total
+        cdef solver_plan_complex *_plan = &self.__plan
+        cdef nfft_mv_plan_complex *_mv = (
+            <nfft_mv_plan_complex *>&(_nfft_plan.__plan))
 
-        solver_init_advanced_complex(
-            &self.__plan, <nfft_mv_plan_complex *>&(_nfft_plan.__plan),
-            _solver_flags)
+        try:
+            solver_init_advanced_complex(_plan, _mv, _solver_flags)
+        except:
+            raise MemoryError
 
-        self._dtype = _nfft_plan.dtype
+        self._dtype = _nfft_plan._dtype
         self._flags = tuple(flags_used)
 
         cdef np.npy_intp shape[1]
+        cdef int _M_total = _nfft_plan._M_total
+        cdef int _N_total = _nfft_plan._N_total
         shape[0] = _M_total
         self._w = np.PyArray_SimpleNewFromData(
             1, shape, np.NPY_FLOAT64, <void *>self.__plan.w)
@@ -81,11 +90,6 @@ cdef class Solver:
         self._f_hat_iter = np.PyArray_SimpleNewFromData(
             1, shape, np.NPY_COMPLEX128, <void *>self.__plan.f_hat_iter)
         shape[0] = _M_total
-        self._r_iter = np.PyArray_SimpleNewFromData(
-            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.r_iter)
-        shape[0] = _N_total
-        self._p_hat_iter = np.PyArray_SimpleNewFromData(
-            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.p_hat_iter)
 
     def __init__(self, nfft_plan, flags=None):
         pass
@@ -132,24 +136,3 @@ cdef class Solver:
 
     f_hat_iter = property(__get_f_hat_iter, __set_f_hat_iter)
 
-    def __get_r_iter(self):
-        return self._r_iter.copy()
-
-    def __set_r_iter(self, new_r_iter):
-        if new_r_iter is not None and new_r_iter is not self._r_iter:
-            if (<object>new_r_iter).size != self._r_iter.size:
-                raise ValueError("Incompatible input")
-            self._r_iter[:] = new_r_iter.ravel()[:]
-
-    r_iter = property(__get_r_iter, __set_r_iter)
-
-    def __get_p_hat_iter(self):
-        return self._p_hat_iter.copy()
-
-    def __set_p_hat_iter(self, new_p_hat_iter):
-        if new_p_hat_iter is not None and new_p_hat_iter is not self._p_hat_iter:
-            if (<object>new_p_hat_iter).size != self._p_hat_iter.size:
-                raise ValueError("Incompatible input")
-            self._p_hat_iter[:] = new_p_hat_iter.ravel()[:]
-
-    p_hat_iter = property(__get_p_hat_iter, __set_p_hat_iter)

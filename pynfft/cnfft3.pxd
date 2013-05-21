@@ -102,18 +102,40 @@ cdef extern from "nfft3.h":
     ctypedef struct solver_plan_complex:
         nfft_mv_plan_complex *mv
             # matrix vector multiplication.
+        unsigned flags
+            # iteration type
         double *w
-            # weighting factors.
+            # weighting factors
         double *w_hat
-            # damping factors.
+            # damping factors
         fftw_complex *y
-            # right hand side, samples.
+            # right hand side, samples
         fftw_complex *f_hat_iter
-            # iterative solution.
+            # iterative solution
         fftw_complex *r_iter
-            # iterated residual vector.
+            # iterated residual vector
+        fftw_complex *z_hat_iter
+            # residual of normal equation of \ first kind
         fftw_complex *p_hat_iter
             # search direction.
+        fftw_complex *v_iter
+            # residual vector update
+        double alpha_iter
+            #  step size for search direction
+        double beta_iter
+            #  step size for search correction
+        double dot_r_iter
+            #  weighted dotproduct of r_iter
+        double dot_r_iter_old
+            #  previous dot_r_iter
+        double dot_z_hat_iter
+            #  weighted dotproduct of \ z_hat_iter
+        double dot_z_hat_iter_old
+            #  previous dot_z_hat_iter
+        double dot_p_hat_iter
+            #  weighted dotproduct of \ p_hat_iter
+        double dot_v_iter
+            # weighted dotproduct of v_iter
 
     void solver_init_advanced_complex(solver_plan_complex *ths,
                                       nfft_mv_plan_complex *mv,

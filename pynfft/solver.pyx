@@ -97,41 +97,56 @@ cdef class Solver:
         solver_loop_one_step_complex(&self.__plan)
 
     def __get_w(self):
-        pass
+        return self._w.copy()
 
     def __set_w(self, new_w):
-        pass
+        if new_w is not None and new_w is not self._w:
+            if (<object>new_w).size != self._w.size:
+                raise ValueError("Incompatible input")
+            self._w[:] = new_w.ravel()[:]
 
     w = property(__get_w, __set_w)
 
     def __get_w_hat(self):
-        pass
+        return self._w_hat.copy()
 
     def __set_w_hat(self, new_w_hat):
-        pass
+        if new_w_hat is not None and new_w_hat is not self._w_hat:
+            if (<object>new_w_hat).size != self._w_hat.size:
+                raise ValueError("Incompatible input")
+            self._w_hat[:] = new_w_hat.ravel()[:]
 
     w_hat = property(__get_w_hat, __set_w_hat)
 
     def __get_f_hat_iter(self):
-        pass
+        return self._f_hat_iter.copy()
 
     def __set_f_hat_iter(self, new_f_hat_iter):
-        pass
+        if new_f_hat_iter is not None and new_f_hat_iter is not self._f_hat_iter:
+            if (<object>new_f_hat_iter).size != self._f_hat_iter.size:
+                raise ValueError("Incompatible input")
+            self._f_hat_iter[:] = new_f_hat_iter.ravel()[:]
 
     f_hat_iter = property(__get_f_hat_iter, __set_f_hat_iter)
 
     def __get_r_iter(self):
-        pass
+        return self._r_iter.copy()
 
     def __set_r_iter(self, new_r_iter):
-        pass
+        if new_r_iter is not None and new_r_iter is not self._r_iter:
+            if (<object>new_r_iter).size != self._r_iter.size:
+                raise ValueError("Incompatible input")
+            self._r_iter[:] = new_r_iter.ravel()[:]
 
     r_iter = property(__get_r_iter, __set_r_iter)
 
     def __get_p_hat_iter(self):
-        pass
+        return self._p_hat_iter.copy()
 
     def __set_p_hat_iter(self, new_p_hat_iter):
-        pass
+        if new_p_hat_iter is not None and new_p_hat_iter is not self._p_hat_iter:
+            if (<object>new_p_hat_iter).size != self._p_hat_iter.size:
+                raise ValueError("Incompatible input")
+            self._p_hat_iter[:] = new_p_hat_iter.ravel()[:]
 
     p_hat_iter = property(__get_p_hat_iter, __set_p_hat_iter)

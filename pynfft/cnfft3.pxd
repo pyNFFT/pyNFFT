@@ -83,6 +83,17 @@ cdef extern from "nfft3.h":
     void nfft_finalize (nfft_plan *ths)
         # Destroys a transform plan.
 
+
+    ctypedef enum:
+        # precomputation flags for solver
+        LANDWEBER             #(1U<< 0)
+        STEEPEST_DESCENT      #(1U<< 1)
+        CGNR                  #(1U<< 2)
+        CGNE                  #(1U<< 3)
+        NORMS_FOR_LANDWEBER   #(1U<< 4)
+        PRECOMPUTE_WEIGHT     #(1U<< 5)
+        PRECOMPUTE_DAMP       #(1U<< 6)
+
     # stripped down alias of a NFFT plan used by solver
     ctypedef struct nfft_mv_plan_complex:
         pass

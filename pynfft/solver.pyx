@@ -172,46 +172,22 @@ cdef class Solver:
     def __get_r_iter(self):
         return self._r_iter.copy()
 
-    def __set_r_iter(self, new_r_iter):
-        if new_r_iter is not None and new_r_iter is not self._r_iter:
-            if (<object>new_r_iter).size != self._r_iter.size:
-                raise ValueError("Incompatible input")
-            self._r_iter[:] = new_r_iter.ravel()[:]
-
-    r_iter = property(__get_r_iter, __set_r_iter)
+    r_iter = property(__get_r_iter)
 
     def __get_z_hat_iter(self):
         return self._z_hat_iter.copy()
 
-    def __set_z_hat_iter(self, new_z_hat_iter):
-        if new_z_hat_iter is not None and new_z_hat_iter is not self._z_hat_iter:
-            if (<object>new_z_hat_iter).size != self._z_hat_iter.size:
-                raise ValueError("Incompatible input")
-            self._z_hat_iter[:] = new_z_hat_iter.ravel()[:]
-
-    z_hat_iter = property(__get_z_hat_iter, __set_z_hat_iter)
+    z_hat_iter = property(__get_z_hat_iter)
 
     def __get_p_hat_iter(self):
         return self._p_hat_iter.copy()
 
-    def __set_p_hat_iter(self, new_p_hat_iter):
-        if new_p_hat_iter is not None and new_p_hat_iter is not self._p_hat_iter:
-            if (<object>new_p_hat_iter).size != self._p_hat_iter.size:
-                raise ValueError("Incompatible input")
-            self._p_hat_iter[:] = new_p_hat_iter.ravel()[:]
-
-    p_hat_iter = property(__get_p_hat_iter, __set_p_hat_iter)
+    p_hat_iter = property(__get_p_hat_iter)
 
     def __get_v_iter(self):
         return self._v_iter.copy()
 
-    def __set_v_iter(self, new_v_iter):
-        if new_v_iter is not None and new_v_iter is not self._v_iter:
-            if (<object>new_v_iter).size != self._v_iter.size:
-                raise ValueError("Incompatible input")
-            self._v_iter[:] = new_v_iter.ravel()[:]
-
-    v_iter = property(__get_v_iter, __set_v_iter)
+    v_iter = property(__get_v_iter)
 
     def __get_alpha_iter(self):
         return self.__plan.alpha_iter

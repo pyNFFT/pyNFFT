@@ -6,4 +6,4 @@
 *.so
 build/
 dist/
-pynfft.egg-info/
+*.egg-info/

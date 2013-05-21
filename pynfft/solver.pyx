@@ -13,6 +13,21 @@
 #
 # Ghislain Vaillant
 
+from cnfft3 cimport *
+
+cdef object solver_flags_dict
+solver_flags_dict = {
+    'LANDWEBER':LANDWEBER,
+    'STEEPEST_DESCENT':STEEPEST_DESCENT,
+    'CGNR':CGNR,
+    'CGNE':CGNE,
+    'NORMS_FOR_LANDWEBER':NORMS_FOR_LANDWEBER,
+    'PRECOMPUTE_WEIGHT':PRECOMPUTE_WEIGHT,
+    'PRECOMPUTE_DAMP':PRECOMPUTE_DAMP,
+    }
+_solver_flags_dict = solver_flags_dict.copy()
+
+
 cdef class Solver:
 
     def __cinit__(self):

@@ -210,3 +210,43 @@ cdef class Solver:
             self._v_iter[:] = new_v_iter.ravel()[:]
 
     v_iter = property(__get_v_iter, __set_v_iter)
+
+    def __get_alpha_iter(self):
+        return self.__plan.alpha_iter
+
+    alpha_iter = property(__get_alpha_iter)
+
+    def __get_beta_iter(self):
+        return self.__plan.beta_iter
+
+    beta_iter = property(__get_beta_iter)
+
+    def __get_dot_r_iter(self):
+        return self.__plan.dot_r_iter
+
+    dot_r_iter = property(__get_dot_r_iter)
+
+    def __get_dot_r_iter_old(self):
+        return self.__plan.dot_r_iter_old
+
+    dot_r_iter_old = property(__get_dot_r_iter_old)
+
+    def __get_dot_z_hat_iter(self):
+        return self.__plan.dot_z_hat_iter
+
+    dot_z_hat_iter = property(__get_dot_z_hat_iter)
+
+    def __get_dot_z_hat_iter_old(self):
+        return self.__plan.dot_z_hat_iter_old
+
+    dot_z_hat_iter_old = property(__get_dot_z_hat_iter_old)
+
+    def __get_dot_p_hat_iter(self):
+        return self.__plan.dot_p_hat_iter
+
+    dot_p_hat_iter = property(__get_dot_p_hat_iter)
+
+    def __get_dot_v_iter(self):
+        return self.__plan.dot_v_iter
+
+    dot_v_iter = property(__get_dot_v_iter)

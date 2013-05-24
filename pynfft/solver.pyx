@@ -46,11 +46,7 @@ cdef class Solver:
 
         solver_flags = flags
         if solver_flags is None:
-            solver_flags = (
-                    'CGNR',
-                    'PRECOMPUTE_WEIGHT',
-                    'PRECOMPUTE_DAMP',
-                    )
+            solver_flags = ('CGNR', 'PRECOMPUTE_WEIGHT', 'PRECOMPUTE_DAMP',)
 
         for each_flag in solver_flags:
             try:

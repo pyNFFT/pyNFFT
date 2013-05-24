@@ -69,8 +69,6 @@ def check_a_plan(pw, x_data, f_hat_data, f_data, adjoint_f_hat_data):
     assert_array_almost_equal(_x, x_data)
 
     # precompute psi, the entries of the matrix B
-    #if pw.nfft_flags & PRE_ONE_PSI:
-    #    pw.nfft_precompute_one_psi()
     pw.precompute()
 
     # init pseudo random Fourier coefficients and check their values took:
@@ -79,7 +77,6 @@ def check_a_plan(pw, x_data, f_hat_data, f_data, adjoint_f_hat_data):
     assert_array_almost_equal(_f_hat, f_hat_data)
 
     # direct trafo and test the result
-    #pw.ndft_trafo()
     pw.trafo_direct()
     _f = pw.f
     assert_array_almost_equal(_f, f_data)
@@ -87,13 +84,11 @@ def check_a_plan(pw, x_data, f_hat_data, f_data, adjoint_f_hat_data):
     # approx. trafo and check the result
     # first clear the result array to be sure that it is actually touched.
     pw.f = np.zeros_like(f_data)
-    #pw.nfft_trafo()
     pw.trafo()
     _f2 = pw.f
     assert_array_almost_equal(_f2, f_data)
 
     # direct adjoint and check the result
-    #pw.ndft_adjoint()
     pw.adjoint_direct()
     _f_hat2 = pw.f_hat
     assert_array_almost_equal(_f_hat2, adjoint_f_hat_data)
@@ -101,18 +96,9 @@ def check_a_plan(pw, x_data, f_hat_data, f_data, adjoint_f_hat_data):
     # approx. adjoint and check the result.
     # first clear the result array to be sure that it is actually touched.
     pw.f_hat = np.zeros_like(f_hat_data)
-    #pw.nfft_adjoint()
     pw.adjoint()
     _f_hat3 = pw.f_hat
     assert_array_almost_equal(_f_hat3, adjoint_f_hat_data)
-
-    # finalise (destroy) the 1D plan
-    #pw.nfft_finalize()
-
-    # check that instance is no longer usable:
-    #assert_raises( RuntimeError, pw.nfft_finalize)
-    #assert_raises( RuntimeError, pw.nfft_trafo)
-    #assert_raises( RuntimeError, lambda : pw.M_total)
 
 
 def read_and_check(pw, data_filename):
@@ -129,7 +115,6 @@ def test_nfft_1d():
     for data_file in ('simple_test_nfft_1d_32.txt',
                       'simple_test_nfft_1d_64.txt'):
         # init a one dimensional plan
-        #pw = NfftPlanWrapper.nfft_init_1d(N, M)
         pw = nfft.NFFT(N, M)
         assert_equal(pw.M_total, M)
         assert_equal(pw.N_total, N)
@@ -148,16 +133,11 @@ def test_nfft_2d():
                       'simple_test_nfft_2d_64.txt'):
 
         # init a two dimensional plan
-        #pw = NfftPlanWrapper.nfft_init_guru(2, N, M, n, 7,
-        #        PRE_PHI_HUT| PRE_FULL_PSI| MALLOC_F_HAT| MALLOC_X| MALLOC_F |
-        #        FFTW_INIT| FFT_OUT_OF_PLACE,
-        #        FFTW_ESTIMATE| FFTW_DESTROY_INPUT)
         flags = ('PRE_PHI_HUT', 'PRE_FULL_PSI', 'MALLOC_F_HAT', 'MALLOC_X',
                  'MALLOC_F', 'FFTW_INIT', 'FFT_OUT_OF_PLACE')
         pw = nfft.NFFT(N, M, n, m=7, flags=flags)
 
         assert_equal(pw.M_total, M)
-        #assert_equal(pw.N_total, M)  # ???? True in this case, but why ????
         assert_equal(pw.d, 2)
         read_and_check(pw, data_file)
 

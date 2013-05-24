@@ -16,9 +16,6 @@
 
 cdef extern from "nfft3.h":
 
-    # enums
-    # =====
-
     # precomputation flags for the NFFT component
     ctypedef enum:
         PRE_PHI_HUT      #(1U<< 0)
@@ -40,10 +37,6 @@ cdef extern from "nfft3.h":
     ctypedef enum:
         FFTW_ESTIMATE
         FFTW_DESTROY_INPUT
-
-
-    # structs and types
-    # =================
 
     # double precision complex type
     ctypedef double fftw_complex[2]
@@ -68,10 +61,6 @@ cdef extern from "nfft3.h":
         double *x
             # Nodes in time/spatial domain, size is $dM$ doubles.
 
-
-    # functions
-    # =========
-
     void nfft_trafo_direct (nfft_plan *ths) nogil
         # Computes a NDFT.
 
@@ -93,3 +82,71 @@ cdef extern from "nfft3.h":
 
     void nfft_finalize (nfft_plan *ths)
         # Destroys a transform plan.
+
+
+    ctypedef enum:
+        # precomputation flags for solver
+        LANDWEBER             #(1U<< 0)
+        STEEPEST_DESCENT      #(1U<< 1)
+        CGNR                  #(1U<< 2)
+        CGNE                  #(1U<< 3)
+        NORMS_FOR_LANDWEBER   #(1U<< 4)
+        PRECOMPUTE_WEIGHT     #(1U<< 5)
+        PRECOMPUTE_DAMP       #(1U<< 6)
+
+    # stripped down alias of a NFFT plan used by solver
+    ctypedef struct nfft_mv_plan_complex:
+        pass
+
+    # complex solver plan
+    ctypedef struct solver_plan_complex:
+        nfft_mv_plan_complex *mv
+            # matrix vector multiplication.
+        unsigned flags
+            # iteration type
+        double *w
+            # weighting factors
+        double *w_hat
+            # damping factors
+        fftw_complex *y
+            # right hand side, samples
+        fftw_complex *f_hat_iter
+            # iterative solution
+        fftw_complex *r_iter
+            # iterated residual vector
+        fftw_complex *z_hat_iter
+            # residual of normal equation of \ first kind
+        fftw_complex *p_hat_iter
+            # search direction.
+        fftw_complex *v_iter
+            # residual vector update
+        double alpha_iter
+            #  step size for search direction
+        double beta_iter
+            #  step size for search correction
+        double dot_r_iter
+            #  weighted dotproduct of r_iter
+        double dot_r_iter_old
+            #  previous dot_r_iter
+        double dot_z_hat_iter
+            #  weighted dotproduct of \ z_hat_iter
+        double dot_z_hat_iter_old
+            #  previous dot_z_hat_iter
+        double dot_p_hat_iter
+            #  weighted dotproduct of \ p_hat_iter
+        double dot_v_iter
+            # weighted dotproduct of v_iter
+
+    void solver_init_advanced_complex(solver_plan_complex *ths,
+                                      nfft_mv_plan_complex *mv,
+                                      unsigned flags)
+        # Advanced initialisation.
+
+    void solver_before_loop_complex(solver_plan_complex *ths)
+        # Setting up residuals before the actual iteration.
+
+    void solver_loop_one_step_complex(solver_plan_complex *ths)
+        # Doing one step in the iteration.
+
+    void solver_finalize_complex(solver_plan_complex *ths)
+        # Destroys the plan for the inverse transform.

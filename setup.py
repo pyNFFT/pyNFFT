@@ -36,10 +36,19 @@ ext_modules = [
         include_dirs=include_dirs,
         extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
                            '-fstrict-aliasing -ffast-math'.split(),
-    )
+    ),
+    Extension(
+        name='pynfft.solver',
+        sources=[os.path.join('pynfft', 'solver.c')],
+        libraries=libraries,
+        library_dirs=library_dirs,
+        include_dirs=include_dirs,
+        extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
+                           '-fstrict-aliasing -ffast-math'.split(),
+    ),
 ]
 
-version = '0.1.1'
+version = '0.2.0'
 
 setup_args = {
     'name': 'pyNFFT',
@@ -60,7 +69,7 @@ setup_args = {
         'Topic :: Scientific/Engineering :: Mathematics',
         'Topic :: Multimedia :: Sound/Audio :: Analysis',
     ],
-    'packages': ['pynfft',],
+    'packages': ['pynfft'],
     'ext_modules': ext_modules,
     'include_dirs': include_dirs,
     'package_data': package_data,

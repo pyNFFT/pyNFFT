@@ -54,7 +54,10 @@ np.import_array()
 
 
 cdef class NFFT:
-
+    '''
+    NFFT is a class for computing the multivariate non-uniform Fourier \
+    transform using a fast algortihm.
+    '''
     # where the C-related content of the class is being initialized
     def __cinit__(self, N, M, n=None, m=12, dtype=None, flags=None,
                   *args, **kwargs):
@@ -192,6 +195,24 @@ cdef class NFFT:
     # here, just holds the documentation of the class constructor
     def __init__(self, N, M, n=None, m=12, dtype=None, flags=None,
                  *args, **kwargs):
+        '''
+        Initialize a NFFT plan
+
+        Args
+            N (tuple or int): multivariate bandwith
+            M (int): number of samples
+
+        Kwargs
+            n (tuple or int): size of multivariate FFT, including overgridding
+            m (int): cut-off parameter of the window function
+            dtype (string): desired floating precision
+            flags (tuple): desired computation flags
+
+        Raises
+            MemoryError, ValueError
+
+        >>> Nfft = pynfft.nfft.NFFT((16, 16), 96)
+        '''
         pass
 
     # where the C-related content of the class needs to be cleaned

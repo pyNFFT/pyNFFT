@@ -1,1 +1,13 @@
-README.rst
+pyNFFT - Cython wrapper around the NFFT library
+===============================================
+
+"The NFFT is a C subroutine library for computing the nonequispaced discrete
+Fourier transform (NDFT) in one or more dimensions, of arbitrary input size,
+and of complex data."
+
+The NFFT library is licensed under GPLv2 and available at:
+http://www-user.tu-chemnitz.de/~potts/nfft/index.php
+
+This wrapper provides a somewhat Pythonic access to some of the core NFFT 
+library features and is largely inspired from the pyFFTW project developped by 
+Henry Gomersall (http://hgomersall.github.io/pyFFTW/).

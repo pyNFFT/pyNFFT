@@ -56,8 +56,8 @@ np.import_array()
 cdef class NFFT:
 
     # where the C-related content of the class is being initialized
-    def __cinit__(self, N, M, n=None, m=12, dtype=None, flags=None,
-                  *args, **kwargs):
+    def __cinit__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
+                  dtype=None, flags=None, *args, **kwargs):
         # NOTE: use of reshape([-1, 1]) to avoid working with 0-d arrays which
         # cannot be indexed explictly
         N = np.asarray(N).reshape([-1, 1])

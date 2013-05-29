@@ -114,20 +114,23 @@ cdef class NFFT:
                               'NFFT_SORT_NODES',
                               'NFFT_OMP_BLOCKWISE_ADJOINT',
                               'FFTW_ESTIMATE',
-                              'FFTW_DESTROY_INPUT',
-                              'MALLOC_X',
-                              'MALLOC_F',
-                              'MALLOC_F_HAT',)
+                              'FFTW_DESTROY_INPUT',)
             else:
                 nfft_flags = ('PRE_PHI_HUT',
                               'PRE_PSI',
                               'FFTW_INIT',
                               'FFT_OUT_OF_PLACE',
                               'FFTW_ESTIMATE',
-                              'FFTW_DESTROY_INPUT',
-                              'MALLOC_X',
-                              'MALLOC_F',
-                              'MALLOC_F_HAT',)
+                              'FFTW_DESTROY_INPUT',)
+
+        if x is None:
+            nfft_flags = nfft_flags + ('MALLOC_X',)
+
+        if f is None:
+            nfft_flags = nfft_flags + ('MALLOC_F',)
+
+        if f_hat is None:
+            nfft_flags = nfft_flags + ('MALLOC_F_HAT',)
 
         for each_flag in nfft_flags:
             try:

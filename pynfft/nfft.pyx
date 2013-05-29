@@ -203,7 +203,7 @@ cdef class NFFT:
         self._M_total = self.__plan.M_total
         self._N_total = self.__plan.N_total
         self._N = self.__plan.N
-        self._dtype = np.dtype(dtype) if dtype is not None else np.float64
+        self._dtype = np.float64
         self._flags = tuple(flags_used)
 
         # link external arrays to plan internals

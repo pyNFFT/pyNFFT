@@ -206,6 +206,14 @@ cdef class NFFT:
         self._dtype = np.dtype(dtype) if dtype is not None else np.float64
         self._flags = tuple(flags_used)
 
+        # link internal plan pointers to external arrays
+        if x is not None:
+            self._plan.x = <double *>np.PyArray_DATA(x)
+        if f is not None:
+            self._plan.f = <fftw_complex *>np.PyArray_DATA(f)
+        if f_hat is not None:
+            self._plan.f_hat = <fftw_complex *>np.PyArray_DATA(f_hat)
+
         cdef np.npy_intp shape[1]
         shape[0] = self._d * self._M_total
         self._x = np.PyArray_SimpleNewFromData(

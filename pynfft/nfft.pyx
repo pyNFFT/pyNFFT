@@ -102,7 +102,7 @@ cdef class NFFT:
                 raise ValueError('x array must be contiguous')
             if x.dtype != np.float64:
                 raise ValueError('x must be of type float64')
-            if x.size != M_total * d
+            if x.size != M_total * d:
                 raise ValueError('x must be of size %d'%(M_total * d))
 
         if f is not None:
@@ -110,7 +110,7 @@ cdef class NFFT:
                 raise ValueError('f array must be contiguous')
             if f.dtype != np.complex128:
                 raise ValueError('f must be of type float64')
-            if f.size != M_total
+            if f.size != M_total:
                 raise ValueError('f must be of size %d'%(M_total))
 
         if f_hat is not None:
@@ -118,7 +118,7 @@ cdef class NFFT:
                 raise ValueError('f_hat array must be contiguous')
             if f_hat.dtype != np.complex128:
                 raise ValueError('f_hat must be of type float64')
-            if f_hat.size != M_total
+            if f_hat.size != M_total:
                 raise ValueError('f_hat must be of size %d'%(N_total))
 
         # convert tuple of litteral precomputation flags to its expected

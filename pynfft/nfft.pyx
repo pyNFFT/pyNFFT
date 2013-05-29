@@ -251,7 +251,7 @@ cdef class NFFT:
         nfft_adjoint_direct(&self.__plan)
 
     def __get_f(self):
-        return self._f.copy()
+        return self._f
 
     def __set_f(self, new_f):
         self._f[:] = new_f.ravel()[:]
@@ -259,7 +259,7 @@ cdef class NFFT:
     f = property(__get_f, __set_f)
 
     def __get_f_hat(self):
-        return self._f_hat.copy()
+        return self._f_hat
 
     def __set_f_hat(self, new_f_hat):
         self._f_hat[:] = new_f_hat.ravel()[:]
@@ -267,7 +267,7 @@ cdef class NFFT:
     f_hat = property(__get_f_hat, __set_f_hat)
 
     def __get_x(self):
-        return self._x.copy()
+        return self._x
 
     def __set_x(self, new_x):
         self._x[:] = new_x.ravel()[:]

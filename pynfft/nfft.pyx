@@ -227,8 +227,8 @@ cdef class NFFT:
             1, shape, np.NPY_COMPLEX128, <void *>self.__plan.f_hat)
 
     # here, just holds the documentation of the class constructor
-    def __init__(self, N, M, n=None, m=12, dtype=None, flags=None,
-                 *args, **kwargs):
+    def __init__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
+                 dtype=None, flags=None, *args, **kwargs):
         pass
 
     # where the C-related content of the class needs to be cleaned

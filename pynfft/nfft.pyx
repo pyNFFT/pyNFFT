@@ -56,8 +56,8 @@ np.import_array()
 cdef class NFFT:
 
     # where the C-related content of the class is being initialized
-    def __cinit__(self, N, M, n=None, m=12, dtype=None, flags=None,
-                  *args, **kwargs):
+    def __cinit__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
+                  dtype=None, flags=None, *args, **kwargs):
         # NOTE: use of reshape([-1, 1]) to avoid working with 0-d arrays which
         # cannot be indexed explictly
         N = np.asarray(N).reshape([-1, 1])
@@ -96,6 +96,31 @@ cdef class NFFT:
         if N_total[0, 0] >= <Py_ssize_t>limits.INT_MAX:
             raise ValueError('M must be less than ', str(limits.INT_MAX))
 
+        # if external arrays are provided, checks whether they are compatible
+        if x is not None:
+            if x.flags.c_contiguous:
+                raise ValueError('x array must be contiguous')
+            if x.dtype != np.float64:
+                raise ValueError('x must be of type float64')
+            if x.size != M_total * d:
+                raise ValueError('x must be of size %d'%(M_total * d))
+
+        if f is not None:
+            if f.flags.c_contiguous:
+                raise ValueError('f array must be contiguous')
+            if f.dtype != np.complex128:
+                raise ValueError('f must be of type float64')
+            if f.size != M_total:
+                raise ValueError('f must be of size %d'%(M_total))
+
+        if f_hat is not None:
+            if f_hat.flags.c_contiguous:
+                raise ValueError('f_hat array must be contiguous')
+            if f_hat.dtype != np.complex128:
+                raise ValueError('f_hat must be of type float64')
+            if f_hat.size != N_total:
+                raise ValueError('f_hat must be of size %d'%(N_total))
+
         # convert tuple of litteral precomputation flags to its expected
         # C-compatible value. Each flag is a power of 2, which allows to compute
         # this value using BITOR operations.
@@ -114,20 +139,23 @@ cdef class NFFT:
                               'NFFT_SORT_NODES',
                               'NFFT_OMP_BLOCKWISE_ADJOINT',
                               'FFTW_ESTIMATE',
-                              'FFTW_DESTROY_INPUT',
-                              'MALLOC_X',
-                              'MALLOC_F',
-                              'MALLOC_F_HAT',)
+                              'FFTW_DESTROY_INPUT',)
             else:
                 nfft_flags = ('PRE_PHI_HUT',
                               'PRE_PSI',
                               'FFTW_INIT',
                               'FFT_OUT_OF_PLACE',
                               'FFTW_ESTIMATE',
-                              'FFTW_DESTROY_INPUT',
-                              'MALLOC_X',
-                              'MALLOC_F',
-                              'MALLOC_F_HAT',)
+                              'FFTW_DESTROY_INPUT',)
+
+        if x is None:
+            nfft_flags = nfft_flags + ('MALLOC_X',)
+
+        if f is None:
+            nfft_flags = nfft_flags + ('MALLOC_F',)
+
+        if f_hat is None:
+            nfft_flags = nfft_flags + ('MALLOC_F_HAT',)
 
         for each_flag in nfft_flags:
             try:
@@ -175,9 +203,18 @@ cdef class NFFT:
         self._M_total = self.__plan.M_total
         self._N_total = self.__plan.N_total
         self._N = self.__plan.N
-        self._dtype = np.dtype(dtype) if dtype is not None else np.float64
+        self._dtype = np.float64
         self._flags = tuple(flags_used)
 
+        # link external arrays to plan internals
+        if x is not None:
+            self.__plan.x = <double *>np.PyArray_DATA(x)
+        if f is not None:
+            self.__plan.f = <fftw_complex *>np.PyArray_DATA(f)
+        if f_hat is not None:
+            self.__plan.f_hat = <fftw_complex *>np.PyArray_DATA(f_hat)
+
+        # set views for plan internals
         cdef np.npy_intp shape[1]
         shape[0] = self._d * self._M_total
         self._x = np.PyArray_SimpleNewFromData(
@@ -190,8 +227,8 @@ cdef class NFFT:
             1, shape, np.NPY_COMPLEX128, <void *>self.__plan.f_hat)
 
     # here, just holds the documentation of the class constructor
-    def __init__(self, N, M, n=None, m=12, dtype=None, flags=None,
-                 *args, **kwargs):
+    def __init__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
+                 dtype=None, flags=None, *args, **kwargs):
         pass
 
     # where the C-related content of the class needs to be cleaned
@@ -214,35 +251,26 @@ cdef class NFFT:
         nfft_adjoint_direct(&self.__plan)
 
     def __get_f(self):
-        return self._f.copy()
+        return self._f
 
     def __set_f(self, new_f):
-        if new_f is not None and new_f is not self._f:
-            if (<object>new_f).size != self._f.size:
-                raise ValueError("Incompatible input")
-            self._f[:] = new_f.ravel()[:]
+        self._f[:] = new_f.ravel()[:]
 
     f = property(__get_f, __set_f)
 
     def __get_f_hat(self):
-        return self._f_hat.copy()
+        return self._f_hat
 
     def __set_f_hat(self, new_f_hat):
-        if new_f_hat is not None and new_f_hat is not self._f_hat:
-            if (<object>new_f_hat).size != self._f_hat.size:
-                raise ValueError("Incompatible input")
-            self._f_hat[:] = new_f_hat.ravel()[:]
+        self._f_hat[:] = new_f_hat.ravel()[:]
 
     f_hat = property(__get_f_hat, __set_f_hat)
 
     def __get_x(self):
-        return self._x.copy()
+        return self._x
 
     def __set_x(self, new_x):
-        if new_x is not None and new_x is not self._x:
-            if (<object>new_x).size != self._x.size:
-                raise ValueError("Incompatible input")
-            self._x[:] = new_x.ravel()[:]
+        self._x[:] = new_x.ravel()[:]
 
     x = property(__get_x, __set_x)
 

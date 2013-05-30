@@ -29,9 +29,9 @@ nfft_flags_dict = {
     'PRE_FG_PSI':PRE_FG_PSI,
     'PRE_PSI':PRE_PSI,
     'PRE_FULL_PSI':PRE_FULL_PSI,
-    'MALLOC_X':MALLOC_X,
-    'MALLOC_F_HAT':MALLOC_F_HAT,
-    'MALLOC_F':MALLOC_F,
+#    'MALLOC_X':MALLOC_X,
+#    'MALLOC_F_HAT':MALLOC_F_HAT,
+#    'MALLOC_F':MALLOC_F,
     'FFT_OUT_OF_PLACE':FFT_OUT_OF_PLACE,
     'FFTW_INIT':FFTW_INIT,
     'NFFT_SORT_NODES':NFFT_SORT_NODES,
@@ -98,7 +98,7 @@ cdef class NFFT:
 
         # if external arrays are provided, checks whether they are compatible
         if x is not None:
-            if x.flags.c_contiguous:
+            if not x.flags.c_contiguous:
                 raise ValueError('x array must be contiguous')
             if x.dtype != np.float64:
                 raise ValueError('x must be of type float64')
@@ -106,7 +106,7 @@ cdef class NFFT:
                 raise ValueError('x must be of size %d'%(M_total * d))
 
         if f is not None:
-            if f.flags.c_contiguous:
+            if not f.flags.c_contiguous:
                 raise ValueError('f array must be contiguous')
             if f.dtype != np.complex128:
                 raise ValueError('f must be of type float64')
@@ -114,7 +114,7 @@ cdef class NFFT:
                 raise ValueError('f must be of size %d'%(M_total))
 
         if f_hat is not None:
-            if f_hat.flags.c_contiguous:
+            if not f_hat.flags.c_contiguous:
                 raise ValueError('f_hat array must be contiguous')
             if f_hat.dtype != np.complex128:
                 raise ValueError('f_hat must be of type float64')
@@ -147,15 +147,6 @@ cdef class NFFT:
                               'FFT_OUT_OF_PLACE',
                               'FFTW_ESTIMATE',
                               'FFTW_DESTROY_INPUT',)
-
-        if x is None:
-            nfft_flags = nfft_flags + ('MALLOC_X',)
-
-        if f is None:
-            nfft_flags = nfft_flags + ('MALLOC_F',)
-
-        if f_hat is None:
-            nfft_flags = nfft_flags + ('MALLOC_F_HAT',)
 
         for each_flag in nfft_flags:
             try:
@@ -198,6 +189,24 @@ cdef class NFFT:
             free(_N)
             free(_n)
 
+        if x is not None:
+            self._x = x
+        else:
+            self._x = np.empty(M_total*d, dtype=np.float64)
+        self.__plan.x = <double *>np.PyArray_DATA(self._x)
+
+        if f is not None:
+            self._f = f
+        else:
+            self._f = np.empty(M_total, dtype=np.complex128)
+        self.__plan.f = <fftw_complex *>np.PyArray_DATA(self._f)
+
+        if f_hat is not None:
+            self._f_hat = f_hat
+        else:
+            self._f_hat = np.empty(N_total, dtype=np.complex128)
+        self.__plan.f_hat = <fftw_complex *>np.PyArray_DATA(self._f_hat)
+
         self._d = self.__plan.d
         self._m = self.__plan.m
         self._M_total = self.__plan.M_total
@@ -206,25 +215,6 @@ cdef class NFFT:
         self._dtype = np.float64
         self._flags = tuple(flags_used)
 
-        # link external arrays to plan internals
-        if x is not None:
-            self.__plan.x = <double *>np.PyArray_DATA(x)
-        if f is not None:
-            self.__plan.f = <fftw_complex *>np.PyArray_DATA(f)
-        if f_hat is not None:
-            self.__plan.f_hat = <fftw_complex *>np.PyArray_DATA(f_hat)
-
-        # set views for plan internals
-        cdef np.npy_intp shape[1]
-        shape[0] = self._d * self._M_total
-        self._x = np.PyArray_SimpleNewFromData(
-            1, shape, np.NPY_FLOAT64, <void *>self.__plan.x)
-        shape[0] = self._M_total
-        self._f = np.PyArray_SimpleNewFromData(
-            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.f)
-        shape[0] = self._N_total
-        self._f_hat = np.PyArray_SimpleNewFromData(
-            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.f_hat)
 
     # here, just holds the documentation of the class constructor
     def __init__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,

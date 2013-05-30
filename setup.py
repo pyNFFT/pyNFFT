@@ -48,7 +48,7 @@ ext_modules = [
     ),
 ]
 
-version = '0.2.3'
+version = '0.2.4'
 
 setup_args = {
     'name': 'pyNFFT',

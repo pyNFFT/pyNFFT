@@ -196,15 +196,11 @@ cdef class NFFT:
         self._N = self.__plan.N
         self._dtype = np.float64
         self._flags = tuple(flags_used)
-
-        # link external arrays to plan internals
         self._x = x if x is not None else np.empty(M_total*d, dtype=np.float64)
-        self.__plan.x = <double *>np.PyArray_DATA(x)
-
         self._f = f if f is not None else np.empty(M_total, dtype=np.complex128)
-        self.__plan.f = <fftw_complex *>np.PyArray_DATA(f)
-
         self._f_hat = f_hat if f_hat is not None else np.empty(N_total, dtype=np.complex128)
+        self.__plan.x = <double *>np.PyArray_DATA(x)
+        self.__plan.f = <fftw_complex *>np.PyArray_DATA(f)
         self.__plan.f_hat = <fftw_complex *>np.PyArray_DATA(f_hat)
 
 

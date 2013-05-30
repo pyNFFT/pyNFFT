@@ -29,9 +29,9 @@ nfft_flags_dict = {
     'PRE_FG_PSI':PRE_FG_PSI,
     'PRE_PSI':PRE_PSI,
     'PRE_FULL_PSI':PRE_FULL_PSI,
-    'MALLOC_X':MALLOC_X,
-    'MALLOC_F_HAT':MALLOC_F_HAT,
-    'MALLOC_F':MALLOC_F,
+#    'MALLOC_X':MALLOC_X,
+#    'MALLOC_F_HAT':MALLOC_F_HAT,
+#    'MALLOC_F':MALLOC_F,
     'FFT_OUT_OF_PLACE':FFT_OUT_OF_PLACE,
     'FFTW_INIT':FFTW_INIT,
     'NFFT_SORT_NODES':NFFT_SORT_NODES,
@@ -147,15 +147,6 @@ cdef class NFFT:
                               'FFT_OUT_OF_PLACE',
                               'FFTW_ESTIMATE',
                               'FFTW_DESTROY_INPUT',)
-
-        if x is None:
-            nfft_flags = nfft_flags + ('MALLOC_X',)
-
-        if f is None:
-            nfft_flags = nfft_flags + ('MALLOC_F',)
-
-        if f_hat is None:
-            nfft_flags = nfft_flags + ('MALLOC_F_HAT',)
 
         for each_flag in nfft_flags:
             try:

@@ -46,7 +46,7 @@ cdef class Solver:
 
         solver_flags = flags
         if solver_flags is None:
-            solver_flags = ('CGNR', 'PRECOMPUTE_WEIGHT', 'PRECOMPUTE_DAMP',)
+            solver_flags = ('CGNR',)
 
         for each_flag in solver_flags:
             try:
@@ -151,81 +151,90 @@ cdef class Solver:
 
 
     def __get_y(self):
-        return self._y.copy()
+        return self._y
 
     def __set_y(self, new_y):
-        if new_y is not None and new_y is not self._y:
-            if (<object>new_y).size != self._y.size:
-                raise ValueError("Incompatible input")
-            self._y[:] = new_y.ravel()[:]
+        if self._y is not None:
+            self._y.ravel()[:] = new_y.ravel()[:]
 
     y = property(__get_y, __set_y)
 
+
     def __get_f_hat_iter(self):
-        return self._f_hat_iter.copy()
+        return self._f_hat_iter
 
     def __set_f_hat_iter(self, new_f_hat_iter):
-        if new_f_hat_iter is not None and new_f_hat_iter is not self._f_hat_iter:
-            if (<object>new_f_hat_iter).size != self._f_hat_iter.size:
-                raise ValueError("Incompatible input")
-            self._f_hat_iter[:] = new_f_hat_iter.ravel()[:]
+        if self._f_hat_iter is not None:
+            self._f_hat_iter.ravel()[:] = new_f_hat_iter.ravel()[:]
 
     f_hat_iter = property(__get_f_hat_iter, __set_f_hat_iter)
+
 
     def __get_r_iter(self):
         return self._r_iter.copy()
 
     r_iter = property(__get_r_iter)
 
+
     def __get_z_hat_iter(self):
         return self._z_hat_iter.copy()
 
     z_hat_iter = property(__get_z_hat_iter)
+
 
     def __get_p_hat_iter(self):
         return self._p_hat_iter.copy()
 
     p_hat_iter = property(__get_p_hat_iter)
 
+
     def __get_v_iter(self):
         return self._v_iter.copy()
 
     v_iter = property(__get_v_iter)
+
 
     def __get_alpha_iter(self):
         return self.__plan.alpha_iter
 
     alpha_iter = property(__get_alpha_iter)
 
+
     def __get_beta_iter(self):
         return self.__plan.beta_iter
 
     beta_iter = property(__get_beta_iter)
+
 
     def __get_dot_r_iter(self):
         return self.__plan.dot_r_iter
 
     dot_r_iter = property(__get_dot_r_iter)
 
+
     def __get_dot_r_iter_old(self):
         return self.__plan.dot_r_iter_old
 
     dot_r_iter_old = property(__get_dot_r_iter_old)
+
 
     def __get_dot_z_hat_iter(self):
         return self.__plan.dot_z_hat_iter
 
     dot_z_hat_iter = property(__get_dot_z_hat_iter)
 
+
     def __get_dot_z_hat_iter_old(self):
         return self.__plan.dot_z_hat_iter_old
 
     dot_z_hat_iter_old = property(__get_dot_z_hat_iter_old)
 
+
     def __get_dot_p_hat_iter(self):
         return self.__plan.dot_p_hat_iter
 
     dot_p_hat_iter = property(__get_dot_p_hat_iter)
+
 
     def __get_dot_v_iter(self):
         return self.__plan.dot_v_iter

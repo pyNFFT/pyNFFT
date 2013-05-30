@@ -38,7 +38,7 @@ np.import_array()
 
 cdef class Solver:
 
-    def __cinit__(self, nfft_plan, flags=None):
+    def __cinit__(self, NFFT nfft_plan, flags=None):
 
         # flags management
         flags_used = []
@@ -57,32 +57,36 @@ cdef class Solver:
                         each_flag + '\' is not a valid flag.')
 
         # initialize plan
-        cdef NFFT _nfft_plan = nfft_plan
-        cdef solver_plan_complex *_plan = &self.__plan
-        cdef nfft_mv_plan_complex *_mv = (
-            <nfft_mv_plan_complex *>&(_nfft_plan.__plan))
-
         try:
-            solver_init_advanced_complex(_plan, _mv, _solver_flags)
+            solver_init_advanced_complex(
+                <solver_plan_complex *>&self.__plan,
+                <nfft_mv_plan_complex *>&(nfft_plan.__plan),
+                _solver_flags)
         except:
             raise MemoryError
 
-        self._dtype = _nfft_plan._dtype
+        self._dtype = nfft_plan._dtype
         self._flags = tuple(flags_used)
 
         cdef np.npy_intp shape[1]
-        cdef int _M_total = _nfft_plan._M_total
-        cdef int _N_total = _nfft_plan._N_total
+        cdef int _M_total = nfft_plan._M_total
+        cdef int _N_total = nfft_plan._N_total
 
-        shape[0] = _M_total
-        self._w = np.PyArray_SimpleNewFromData(
-            1, shape, np.NPY_FLOAT64, <void *>self.__plan.w)
-        self._w[:] = 1  # make sure weights are initialized
+        if 'PRECOMPUTE_WEIGHT' in solver_flags:
+            shape[0] = _M_total
+            self._w = np.PyArray_SimpleNewFromData(
+                1, shape, np.NPY_FLOAT64, <void *>self.__plan.w)
+            self._w[:] = 1  # make sure weights are initialized
+        else:
+            self._w = None
 
-        shape[0] = _N_total
-        self._w_hat = np.PyArray_SimpleNewFromData(
-            1, shape, np.NPY_FLOAT64, <void *>self.__plan.w_hat)
-        self._w_hat[:] = 1  # make sure weights are initialized
+        if 'PRECOMPUTE_DAMP' in solver_flags:
+            shape[0] = _N_total
+            self._w_hat = np.PyArray_SimpleNewFromData(
+                1, shape, np.NPY_FLOAT64, <void *>self.__plan.w_hat)
+            self._w_hat[:] = 1  # make sure weights are initialized
+        else:
+            self._w_hat = None
 
         shape[0] = _M_total
         self._y = np.PyArray_SimpleNewFromData(
@@ -113,36 +117,38 @@ cdef class Solver:
     def __init__(self, nfft_plan, flags=None):
         pass
 
+
     def __dealloc__(self):
         solver_finalize_complex(&self.__plan)
+
 
     cpdef before_loop(self):
         solver_before_loop_complex(&self.__plan)
 
+
     cpdef loop_one_step(self):
         solver_loop_one_step_complex(&self.__plan)
 
+
     def __get_w(self):
-        return self._w.copy()
+        return self._w
 
     def __set_w(self, new_w):
-        if new_w is not None and new_w is not self._w:
-            if (<object>new_w).size != self._w.size:
-                raise ValueError("Incompatible input")
-            self._w[:] = new_w.ravel()[:]
+        if self._w is not None:
+            self._w.ravel()[:] = new_w.ravel()[:]
 
     w = property(__get_w, __set_w)
 
+
     def __get_w_hat(self):
-        return self._w_hat.copy()
+        return self._w_hat
 
     def __set_w_hat(self, new_w_hat):
-        if new_w_hat is not None and new_w_hat is not self._w_hat:
-            if (<object>new_w_hat).size != self._w_hat.size:
-                raise ValueError("Incompatible input")
-            self._w_hat[:] = new_w_hat.ravel()[:]
+        if self._w_hat is not None:
+            self._w_hat.ravel()[:] = new_w_hat.ravel()[:]
 
     w_hat = property(__get_w_hat, __set_w_hat)
+
 
     def __get_y(self):
         return self._y.copy()

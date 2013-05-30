@@ -207,24 +207,15 @@ cdef class NFFT:
         self._flags = tuple(flags_used)
 
         # link external arrays to plan internals
-        if x is not None:
-            self.__plan.x = <double *>np.PyArray_DATA(x)
-        if f is not None:
-            self.__plan.f = <fftw_complex *>np.PyArray_DATA(f)
-        if f_hat is not None:
-            self.__plan.f_hat = <fftw_complex *>np.PyArray_DATA(f_hat)
+        self._x = x if x is not None else np.empty(M_total*d, dtype=np.float64)
+        self.__plan.x = <double *>np.PyArray_DATA(x)
 
-        # set views for plan internals
-        cdef np.npy_intp shape[1]
-        shape[0] = self._d * self._M_total
-        self._x = np.PyArray_SimpleNewFromData(
-            1, shape, np.NPY_FLOAT64, <void *>self.__plan.x)
-        shape[0] = self._M_total
-        self._f = np.PyArray_SimpleNewFromData(
-            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.f)
-        shape[0] = self._N_total
-        self._f_hat = np.PyArray_SimpleNewFromData(
-            1, shape, np.NPY_COMPLEX128, <void *>self.__plan.f_hat)
+        self._f = f if f is not None else np.empty(M_total, dtype=np.complex128)
+        self.__plan.f = <fftw_complex *>np.PyArray_DATA(f)
+
+        self._f_hat = f_hat if f_hat is not None else np.empty(N_total, dtype=np.complex128)
+        self.__plan.f_hat = <fftw_complex *>np.PyArray_DATA(f_hat)
+
 
     # here, just holds the documentation of the class constructor
     def __init__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,

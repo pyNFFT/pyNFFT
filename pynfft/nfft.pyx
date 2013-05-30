@@ -98,7 +98,7 @@ cdef class NFFT:
 
         # if external arrays are provided, checks whether they are compatible
         if x is not None:
-            if x.flags.c_contiguous:
+            if not x.flags.c_contiguous:
                 raise ValueError('x array must be contiguous')
             if x.dtype != np.float64:
                 raise ValueError('x must be of type float64')
@@ -106,7 +106,7 @@ cdef class NFFT:
                 raise ValueError('x must be of size %d'%(M_total * d))
 
         if f is not None:
-            if f.flags.c_contiguous:
+            if not f.flags.c_contiguous:
                 raise ValueError('f array must be contiguous')
             if f.dtype != np.complex128:
                 raise ValueError('f must be of type float64')
@@ -114,7 +114,7 @@ cdef class NFFT:
                 raise ValueError('f must be of size %d'%(M_total))
 
         if f_hat is not None:
-            if f_hat.flags.c_contiguous:
+            if not f_hat.flags.c_contiguous:
                 raise ValueError('f_hat array must be contiguous')
             if f_hat.dtype != np.complex128:
                 raise ValueError('f_hat must be of type float64')

@@ -189,6 +189,24 @@ cdef class NFFT:
             free(_N)
             free(_n)
 
+        if x is not None:
+            self._x = x
+        else:
+            self._x = np.empty(M_total*d, dtype=np.float64)
+        self.__plan.x = <double *>np.PyArray_DATA(self._x)
+
+        if f is not None:
+            self._f = f
+        else:
+            self._f = np.empty(M_total, dtype=np.complex128)
+        self.__plan.f = <fftw_complex *>np.PyArray_DATA(self._f)
+
+        if f_hat is not None:
+            self._f_hat = f_hat
+        else:
+            self._f_hat = np.empty(N_total, dtype=np.complex128)
+        self.__plan.f_hat = <fftw_complex *>np.PyArray_DATA(self._f_hat)
+
         self._d = self.__plan.d
         self._m = self.__plan.m
         self._M_total = self.__plan.M_total
@@ -196,12 +214,6 @@ cdef class NFFT:
         self._N = self.__plan.N
         self._dtype = np.float64
         self._flags = tuple(flags_used)
-        self._x = x if x is not None else np.empty(M_total*d, dtype=np.float64)
-        self._f = f if f is not None else np.empty(M_total, dtype=np.complex128)
-        self._f_hat = f_hat if f_hat is not None else np.empty(N_total, dtype=np.complex128)
-        self.__plan.x = <double *>np.PyArray_DATA(x)
-        self.__plan.f = <fftw_complex *>np.PyArray_DATA(f)
-        self.__plan.f_hat = <fftw_complex *>np.PyArray_DATA(f_hat)
 
 
     # here, just holds the documentation of the class constructor

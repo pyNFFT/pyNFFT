@@ -14,9 +14,11 @@
 # Ghislain Vaillant
 
 from cnfft3 cimport solver_plan_complex
+from nfft cimport NFFT
 
 cdef class Solver:
     cdef solver_plan_complex __plan
+    cdef NFFT __nfft_plan
     cdef object _w
     cdef object _w_hat
     cdef object _y

@@ -2,6 +2,20 @@ Changelog
 =========
 
 
+Changes in version 0.2.4
+------------------------
+
+    - Add sphinx documentation
+
+
+Changes in version 0.2.3
+------------------------
+
+    - Level-up Solver class with the improvement made on NFFT
+
+    - Update test suite for pynfft.nfft
+
+
 Changes in version 0.2.2
 ------------------------
 

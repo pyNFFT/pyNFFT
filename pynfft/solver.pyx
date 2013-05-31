@@ -133,6 +133,36 @@ cdef class Solver:
 
 
     def __init__(self, nfft_plan, flags=None):
+        '''
+        :param plan: instance of NFFT.
+        :type plan: :class:`~pynfft.nfft.NFFT`
+        :param flags: list of instantiation flags, see below.
+        :type flags: tuple
+
+        .. _instantiation_flags::
+
+        **Instantiation flags**
+
+        +---------------------+-----------------------------------------------------------------------------+
+        | Flag                | Description                                                                 |
+        +=====================+=============================================================================+
+        | LANDWEBER           | Use Landweber (Richardson) iteration.                                       |
+        +---------------------+-----------------------------------------------------------------------------+
+        | STEEPEST_DESCENT    | Use steepest descent iteration.                                             |
+        +---------------------+-----------------------------------------------------------------------------+
+        | CGNR                | Use conjugate gradient (normal equation of the 1st kind).                   |
+        +---------------------+-----------------------------------------------------------------------------+
+        | CGNE                | Use conjugate gradient (normal equation of the 2nd kind).                   |
+        +---------------------+-----------------------------------------------------------------------------+
+        | NORMS_FOR_LANDWEBER | Use Landweber iteration to compute the residual norm.                       |
+        +---------------------+-----------------------------------------------------------------------------+
+        | PRECOMPUTE_WEIGHT   | Weight the samples, e.g. to cope with varying sampling density.             |
+        +---------------------+-----------------------------------------------------------------------------+
+        | PRECOMPUTE_DAMP     | Weight the Fourier coefficients, e.g. to favour fast decaying coefficients. |
+        +---------------------+-----------------------------------------------------------------------------+
+
+        Default value is ``flags = ('CGNR',)``.
+        '''
         pass
 
 
@@ -141,10 +171,16 @@ cdef class Solver:
 
 
     cpdef before_loop(self):
+        '''
+        Initialize solver internals.
+        '''
         solver_before_loop_complex(&self.__plan)
 
 
     cpdef loop_one_step(self):
+        '''
+        Perform one iteration.
+        '''
         solver_loop_one_step_complex(&self.__plan)
 
 

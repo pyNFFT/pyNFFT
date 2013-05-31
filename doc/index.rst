@@ -59,4 +59,3 @@ Indices and tables
    
    tutorial
    api
-   changelog

@@ -44,7 +44,7 @@ cdef class Solver:
 
         flags_used = flags
         if flags_used is None:
-            flags_used = ('CGNR', 'PRECOMPUTE_WEIGHT')
+            flags_used = ('CGNR',)
         elif not isinstance(flags_used, tuple):
             flags_used = tuple(flags_used)
 

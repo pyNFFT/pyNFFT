@@ -24,6 +24,22 @@ Solver Class
 
    .. autoattribute:: pynfft.solver.Solver.v_iter
 
+   .. autoattribute:: pynfft.solver.Solver.alpha_iter
+
+   .. autoattribute:: pynfft.solver.Solver.beta_iter
+
+   .. autoattribute:: pynfft.solver.Solver.dot_r_iter
+
+   .. autoattribute:: pynfft.solver.Solver.dot_r_iter_old
+
+   .. autoattribute:: pynfft.solver.Solver.dot_z_hat_iter
+
+   .. autoattribute:: pynfft.solver.Solver.dot_z_hat_iter_old
+
+   .. autoattribute:: pynfft.solver.Solver.dot_p_hat_iter
+
+   .. autoattribute:: pynfft.solver.Solver.dot_v_iter
+
    .. autoattribute:: pynfft.solver.Solver.dtype
 
    .. autoattribute:: pynfft.solver.Solver.flags

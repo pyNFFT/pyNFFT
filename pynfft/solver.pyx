@@ -171,25 +171,25 @@ cdef class Solver:
 
 
     def __get_r_iter(self):
-        return self._r_iter.copy()
+        return self._r_iter
 
     r_iter = property(__get_r_iter)
 
 
     def __get_z_hat_iter(self):
-        return self._z_hat_iter.copy()
+        return self._z_hat_iter
 
     z_hat_iter = property(__get_z_hat_iter)
 
 
     def __get_p_hat_iter(self):
-        return self._p_hat_iter.copy()
+        return self._p_hat_iter
 
     p_hat_iter = property(__get_p_hat_iter)
 
 
     def __get_v_iter(self):
-        return self._v_iter.copy()
+        return self._v_iter
 
     v_iter = property(__get_v_iter)
 
@@ -240,3 +240,15 @@ cdef class Solver:
         return self.__plan.dot_v_iter
 
     dot_v_iter = property(__get_dot_v_iter)
+
+
+    def __get_dtype(self):
+        return self._dtype
+
+    dtype = property(__get_dtype)
+
+
+    def __get_flags(self):
+        return self._flags
+
+    flags = property(__get_flags)

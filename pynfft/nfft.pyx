@@ -29,9 +29,9 @@ nfft_flags_dict = {
     'PRE_FG_PSI':PRE_FG_PSI,
     'PRE_PSI':PRE_PSI,
     'PRE_FULL_PSI':PRE_FULL_PSI,
-#    'MALLOC_X':MALLOC_X,
-#    'MALLOC_F_HAT':MALLOC_F_HAT,
-#    'MALLOC_F':MALLOC_F,
+    'MALLOC_X':MALLOC_X,
+    'MALLOC_F_HAT':MALLOC_F_HAT,
+    'MALLOC_F':MALLOC_F,
     'FFT_OUT_OF_PLACE':FFT_OUT_OF_PLACE,
     'FFTW_INIT':FFTW_INIT,
     'NFFT_SORT_NODES':NFFT_SORT_NODES,
@@ -144,38 +144,36 @@ cdef class NFFT:
         # convert tuple of litteral precomputation flags to its expected
         # C-compatible value. Each flag is a power of 2, which allows to compute
         # this value using BITOR operations.
-        flags_used = []
         cdef unsigned int _nfft_flags = 0
         cdef unsigned int _fftw_flags = 0
 
-        nfft_flags = flags
-        if nfft_flags is None:
-            # default nfft flags, adapted from nfft.c
-            if d > 1:
-                nfft_flags = ('PRE_PHI_HUT',
-                              'PRE_PSI',
-                              'FFTW_INIT',
-                              'FFT_OUT_OF_PLACE',
-                              'NFFT_SORT_NODES',
-                              'NFFT_OMP_BLOCKWISE_ADJOINT',
-                              'FFTW_ESTIMATE',
-                              'FFTW_DESTROY_INPUT',)
-            else:
-                nfft_flags = ('PRE_PHI_HUT',
-                              'PRE_PSI',
-                              'FFTW_INIT',
-                              'FFT_OUT_OF_PLACE',
-                              'FFTW_ESTIMATE',
-                              'FFTW_DESTROY_INPUT',)
+        # Set FFTW specific flags, should not be done by the user
+        flags_used = ('FFTW_INIT', 'FFT_OUT_OF_PLACE', 'FFTW_ESTIMATE',
+                'FFTW_DESTROY_INPUT',)
 
-        for each_flag in nfft_flags:
+        # Enable sorting for faster parallel computation
+        flags_used += ('NFFT_SORT_NODES',)
+
+        # Enable optimized blockwise adjoint, if multivariate
+        if d > 1:
+            flags_used += ('NFFT_OMP_BLOCKWISE_ADJOINT',)
+
+        # Set default precomputation flags if none is specified
+        if flags is not None:
+            if not isinstance(flags, tuple):
+                flags = tuple(flags)
+            flags_used += flags
+        else:
+            flags_used += ('PRE_PHI_HUT', 'PRE_PSI',)
+
+        # Check flags' validity and calculate the flag code for the guru
+        # interface
+        for each_flag in flags_used:
             try:
                 _nfft_flags |= nfft_flags_dict[each_flag]
-                flags_used.append(each_flag)
             except KeyError:
                 try:
                     _fftw_flags |= fftw_flags_dict[each_flag]
-                    flags_used.append(each_flag)
                 except KeyError:
                     raise ValueError('Invalid flag: ' + '\'' +
                         each_flag + '\' is not a valid flag.')
@@ -233,7 +231,7 @@ cdef class NFFT:
         self._N_total = self.__plan.N_total
         self._N = self.__plan.N
         self._dtype = np.float64
-        self._flags = tuple(flags_used)
+        self._flags = flags_used
 
 
     # here, just holds the documentation of the class constructor

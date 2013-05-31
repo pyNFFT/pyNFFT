@@ -37,21 +37,20 @@ np.import_array()
 
 
 cdef class Solver:
-
     def __cinit__(self, NFFT nfft_plan, flags=None):
 
         # flags management
-        flags_used = []
-        cdef unsigned int _solver_flags = 0
+        cdef unsigned int _flags = 0
 
-        solver_flags = flags
-        if solver_flags is None:
-            solver_flags = ('CGNR',)
+        flags_used = flags
+        if flags_used is None:
+            flags_used = ('CGNR',)
+        elif not isinstance(flags_used, tuple):
+            flags_used = tuple(flags_used)
 
-        for each_flag in solver_flags:
+        for each_flag in flags_used:
             try:
-                _solver_flags |= solver_flags_dict[each_flag]
-                flags_used.append(each_flag)
+                _flags |= solver_flags_dict[each_flag]
             except KeyError:
                 raise ValueError('Invalid flag: ' + '\'' +
                         each_flag + '\' is not a valid flag.')
@@ -61,7 +60,7 @@ cdef class Solver:
             solver_init_advanced_complex(
                 <solver_plan_complex *>&self.__plan,
                 <nfft_mv_plan_complex *>&(nfft_plan.__plan),
-                _solver_flags)
+                _flags)
         except:
             raise MemoryError
 
@@ -72,7 +71,7 @@ cdef class Solver:
         cdef int _M_total = nfft_plan._M_total
         cdef int _N_total = nfft_plan._N_total
 
-        if 'PRECOMPUTE_WEIGHT' in solver_flags:
+        if 'PRECOMPUTE_WEIGHT' in flags_used:
             shape[0] = _M_total
             self._w = np.PyArray_SimpleNewFromData(
                 1, shape, np.NPY_FLOAT64, <void *>self.__plan.w)
@@ -80,7 +79,7 @@ cdef class Solver:
         else:
             self._w = None
 
-        if 'PRECOMPUTE_DAMP' in solver_flags:
+        if 'PRECOMPUTE_DAMP' in flags_used:
             shape[0] = _N_total
             self._w_hat = np.PyArray_SimpleNewFromData(
                 1, shape, np.NPY_FLOAT64, <void *>self.__plan.w_hat)
@@ -131,6 +130,9 @@ cdef class Solver:
 
 
     def __get_w(self):
+        '''
+        Weighting factors.
+        '''
         return self._w
 
     def __set_w(self, new_w):
@@ -141,6 +143,9 @@ cdef class Solver:
 
 
     def __get_w_hat(self):
+        '''
+        Damping factors.
+        '''
         return self._w_hat
 
     def __set_w_hat(self, new_w_hat):
@@ -151,6 +156,9 @@ cdef class Solver:
 
 
     def __get_y(self):
+        '''
+        Right hand side, samples.
+        '''
         return self._y
 
     def __set_y(self, new_y):
@@ -161,6 +169,9 @@ cdef class Solver:
 
 
     def __get_f_hat_iter(self):
+        '''
+        Iterative solution.
+        '''
         return self._f_hat_iter
 
     def __set_f_hat_iter(self, new_f_hat_iter):
@@ -171,84 +182,126 @@ cdef class Solver:
 
 
     def __get_r_iter(self):
+        '''
+        Residual vector.
+        '''
         return self._r_iter
 
     r_iter = property(__get_r_iter)
 
 
     def __get_z_hat_iter(self):
+        '''
+        Residual of normal equation.
+        '''
         return self._z_hat_iter
 
     z_hat_iter = property(__get_z_hat_iter)
 
 
     def __get_p_hat_iter(self):
+        '''
+        Search direction.
+        '''
         return self._p_hat_iter
 
     p_hat_iter = property(__get_p_hat_iter)
 
 
     def __get_v_iter(self):
+        '''
+        Residual vector update.
+        '''
         return self._v_iter
 
     v_iter = property(__get_v_iter)
 
 
     def __get_alpha_iter(self):
+        '''
+        Step size for search direction.
+        '''
         return self.__plan.alpha_iter
 
     alpha_iter = property(__get_alpha_iter)
 
 
     def __get_beta_iter(self):
+        '''
+        Step size for search direction.
+        '''
         return self.__plan.beta_iter
 
     beta_iter = property(__get_beta_iter)
 
 
     def __get_dot_r_iter(self):
+        '''
+        Weighted dotproduct of r_iter.
+        '''
         return self.__plan.dot_r_iter
 
     dot_r_iter = property(__get_dot_r_iter)
 
 
     def __get_dot_r_iter_old(self):
+        '''
+        Previous value of dot_r_iter.
+        '''
         return self.__plan.dot_r_iter_old
 
     dot_r_iter_old = property(__get_dot_r_iter_old)
 
 
     def __get_dot_z_hat_iter(self):
+        '''
+        Weighted dotproduct of z_hat_iter.
+        '''
         return self.__plan.dot_z_hat_iter
 
     dot_z_hat_iter = property(__get_dot_z_hat_iter)
 
 
     def __get_dot_z_hat_iter_old(self):
+        '''
+        Previous value of dot_z_hat_iter.
+        '''
         return self.__plan.dot_z_hat_iter_old
 
     dot_z_hat_iter_old = property(__get_dot_z_hat_iter_old)
 
 
     def __get_dot_p_hat_iter(self):
+        '''
+        Weighted dotproduct of p_hat_iter.
+        '''
         return self.__plan.dot_p_hat_iter
 
     dot_p_hat_iter = property(__get_dot_p_hat_iter)
 
 
     def __get_dot_v_iter(self):
+        '''
+        Weighted dotproduct of v_iter.
+        '''
         return self.__plan.dot_v_iter
 
     dot_v_iter = property(__get_dot_v_iter)
 
 
     def __get_dtype(self):
+        '''
+        The floating precision.
+        '''
         return self._dtype
 
     dtype = property(__get_dtype)
 
 
     def __get_flags(self):
+        '''
+        The precomputation flags.
+        '''
         return self._flags
 
     flags = property(__get_flags)

@@ -57,6 +57,6 @@ Indices and tables
 .. toctree::
    :maxdepth: 2
    
-   /sphinx/tutorial
-   /sphinx/api
-   /sphinx/changelog
+   tutorial
+   api
+   changelog

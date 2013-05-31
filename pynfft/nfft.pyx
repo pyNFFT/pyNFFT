@@ -68,12 +68,13 @@ cdef class NFFT:
     a ``ValueError`` exception.
 
     The nodes must be initialized prior to precomputing the operator with the
-    :meth:`~pynfft.NFFT.precompute` method.
+    :meth:`~pynfft.nfft.NFFT.precompute` method.
 
     The forward and adjoint NFFT operation may be performed by calling the
-    :meth:`~pynfft.NFFT.trafo` or :meth:`~pynfft.NFFT.adjoint` methods. The
-    NDFT may also be computed by calling the
-    :meth:`~pynfft.NFFT.trafo_direct` or :meth:`~pynfft.NFFT.adjoint_direct`.
+    :meth:`~pynfft.nfft.NFFT.trafo` or :meth:`~pynfft.nfft.NFFT.adjoint`
+    methods. The NDFT may also be computed by calling the
+    :meth:`~pynfft.nfft.NFFT.trafo_direct` or
+    :meth:`~pynfft.nfft.NFFT.adjoint_direct`.
     '''
     # where the C-related content of the class is being initialized
     def __cinit__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
@@ -421,7 +422,7 @@ cdef class NFFT:
 
     def __get_dtype(self):
         '''
-        The floating precision used in the NFFT object.
+        The floating precision.
         '''
         return self._dtype
 
@@ -429,7 +430,7 @@ cdef class NFFT:
 
     def __get_flags(self):
         '''
-        The precomputation flags used to construct the NFFT object.
+        The precomputation flags.
         '''
         return self._flags
 

@@ -1,6 +1,9 @@
 Changelog
 =========
 
+.. toctree::
+    :hidden:
+
 
 Changes in version 0.2.4
 ------------------------

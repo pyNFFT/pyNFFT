@@ -37,6 +37,25 @@ np.import_array()
 
 
 cdef class Solver:
+    '''
+    Solver is a class for computing the adjoint NFFT iteratively. Using the
+    solver should theoretically lead to more accurate results, even with just
+    one iteration, than using :meth:`~pynfft.nfft.NFFT.adjoint` or
+    :meth:`~pynfft.nfft.NFFT.adjoint_direct`.
+
+    The instantiation requires a NFFT object used internally for the multiple
+    forward and adjoint NFFT performed. The class uses conjugate-gradient as
+    the default solver but alternative solvers can be specified.
+
+    Because the stopping conidition of the iterative computation may change
+    from one application to another, the implementation only let you carry
+    one iteration at a time with a call to
+    :meth:`~pynfft.solver.Solver.loop_one_step`. Initialization of the solver
+    is done by calling the :meth:`~pynfft.solver.Solver.before_loop` method.
+
+    The class exposes the internals of the solver through call to their
+    respective properties. They should be treated as read-only values.
+    '''
     def __cinit__(self, NFFT nfft_plan, flags=None):
 
         # flags management

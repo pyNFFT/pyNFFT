@@ -49,11 +49,17 @@ ext_modules = [
     ),
 ]
 
-from _version import version
+def get_version():
+    basedir = os.path.dirname(__file__)
+    with open(os.path.join(basedir, 'pynfft/_version.py')) as f:
+        variables = {}
+        exec(f.read(), variables)
+        return variables.get('VERSION')
+    raise RuntimeError('No version info found.')
 
 setup_args = {
     'name': 'pyNFFT',
-    'version': version,
+    'version': get_version(),
     'author': 'Ghislain Vaillant',
     'author_email': 'ghislain.vaillant@kcl.ac.uk',
     'description': 'A pythonic wrapper around NFFT',

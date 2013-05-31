@@ -47,7 +47,7 @@ copyright = u'2013, Ghislain Vaillant'
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
-from setup import version as pynfft_version
+from pynfft import __version__ as pynfft_version
 # The short X.Y version.
 version = pynfft_version
 # The full version, including alpha/beta/rc tags.

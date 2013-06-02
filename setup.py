@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
-# Ghislain Vaillant <ghislain.vallant@kcl.ac.uk>
+# Copyright (C) 2013  Ghislain Vaillant
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

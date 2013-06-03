@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2013  Ghislain Vaillant
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -10,9 +14,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
-#
-# Ghislain Vaillant
-# ghislain.vallant@kcl.ac.uk
 
 import numpy as np
 cimport numpy as np
@@ -29,9 +30,9 @@ nfft_flags_dict = {
     'PRE_FG_PSI':PRE_FG_PSI,
     'PRE_PSI':PRE_PSI,
     'PRE_FULL_PSI':PRE_FULL_PSI,
-#    'MALLOC_X':MALLOC_X,
-#    'MALLOC_F_HAT':MALLOC_F_HAT,
-#    'MALLOC_F':MALLOC_F,
+    'MALLOC_X':MALLOC_X,
+    'MALLOC_F_HAT':MALLOC_F_HAT,
+    'MALLOC_F':MALLOC_F,
     'FFT_OUT_OF_PLACE':FFT_OUT_OF_PLACE,
     'FFTW_INIT':FFTW_INIT,
     'NFFT_SORT_NODES':NFFT_SORT_NODES,
@@ -54,7 +55,28 @@ np.import_array()
 
 
 cdef class NFFT:
+    '''
+    NFFT is a class for computing the multivariate Non-uniform Discrete
+    Fourier (NDFT) transform using the NFFT library. The interface is
+    designed to be somewhat pythonic, while retaining the features and
+    naming of the C code internals. The computation of the NFFT is achieved
+    in 3 steps: instantiation, precomputation and execution.
 
+    On instantiation, sanity checks on the size parameters and computation
+    flags are performed prior to initialization of the internal plan.
+    External data arrays may be provided, otherwise internal Numpy arrays
+    will be used. Any incompatibilities detected in the parameters will raise
+    a ``ValueError`` exception.
+
+    The nodes must be initialized prior to precomputing the operator with the
+    :meth:`~pynfft.nfft.NFFT.precompute` method.
+
+    The forward and adjoint NFFT operation may be performed by calling the
+    :meth:`~pynfft.nfft.NFFT.trafo` or :meth:`~pynfft.nfft.NFFT.adjoint`
+    methods. The NDFT may also be computed by calling the
+    :meth:`~pynfft.nfft.NFFT.trafo_direct` or
+    :meth:`~pynfft.nfft.NFFT.adjoint_direct`.
+    '''
     # where the C-related content of the class is being initialized
     def __cinit__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
                   dtype=None, flags=None, *args, **kwargs):
@@ -124,38 +146,36 @@ cdef class NFFT:
         # convert tuple of litteral precomputation flags to its expected
         # C-compatible value. Each flag is a power of 2, which allows to compute
         # this value using BITOR operations.
-        flags_used = []
         cdef unsigned int _nfft_flags = 0
         cdef unsigned int _fftw_flags = 0
 
-        nfft_flags = flags
-        if nfft_flags is None:
-            # default nfft flags, adapted from nfft.c
-            if d > 1:
-                nfft_flags = ('PRE_PHI_HUT',
-                              'PRE_PSI',
-                              'FFTW_INIT',
-                              'FFT_OUT_OF_PLACE',
-                              'NFFT_SORT_NODES',
-                              'NFFT_OMP_BLOCKWISE_ADJOINT',
-                              'FFTW_ESTIMATE',
-                              'FFTW_DESTROY_INPUT',)
-            else:
-                nfft_flags = ('PRE_PHI_HUT',
-                              'PRE_PSI',
-                              'FFTW_INIT',
-                              'FFT_OUT_OF_PLACE',
-                              'FFTW_ESTIMATE',
-                              'FFTW_DESTROY_INPUT',)
+        # Set FFTW specific flags, should not be done by the user
+        flags_used = ('FFTW_INIT', 'FFT_OUT_OF_PLACE', 'FFTW_ESTIMATE',
+                'FFTW_DESTROY_INPUT',)
 
-        for each_flag in nfft_flags:
+        # Enable sorting for faster parallel computation
+        flags_used += ('NFFT_SORT_NODES',)
+
+        # Enable optimized blockwise adjoint, if multivariate
+        if d > 1:
+            flags_used += ('NFFT_OMP_BLOCKWISE_ADJOINT',)
+
+        # Set default precomputation flags if none is specified
+        if flags is not None:
+            if not isinstance(flags, tuple):
+                flags = tuple(flags)
+            flags_used += flags
+        else:
+            flags_used += ('PRE_PHI_HUT', 'PRE_PSI',)
+
+        # Check flags' validity and calculate the flag code for the guru
+        # interface
+        for each_flag in flags_used:
             try:
                 _nfft_flags |= nfft_flags_dict[each_flag]
-                flags_used.append(each_flag)
             except KeyError:
                 try:
                     _fftw_flags |= fftw_flags_dict[each_flag]
-                    flags_used.append(each_flag)
                 except KeyError:
                     raise ValueError('Invalid flag: ' + '\'' +
                         each_flag + '\' is not a valid flag.')
@@ -213,12 +233,66 @@ cdef class NFFT:
         self._N_total = self.__plan.N_total
         self._N = self.__plan.N
         self._dtype = np.float64
-        self._flags = tuple(flags_used)
+        self._flags = flags_used
 
 
     # here, just holds the documentation of the class constructor
     def __init__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
                  dtype=None, flags=None, *args, **kwargs):
+        '''
+        :param N: multi-bandwith size.
+        :type N: int, tuple of int
+        :param M: number of non-uniform samples.
+        :type M: int
+        :param N: oversampled multi-bandwith, default to 2 * N.
+        :type N: int, tuple of int
+        :param m: Cut-off parameter of the window function.
+        :type m: int
+        :param x: external array holding the nodes.
+        :type x: ndarray
+        :param f: external array holding the non-uniform samples.
+        :type f: ndarray
+        :param f_hat: external array holding the Fourier coefficients.
+        :type f_hat: ndarray
+        :param dtype: floating precision, see note below.
+        :type dtype: str, numpy.dtype
+        :param flags: list of precomputation flags, see note below.
+        :type flags: tuple
+
+        .. _floating_precision::
+
+        **Floating precision**
+
+        Parameter ``dtype`` allows to specify the desired floating point
+        precision. It defaults to None and should not be changed. This
+        parameter is here for later compatibility with a future version of
+        the NFFT library which supports multiple precision, as available with
+        FFTW.
+
+        .. _precomputation_flags::
+
+        **Precomputation flags**
+
+        This table lists the supported precomputation flags for the NFFT.
+
+        +----------------------------+--------------------------------------------------+
+        | Flag                       | Description                                      |
+        +============================+==================================================+
+        | PRE_PHI_HUT                | Precompute the roll-off correction coefficients. |
+        +----------------------------+--------------------------------------------------+
+        | FG_PSI                     | Convolution uses Fast Gaussian properties.       |
+        +----------------------------+--------------------------------------------------+
+        | PRE_LIN_PSI                | Convolution uses a precomputed look-up table.    |
+        +----------------------------+--------------------------------------------------+
+        | PRE_FG_PSI                 | Precompute Fast Gaussian.                        |
+        +----------------------------+--------------------------------------------------+
+        | PRE_PSI                    | Standard precomputation, uses M*(2m+2)*d values. |
+        +----------------------------+--------------------------------------------------+
+        | PRE_FULL_PSI               | Full precomputation, uses M*(2m+2)^d values.     |
+        +----------------------------+--------------------------------------------------+
+
+        Default value is ``flags = ('PRE_PHI_HUT', 'PRE_PSI')``.
+        '''
         pass
 
     # where the C-related content of the class needs to be cleaned
@@ -226,21 +300,55 @@ cdef class NFFT:
         nfft_finalize(&self.__plan)
 
     cpdef precompute(self):
+        '''
+        Precomputes the NFFT plan internals.
+
+        .. warning::
+            The nodes :attr:`~pynfft.NFFT.x` must be initialized before
+            precomputing.
+        '''
         nfft_precompute_one_psi(&self.__plan)
 
     cpdef trafo(self):
+        '''
+        Performs the forward NFFT.
+
+        Reads :attr:`~pynfft.NFFT.f_hat` and stores the result in
+        :attr:`~pynfft.NFFT.f`.
+        '''
         nfft_trafo(&self.__plan)
 
     cpdef trafo_direct(self):
+        '''
+        Performs the forward NDFT.
+
+        Reads :attr:`~pynfft.NFFT.f_hat` and stores the result in
+        :attr:`~pynfft.NFFT.f`.
+        '''
         nfft_trafo_direct(&self.__plan)
 
     cpdef adjoint(self):
+        '''
+        Performs the adjoint NFFT.
+
+        Reads :attr:`~pynfft.NFFT.f` and stores the result in
+        :attr:`~pynfft.NFFT.f_hat`.
+        '''
         nfft_adjoint(&self.__plan)
 
     cpdef adjoint_direct(self):
+        '''
+        Performs the adjoint NDFT.
+
+        Reads :attr:`~pynfft.NFFT.f` and stores the result in
+        :attr:`~pynfft.NFFT.f_hat`.
+        '''
         nfft_adjoint_direct(&self.__plan)
 
     def __get_f(self):
+        '''
+        The vector of non-uniform samples.
+        '''
         return self._f
 
     def __set_f(self, new_f):
@@ -249,6 +357,9 @@ cdef class NFFT:
     f = property(__get_f, __set_f)
 
     def __get_f_hat(self):
+        '''
+        The vector of Fourier coefficients.
+        '''
         return self._f_hat
 
     def __set_f_hat(self, new_f_hat):
@@ -257,6 +368,9 @@ cdef class NFFT:
     f_hat = property(__get_f_hat, __set_f_hat)
 
     def __get_x(self):
+        '''
+        The nodes in time/spatial domain.
+        '''
         return self._x
 
     def __set_x(self, new_x):
@@ -265,26 +379,41 @@ cdef class NFFT:
     x = property(__get_x, __set_x)
 
     def __get_d(self):
+        '''
+        The dimensionality of the NFFT.
+        '''
         return self._d
 
     d = property(__get_d)
 
     def __get_m(self):
+        '''
+        The cut-off parameter of the window function.
+        '''
         return self._m
 
     m = property(__get_m)
 
     def __get_M_total(self):
+        '''
+        The total number of samples.
+        '''
         return self._M_total
 
     M_total = property(__get_M_total)
 
     def __get_N_total(self):
+        '''
+        The total number of Fourier coefficients.
+        '''
         return self._N_total
 
     N_total = property(__get_N_total)
 
     def __get_N(self):
+        '''
+        The multi-bandwith size.
+        '''
         N = []
         for d in range(self._d):
             N.append(self._N[d])
@@ -293,11 +422,17 @@ cdef class NFFT:
     N = property(__get_N)
 
     def __get_dtype(self):
+        '''
+        The floating precision.
+        '''
         return self._dtype
 
     dtype = property(__get_dtype)
 
     def __get_flags(self):
+        '''
+        The precomputation flags.
+        '''
         return self._flags
 
     flags = property(__get_flags)

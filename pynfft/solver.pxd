@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2013  Ghislain Vaillant
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -10,8 +14,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
-#
-# Ghislain Vaillant
 
 from cnfft3 cimport solver_plan_complex
 from nfft cimport NFFT

@@ -1,4 +1,8 @@
-
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2013  Ghislain Vaillant
+#
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation, either version 3 of the License, or
@@ -11,9 +15,6 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
-#
-# Ghislain Vaillant
-# ghislain.vallant@kcl.ac.uk
 
 from distutils.core import setup
 from distutils.extension import Extension
@@ -48,11 +49,17 @@ ext_modules = [
     ),
 ]
 
-version = '0.2.4'
+def get_version():
+    basedir = os.path.dirname(__file__)
+    with open(os.path.join(basedir, 'pynfft/_version.py')) as f:
+        variables = {}
+        exec(f.read(), variables)
+        return variables.get('VERSION')
+    raise RuntimeError('No version info found.')
 
 setup_args = {
     'name': 'pyNFFT',
-    'version': version,
+    'version': get_version(),
     'author': 'Ghislain Vaillant',
     'author_email': 'ghislain.vaillant@kcl.ac.uk',
     'description': 'A pythonic wrapper around NFFT',

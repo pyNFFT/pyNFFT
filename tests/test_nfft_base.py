@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2013  Ghislain Vaillant
@@ -16,8 +15,19 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
+import unittest
 
-from ._version import VERSION
-__version__ = VERSION
 
+class TestNFFT(unittest.TestCase):
+    def __init__(self, *args, **kwargs):
+        super(TestNFFT, self).__init__(*args, **kwargs)
+
+
+def suite():
+    suite = unittest.TestSuite()
+    return suite
+
+
+if __name__ == '__main__':
+    suite = suite()
+    unittest.TextTestRunner(verbosity=2).run(suite)

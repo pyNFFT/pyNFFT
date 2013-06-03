@@ -17,6 +17,10 @@ In particular, the API is not yet frozen and is likely to change as the
 development continues. Please consult the documentation and changelog for 
 more information.
 
+The documentation is hosted on 
+`github pages <http://ghisvail.github.io/pyNFFT>`_ and the source code is on 
+`github <https://github.com/ghisvail/pyNFFT>`_.
+
 Requirements
 ------------
 - Python 2.7 or greater

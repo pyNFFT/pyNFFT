@@ -19,44 +19,13 @@ import numpy as np
 cimport numpy as np
 from libc.stdlib cimport malloc, free
 from libc cimport limits
-from cnfft3 cimport *
+from cnfft3 cimport (nfft_adjoint, nfft_adjoint_direct, nfft_init_guru,
+                     nfft_trafo, nfft_trafo_direct, nfft_precompute_one_psi,
+                     nfft_finalize, fftw_complex)
 
-
-cdef object nfft_flags_dict
-nfft_flags_dict = {
-    'PRE_PHI_HUT':PRE_PHI_HUT,
-    'FG_PSI':FG_PSI,
-    'PRE_LIN_PSI':PRE_LIN_PSI,
-    'PRE_FG_PSI':PRE_FG_PSI,
-    'PRE_PSI':PRE_PSI,
-    'PRE_FULL_PSI':PRE_FULL_PSI,
-    'MALLOC_X':MALLOC_X,
-    'MALLOC_F_HAT':MALLOC_F_HAT,
-    'MALLOC_F':MALLOC_F,
-    'FFT_OUT_OF_PLACE':FFT_OUT_OF_PLACE,
-    'FFTW_INIT':FFTW_INIT,
-    'NFFT_SORT_NODES':NFFT_SORT_NODES,
-    'NFFT_OMP_BLOCKWISE_ADJOINT':NFFT_OMP_BLOCKWISE_ADJOINT,
-    'PRE_ONE_PSI':PRE_ONE_PSI,
-    }
+# expose flag management internals for testing
 nfft_flags = nfft_flags_dict.copy()
-
-cdef object fftw_flags_dict
-fftw_flags_dict = {
-    'FFTW_ESTIMATE':FFTW_ESTIMATE,
-    'FFTW_DESTROY_INPUT':FFTW_DESTROY_INPUT,
-    }
 fftw_flags = fftw_flags_dict.copy()
-
-cdef object nfft_supported_flags_tuple
-nfft_supported_flags_tuple = (
-    'PRE_PHI_HUT',
-    'FG_PSI',
-    'PRE_LIN_PSI',
-    'PRE_FG_PSI',
-    'PRE_PSI',
-    'PRE_FULL_PSI',
-    )
 nfft_supported_flags = nfft_supported_flags_tuple
 
 

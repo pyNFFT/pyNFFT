@@ -20,17 +20,8 @@ cimport numpy as np
 from cnfft3 cimport *
 from nfft cimport NFFT
 
-cdef object solver_flags_dict
-solver_flags_dict = {
-    'LANDWEBER':LANDWEBER,
-    'STEEPEST_DESCENT':STEEPEST_DESCENT,
-    'CGNR':CGNR,
-    'CGNE':CGNE,
-    'NORMS_FOR_LANDWEBER':NORMS_FOR_LANDWEBER,
-    'PRECOMPUTE_WEIGHT':PRECOMPUTE_WEIGHT,
-    'PRECOMPUTE_DAMP':PRECOMPUTE_DAMP,
-    }
-_solver_flags_dict = solver_flags_dict.copy()
+# exposes flag management internals for testing
+solver_flags = solver_flags_dict.copy()
 
 
 # Numpy must be initialized. When using numpy from C or Cython you must

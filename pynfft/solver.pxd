@@ -16,7 +16,11 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from cnfft3 cimport solver_plan_complex
+from cnfft3 cimport (LANDWEBER, STEEPEST_DESCENT, CGNR, CGNE,
+                     NORMS_FOR_LANDWEBER, PRECOMPUTE_WEIGHT,
+                     PRECOMPUTE_DAMP,)
 from nfft cimport NFFT
+
 
 cdef class Solver:
     cdef solver_plan_complex __plan
@@ -33,3 +37,14 @@ cdef class Solver:
     cdef object _flags
     cpdef before_loop(self)
     cpdef loop_one_step(self)
+
+cdef object solver_flags_dict
+solver_flags_dict = {
+    'LANDWEBER':LANDWEBER,
+    'STEEPEST_DESCENT':STEEPEST_DESCENT,
+    'CGNR':CGNR,
+    'CGNE':CGNE,
+    'NORMS_FOR_LANDWEBER':NORMS_FOR_LANDWEBER,
+    'PRECOMPUTE_WEIGHT':PRECOMPUTE_WEIGHT,
+    'PRECOMPUTE_DAMP':PRECOMPUTE_DAMP,
+    }

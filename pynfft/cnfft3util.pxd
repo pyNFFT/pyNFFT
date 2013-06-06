@@ -19,7 +19,7 @@ from cnfft3 cimport fftw_complex
 
 cdef extern from "nfft3util.h":
 
-    void nfft_vrand_unit_complex (fft_complex *x, int n)
+    void nfft_vrand_unit_complex (fftw_complex *x, int n)
  	    # Inits a vector of random complex numbers in \
         # $[0,1]\times[0,1]{\rm i}$ .
 

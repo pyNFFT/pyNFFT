@@ -14,3 +14,21 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+
+from cnfft3 cimport fftw_complex
+
+cdef extern from "nfft3util.h":
+
+    void nfft_vrand_unit_complex (fft_complex *x, int n)
+ 	    # Inits a vector of random complex numbers in \
+        # $[0,1]\times[0,1]{\rm i}$ .
+
+    void nfft_vrand_shifted_unit_double (double *x, int n)
+        # Inits a vector of random double numbers in $[-1/2,1/2]$ .
+
+    void nfft_voronoi_weights_1d (double *w, double *x, int M)
+ 	    # Computes non periodic voronoi weights, \
+        # assumes ordered nodes $x_j$.
+
+    void nfft_voronoi_weights_S2(double *w, double *xi, int M)
+        # Computes voronoi weights for nodes on the sphere S^2. */

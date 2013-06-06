@@ -20,14 +20,13 @@ cimport numpy as np
 from cnfft3 cimport *
 from nfft cimport NFFT
 
+
 # exposes flag management internals for testing
 solver_flags = solver_flags_dict.copy()
-
 
 # Numpy must be initialized. When using numpy from C or Cython you must
 # _always_ do that, or you will have segfaults
 np.import_array()
-
 
 cdef class Solver:
     '''
@@ -124,7 +123,6 @@ cdef class Solver:
         self._v_iter = np.PyArray_SimpleNewFromData(
             1, shape, np.NPY_COMPLEX128, <void *>self.__plan.v_iter)
 
-
     def __init__(self, nfft_plan, flags=None):
         '''
         :param plan: instance of NFFT.
@@ -158,10 +156,8 @@ cdef class Solver:
         '''
         pass
 
-
     def __dealloc__(self):
         solver_finalize_complex(&self.__plan)
-
 
     cpdef before_loop(self):
         '''
@@ -169,13 +165,11 @@ cdef class Solver:
         '''
         solver_before_loop_complex(&self.__plan)
 
-
     cpdef loop_one_step(self):
         '''
         Perform one iteration.
         '''
         solver_loop_one_step_complex(&self.__plan)
-
 
     def __get_w(self):
         '''
@@ -189,7 +183,6 @@ cdef class Solver:
 
     w = property(__get_w, __set_w)
 
-
     def __get_w_hat(self):
         '''
         Damping factors.
@@ -201,7 +194,6 @@ cdef class Solver:
             self._w_hat.ravel()[:] = new_w_hat.ravel()[:]
 
     w_hat = property(__get_w_hat, __set_w_hat)
-
 
     def __get_y(self):
         '''
@@ -215,7 +207,6 @@ cdef class Solver:
 
     y = property(__get_y, __set_y)
 
-
     def __get_f_hat_iter(self):
         '''
         Iterative solution.
@@ -228,7 +219,6 @@ cdef class Solver:
 
     f_hat_iter = property(__get_f_hat_iter, __set_f_hat_iter)
 
-
     def __get_r_iter(self):
         '''
         Residual vector.
@@ -236,7 +226,6 @@ cdef class Solver:
         return self._r_iter
 
     r_iter = property(__get_r_iter)
-
 
     def __get_z_hat_iter(self):
         '''
@@ -246,7 +235,6 @@ cdef class Solver:
 
     z_hat_iter = property(__get_z_hat_iter)
 
-
     def __get_p_hat_iter(self):
         '''
         Search direction.
@@ -254,7 +242,6 @@ cdef class Solver:
         return self._p_hat_iter
 
     p_hat_iter = property(__get_p_hat_iter)
-
 
     def __get_v_iter(self):
         '''
@@ -264,7 +251,6 @@ cdef class Solver:
 
     v_iter = property(__get_v_iter)
 
-
     def __get_alpha_iter(self):
         '''
         Step size for search direction.
@@ -272,7 +258,6 @@ cdef class Solver:
         return self.__plan.alpha_iter
 
     alpha_iter = property(__get_alpha_iter)
-
 
     def __get_beta_iter(self):
         '''
@@ -282,7 +267,6 @@ cdef class Solver:
 
     beta_iter = property(__get_beta_iter)
 
-
     def __get_dot_r_iter(self):
         '''
         Weighted dotproduct of r_iter.
@@ -290,7 +274,6 @@ cdef class Solver:
         return self.__plan.dot_r_iter
 
     dot_r_iter = property(__get_dot_r_iter)
-
 
     def __get_dot_r_iter_old(self):
         '''
@@ -300,7 +283,6 @@ cdef class Solver:
 
     dot_r_iter_old = property(__get_dot_r_iter_old)
 
-
     def __get_dot_z_hat_iter(self):
         '''
         Weighted dotproduct of z_hat_iter.
@@ -308,7 +290,6 @@ cdef class Solver:
         return self.__plan.dot_z_hat_iter
 
     dot_z_hat_iter = property(__get_dot_z_hat_iter)
-
 
     def __get_dot_z_hat_iter_old(self):
         '''
@@ -318,7 +299,6 @@ cdef class Solver:
 
     dot_z_hat_iter_old = property(__get_dot_z_hat_iter_old)
 
-
     def __get_dot_p_hat_iter(self):
         '''
         Weighted dotproduct of p_hat_iter.
@@ -326,7 +306,6 @@ cdef class Solver:
         return self.__plan.dot_p_hat_iter
 
     dot_p_hat_iter = property(__get_dot_p_hat_iter)
-
 
     def __get_dot_v_iter(self):
         '''
@@ -336,7 +315,6 @@ cdef class Solver:
 
     dot_v_iter = property(__get_dot_v_iter)
 
-
     def __get_dtype(self):
         '''
         The floating precision.
@@ -344,7 +322,6 @@ cdef class Solver:
         return self._dtype
 
     dtype = property(__get_dtype)
-
 
     def __get_flags(self):
         '''

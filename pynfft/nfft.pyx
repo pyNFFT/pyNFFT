@@ -39,15 +39,17 @@ nfft_flags_dict = {
     'NFFT_OMP_BLOCKWISE_ADJOINT':NFFT_OMP_BLOCKWISE_ADJOINT,
     'PRE_ONE_PSI':PRE_ONE_PSI,
     }
+nfft_flags = nfft_flags_dict.copy()
 
 cdef object fftw_flags_dict
 fftw_flags_dict = {
     'FFTW_ESTIMATE':FFTW_ESTIMATE,
     'FFTW_DESTROY_INPUT':FFTW_DESTROY_INPUT,
     }
+fftw_flags = fftw_flags_dict.copy()
 
 cdef object nfft_supported_flags_tuple
-nfft_supported_flags_list = (
+nfft_supported_flags_tuple = (
     'PRE_PHI_HUT',
     'FG_PSI',
     'PRE_LIN_PSI',

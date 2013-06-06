@@ -22,12 +22,47 @@ from libc cimport limits
 from cnfft3 cimport (nfft_adjoint, nfft_adjoint_direct, nfft_init_guru,
                      nfft_trafo, nfft_trafo_direct, nfft_precompute_one_psi,
                      nfft_finalize, fftw_complex)
+from cnfft3 cimport (PRE_PHI_HUT, FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI,
+                     PRE_FULL_PSI, MALLOC_X, MALLOC_F_HAT, MALLOC_F,
+                     FFT_OUT_OF_PLACE, FFTW_INIT, NFFT_SORT_NODES,
+                     NFFT_OMP_BLOCKWISE_ADJOINT, PRE_ONE_PSI, FFTW_ESTIMATE,
+                     FFTW_DESTROY_INPUT,)
 
 
 # expose flag management internals for testing
-nfft_flags = nfft_flags_dict.copy()
-fftw_flags = fftw_flags_dict.copy()
+nfft_supported_flags_tuple = (
+    'PRE_PHI_HUT',
+    'FG_PSI',
+    'PRE_LIN_PSI',
+    'PRE_FG_PSI',
+    'PRE_PSI',
+    'PRE_FULL_PSI',
+    )
 nfft_supported_flags = nfft_supported_flags_tuple
+
+nfft_flags_dict = {
+    'PRE_PHI_HUT':PRE_PHI_HUT,
+    'FG_PSI':FG_PSI,
+    'PRE_LIN_PSI':PRE_LIN_PSI,
+    'PRE_FG_PSI':PRE_FG_PSI,
+    'PRE_PSI':PRE_PSI,
+    'PRE_FULL_PSI':PRE_FULL_PSI,
+    'MALLOC_X':MALLOC_X,
+    'MALLOC_F_HAT':MALLOC_F_HAT,
+    'MALLOC_F':MALLOC_F,
+    'FFT_OUT_OF_PLACE':FFT_OUT_OF_PLACE,
+    'FFTW_INIT':FFTW_INIT,
+    'NFFT_SORT_NODES':NFFT_SORT_NODES,
+    'NFFT_OMP_BLOCKWISE_ADJOINT':NFFT_OMP_BLOCKWISE_ADJOINT,
+    'PRE_ONE_PSI':PRE_ONE_PSI,
+    }
+nfft_flags = nfft_flags_dict.copy()
+
+fftw_flags_dict = {
+    'FFTW_ESTIMATE':FFTW_ESTIMATE,
+    'FFTW_DESTROY_INPUT':FFTW_DESTROY_INPUT,
+    }
+fftw_flags = fftw_flags_dict.copy()
 
 # Numpy must be initialized. When using numpy from C or Cython you must
 # _always_ do that, or you will have segfaults
@@ -220,7 +255,7 @@ cdef class NFFT:
         self._m = self.__plan.m
         self._M_total = self.__plan.M_total
         self._N_total = self.__plan.N_total
-        self._N = self.__plan.N
+        self._N = tuple([self.__plan.N[t] for t in range(self.__plan.d)])
         self._dtype = np.float64
         self._flags = flags_used
 
@@ -402,10 +437,7 @@ cdef class NFFT:
         '''
         The multi-bandwith size.
         '''
-        N = []
-        for d in range(self._d):
-            N.append(self._N[d])
-        return tuple(N)
+        return self._N
 
     N = property(__get_N)
 

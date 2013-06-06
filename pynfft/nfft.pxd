@@ -16,11 +16,6 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from cnfft3 cimport nfft_plan
-from cnfft3 cimport (PRE_PHI_HUT, FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI,
-                     PRE_FULL_PSI, MALLOC_X, MALLOC_F_HAT, MALLOC_F,
-                     FFT_OUT_OF_PLACE, FFTW_INIT, NFFT_SORT_NODES,
-                     NFFT_OMP_BLOCKWISE_ADJOINT, PRE_ONE_PSI, FFTW_ESTIMATE,
-                     FFTW_DESTROY_INPUT,)
 
 cdef class NFFT:
     cdef nfft_plan __plan
@@ -31,7 +26,7 @@ cdef class NFFT:
     cdef int _m
     cdef int _M_total
     cdef int _N_total
-    cdef int *_N
+    cdef object _N
     cdef object _dtype
     cdef object _flags
     cpdef precompute(self)
@@ -41,35 +36,7 @@ cdef class NFFT:
     cpdef adjoint_direct(self)
 
 cdef object nfft_supported_flags_tuple
-nfft_supported_flags_tuple = (
-    'PRE_PHI_HUT',
-    'FG_PSI',
-    'PRE_LIN_PSI',
-    'PRE_FG_PSI',
-    'PRE_PSI',
-    'PRE_FULL_PSI',
-    )
 
 cdef object nfft_flags_dict
-nfft_flags_dict = {
-    'PRE_PHI_HUT':PRE_PHI_HUT,
-    'FG_PSI':FG_PSI,
-    'PRE_LIN_PSI':PRE_LIN_PSI,
-    'PRE_FG_PSI':PRE_FG_PSI,
-    'PRE_PSI':PRE_PSI,
-    'PRE_FULL_PSI':PRE_FULL_PSI,
-    'MALLOC_X':MALLOC_X,
-    'MALLOC_F_HAT':MALLOC_F_HAT,
-    'MALLOC_F':MALLOC_F,
-    'FFT_OUT_OF_PLACE':FFT_OUT_OF_PLACE,
-    'FFTW_INIT':FFTW_INIT,
-    'NFFT_SORT_NODES':NFFT_SORT_NODES,
-    'NFFT_OMP_BLOCKWISE_ADJOINT':NFFT_OMP_BLOCKWISE_ADJOINT,
-    'PRE_ONE_PSI':PRE_ONE_PSI,
-    }
 
 cdef object fftw_flags_dict
-fftw_flags_dict = {
-    'FFTW_ESTIMATE':FFTW_ESTIMATE,
-    'FFTW_DESTROY_INPUT':FFTW_DESTROY_INPUT,
-    }

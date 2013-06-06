@@ -20,10 +20,21 @@ cimport numpy as np
 from cnfft3 cimport (solver_init_advanced_complex, solver_before_loop_complex,
                      solver_loop_one_step_complex, solver_finalize_complex,
                      nfft_mv_plan_complex)
-from nfft cimport NFFT
+from cnfft3 cimport (LANDWEBER, STEEPEST_DESCENT, CGNR, CGNE,
+                     NORMS_FOR_LANDWEBER, PRECOMPUTE_WEIGHT,
+                     PRECOMPUTE_DAMP,)
 
 
 # exposes flag management internals for testing
+solver_flags_dict = {
+    'LANDWEBER':LANDWEBER,
+    'STEEPEST_DESCENT':STEEPEST_DESCENT,
+    'CGNR':CGNR,
+    'CGNE':CGNE,
+    'NORMS_FOR_LANDWEBER':NORMS_FOR_LANDWEBER,
+    'PRECOMPUTE_WEIGHT':PRECOMPUTE_WEIGHT,
+    'PRECOMPUTE_DAMP':PRECOMPUTE_DAMP,
+    }
 solver_flags = solver_flags_dict.copy()
 
 # Numpy must be initialized. When using numpy from C or Cython you must

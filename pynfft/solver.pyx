@@ -54,12 +54,19 @@ cdef class Solver:
 
         # flags management
         cdef unsigned int _flags = 0
+        flags_used = ()
 
-        flags_used = flags
-        if flags_used is None:
-            flags_used = ('CGNR',)
-        elif not isinstance(flags_used, tuple):
-            flags_used = tuple(flags_used)
+        # sanity checks on user specified flags if any,
+        # else use default ones:
+        if flags is not None:
+            try:
+                flags = tuple(flags)
+            except:
+                flags = (flags,)
+            finally:
+                flags_used += flags
+        else:
+            flags_used += ('CGNR',)
 
         for each_flag in flags_used:
             try:

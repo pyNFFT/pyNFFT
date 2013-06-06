@@ -133,8 +133,7 @@ def test_nfft_2d():
                       'simple_test_nfft_2d_64.txt'):
 
         # init a two dimensional plan
-        flags = ('PRE_PHI_HUT', 'PRE_FULL_PSI', 'MALLOC_F_HAT', 'MALLOC_X',
-                 'MALLOC_F', 'FFTW_INIT', 'FFT_OUT_OF_PLACE')
+        flags = ('PRE_PHI_HUT', 'PRE_FULL_PSI',)
         pw = nfft.NFFT(N, M, n, m=7, flags=flags)
 
         assert_equal(pw.M_total, M)

@@ -47,6 +47,15 @@ ext_modules = [
         extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
                            '-fstrict-aliasing -ffast-math'.split(),
     ),
+    Extension(
+        name='pynfft.util',
+        sources=[os.path.join('pynfft', 'util.c')],
+        libraries=libraries,
+        library_dirs=library_dirs,
+        include_dirs=include_dirs,
+        extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
+                           '-fstrict-aliasing -ffast-math'.split(),
+    ),
 ]
 
 def get_version():

@@ -15,9 +15,10 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from pynfft.nfft import NFFT
 import numpy
 import unittest
+from pynfft.nfft import (NFFT, fftw_flags, nfft_flags,
+                         nfft_supported_flags)
 
 
 class TestNFFTError(unittest.TestCase):
@@ -106,6 +107,15 @@ class TestNFFTError(unittest.TestCase):
         invalid_flags = ('PRE_PHI_HOT', 'PRE_FOOL_PSI', 'FG_RADIO_PSI')
         for flag in invalid_flags:
             self.assertRaises(ValueError, lambda: NFFT(N=N, M=M, flags=(flag,)))
+        # managed flags
+        managed_flags = []
+        managed_flags.append([flag for flag in nfft_flags.keys()
+                              if flag not in nfft_supported_flags])
+        managed_flags.append([flag for flag in fftw_flags.keys()
+                              if flag not in nfft_supported_flags])
+        for flag in managed_flags:
+            self.assertRaises(ValueError,
+                              lambda: NFFT(N=N, M=M, flags=(flag,)))
 
 
 def suite():

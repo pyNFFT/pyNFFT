@@ -23,16 +23,15 @@ from cnfft3 cimport (nfft_adjoint, nfft_adjoint_direct, nfft_init_guru,
                      nfft_trafo, nfft_trafo_direct, nfft_precompute_one_psi,
                      nfft_finalize, fftw_complex)
 
+
 # expose flag management internals for testing
 nfft_flags = nfft_flags_dict.copy()
 fftw_flags = fftw_flags_dict.copy()
 nfft_supported_flags = nfft_supported_flags_tuple
 
-
 # Numpy must be initialized. When using numpy from C or Cython you must
 # _always_ do that, or you will have segfaults
 np.import_array()
-
 
 cdef class NFFT:
     '''
@@ -224,7 +223,6 @@ cdef class NFFT:
         self._N = self.__plan.N
         self._dtype = np.float64
         self._flags = flags_used
-
 
     # here, just holds the documentation of the class constructor
     def __init__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,

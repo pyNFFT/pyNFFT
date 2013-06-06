@@ -35,12 +35,6 @@ Tutorial
 
 See the :doc:`tutorial` to get started with using pyNFFT.
 
-Changes
--------
-
-See the :doc:`changelog` for a list of the changes in pyNFFT over the 
-versions.
-
 About this documentation
 ------------------------
 
@@ -59,4 +53,3 @@ Indices and tables
 
    tutorial
    api
-   changelog

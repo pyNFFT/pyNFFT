@@ -17,7 +17,9 @@
 
 import numpy as np
 cimport numpy as np
-from cnfft3 cimport *
+from cnfft3 cimport (solver_init_advanced_complex, solver_before_loop_complex,
+                     solver_loop_one_step_complex, solver_finalize_complex,
+                     nfft_mv_plan_complex)
 from nfft cimport NFFT
 
 

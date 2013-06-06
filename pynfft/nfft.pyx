@@ -39,14 +39,23 @@ nfft_flags_dict = {
     'NFFT_OMP_BLOCKWISE_ADJOINT':NFFT_OMP_BLOCKWISE_ADJOINT,
     'PRE_ONE_PSI':PRE_ONE_PSI,
     }
-_nfft_flags_dict = nfft_flags_dict.copy()
 
 cdef object fftw_flags_dict
 fftw_flags_dict = {
     'FFTW_ESTIMATE':FFTW_ESTIMATE,
     'FFTW_DESTROY_INPUT':FFTW_DESTROY_INPUT,
-}
-_fftw_flags_dict = fftw_flags_dict.copy()
+    }
+
+cdef object nfft_supported_flags_tuple
+nfft_supported_flags_list = (
+    'PRE_PHI_HUT':PRE_PHI_HUT,
+    'FG_PSI':FG_PSI,
+    'PRE_LIN_PSI':PRE_LIN_PSI,
+    'PRE_FG_PSI':PRE_FG_PSI,
+    'PRE_PSI':PRE_PSI,
+    'PRE_FULL_PSI':PRE_FULL_PSI,
+    )
+nfft_supported_flags = nfft_supported_flags_tuple
 
 
 # Numpy must be initialized. When using numpy from C or Cython you must
@@ -148,28 +157,38 @@ cdef class NFFT:
         # this value using BITOR operations.
         cdef unsigned int _nfft_flags = 0
         cdef unsigned int _fftw_flags = 0
+        flags_used = ()
 
-        # Set FFTW specific flags, should not be done by the user
-        flags_used = ('FFTW_INIT', 'FFT_OUT_OF_PLACE', 'FFTW_ESTIMATE',
-                'FFTW_DESTROY_INPUT',)
-
-        # Enable sorting for faster parallel computation
-        flags_used += ('NFFT_SORT_NODES',)
-
-        # Enable optimized blockwise adjoint, if multivariate
-        if d > 1:
-            flags_used += ('NFFT_OMP_BLOCKWISE_ADJOINT',)
-
-        # Set default precomputation flags if none is specified
+        # sanity checks on user specified flags if any,
+        # else use default ones:
         if flags is not None:
-            if not isinstance(flags, tuple):
+            try:
                 flags = tuple(flags)
-            flags_used += flags
+            except:
+                flags = (flags,)
+            finally:
+                for each_flag is flags:
+                    if each_flag not in nfft_supported_flags_tuple:
+                        raise ValueError('Unsupported flag: %s'%(each_flag))
+                flags_used += flags
         else:
             flags_used += ('PRE_PHI_HUT', 'PRE_PSI',)
 
-        # Check flags' validity and calculate the flag code for the guru
-        # interface
+        # set specific flags, for which we don't want the user to have a say
+        # on:
+        # FFTW specific flags
+        flags_used += ('FFTW_INIT', 'FFT_OUT_OF_PLACE', 'FFTW_ESTIMATE',
+                'FFTW_DESTROY_INPUT',)
+
+        # Parallel computation flag
+        flags_used += ('NFFT_SORT_NODES',)
+
+        # Parallel computation flag, set only if multivariate transform
+        if d > 1:
+            flags_used += ('NFFT_OMP_BLOCKWISE_ADJOINT',)
+
+        # Calculate the flag code for the guru interface used for
+        # initialization
         for each_flag in flags_used:
             try:
                 _nfft_flags |= nfft_flags_dict[each_flag]

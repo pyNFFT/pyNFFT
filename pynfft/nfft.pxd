@@ -26,7 +26,7 @@ cdef class NFFT:
     cdef int _m
     cdef int _M_total
     cdef int _N_total
-    cdef int *_N
+    cdef object _N
     cdef object _dtype
     cdef object _flags
     cpdef precompute(self)
@@ -34,3 +34,9 @@ cdef class NFFT:
     cpdef trafo_direct(self)
     cpdef adjoint(self)
     cpdef adjoint_direct(self)
+
+cdef object nfft_supported_flags_tuple
+
+cdef object nfft_flags_dict
+
+cdef object fftw_flags_dict

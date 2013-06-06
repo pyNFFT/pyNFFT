@@ -48,12 +48,12 @@ fftw_flags_dict = {
 
 cdef object nfft_supported_flags_tuple
 nfft_supported_flags_list = (
-    'PRE_PHI_HUT':PRE_PHI_HUT,
-    'FG_PSI':FG_PSI,
-    'PRE_LIN_PSI':PRE_LIN_PSI,
-    'PRE_FG_PSI':PRE_FG_PSI,
-    'PRE_PSI':PRE_PSI,
-    'PRE_FULL_PSI':PRE_FULL_PSI,
+    'PRE_PHI_HUT',
+    'FG_PSI',
+    'PRE_LIN_PSI',
+    'PRE_FG_PSI',
+    'PRE_PSI',
+    'PRE_FULL_PSI',
     )
 nfft_supported_flags = nfft_supported_flags_tuple
 
@@ -167,7 +167,7 @@ cdef class NFFT:
             except:
                 flags = (flags,)
             finally:
-                for each_flag is flags:
+                for each_flag in flags:
                     if each_flag not in nfft_supported_flags_tuple:
                         raise ValueError('Unsupported flag: %s'%(each_flag))
                 flags_used += flags

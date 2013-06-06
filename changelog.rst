@@ -1,8 +1,32 @@
 Changelog
 =========
 
-.. toctree::
-    :hidden:
+
+Changes in version 0.4
+----------------------
+
+    - Improved flag management: NFFT now only accepts the list of supported 
+      flags listed in its documentaton.
+
+    - pynfft.util: utility functions listed in nfft3util.h. Only, the random
+      initializers and Voronoi weights computation functions have been wrapped.
+
+    - Changelog is no longer part of the sphinx tree.
+
+Changes in version 0.3.1
+------------------------
+
+    - Fixed issue #1: crash in test_nfft due to use of MALLOC flags
+
+
+Changes in version 0.3
+----------------------
+
+    - Improve precomputation flag management in NFFT and Solver classes
+
+    - Various code improvements
+
+    - Update documentation for all modules
 
 
 Changes in version 0.2.4

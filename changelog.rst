@@ -1,6 +1,10 @@
 Changelog
 =========
 
+Changes in version 0.4.1
+------------------------
+
+    - New simplified test suite.
 
 Changes in version 0.4
 ----------------------

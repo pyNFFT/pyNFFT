@@ -18,16 +18,52 @@
 import unittest
 
 
-class TestNFFT(unittest.TestCase):
+class Test_NFFT_init(unittest.TestCase):
+
     def __init__(self, *args, **kwargs):
-        super(TestNFFT, self).__init__(*args, **kwargs)
+        super(Test_NFFT_init, self).__init__(*args, **kwargs)
+
+    def test_default_args(self):
+        pass
+
+    def test_user_specified_args(self):
+        pass
+
+
+class Test_NFFT_runtime(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+        super(Test_NFFT_runtime, self).__init__(*args, **kwargs)
+
+    def test_trafo(self):
+        pass
+
+    def test_trafo_direct(self):
+        pass
+
+    def test_adjoint(self):
+        pass
+
+    def test_adjoint_direct(self):
+        pass
+
+    def reference_fdft(x, f_hat, f):
+        pass
+
+    def reference_idft(x, f, f_hat):
+        pass
 
 
 def suite():
     suite = unittest.TestSuite()
+    suite.addTest(Test_NFFT_init("test_default_args"))
+    suite.addTest(Test_NFFT_init("test_user_specified_args"))
+    suite.addTest(Test_NFFT_runtime("test_trafo"))
+    suite.addTest(Test_NFFT_runtime("test_trafo_direct"))
+    suite.addTest(Test_NFFT_runtime("test_adjoint"))
+    suite.addTest(Test_NFFT_runtime("test_adjoint_direct"))
     return suite
 
 
 if __name__ == '__main__':
-    suite = suite()
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    unittest.TextTestRunner(verbosity=2).run(suite())

@@ -15,11 +15,11 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 from __future__ import division
-import numpy as np
+import numpy
 import unittest
 from numpy import pi
 from numpy.testing import assert_allclose
-from pynfft.nfft import NFFT
+from pynfft.nfft import NFFT, fftw_flags, nfft_flags, nfft_supported_flags
 from pynfft.util import vrand_unit_complex, vrand_shifted_unit_double
 
 
@@ -51,7 +51,7 @@ class Test_NFFT_init(unittest.TestCase):
         for t, Nt in enumerate(self.N):
             self.assertEqual(Nfft.N[t], Nt)
 
-        self.assertEqual(Nfft.N_total, np.prod(self.N))
+        self.assertEqual(Nfft.N_total, numpy.prod(self.N))
 
         self.assertEqual(Nfft.M_total, self.M)
 
@@ -71,11 +71,11 @@ class Test_NFFT_runtime(unittest.TestCase):
         N = Nfft.N
         f = Nfft.f
         f_hat = Nfft.f_hat
-        k = np.mgrid[slice(N[0]), slice(N[1])]
-        k = k.reshape([2, -1]) - np.asarray(N).reshape([2, 1]) / 2
+        k = numpy.mgrid[slice(N[0]), slice(N[1])]
+        k = k.reshape([2, -1]) - numpy.asarray(N).reshape([2, 1]) / 2
         x = Nfft.x.reshape([-1, 2])
-        F = np.exp(-2j * pi * np.dot(x, k))
-        f_dft = np.dot(F, f_hat)
+        F = numpy.exp(-2j * pi * numpy.dot(x, k))
+        f_dft = numpy.dot(F, f_hat)
         assert_allclose(f, f_dft, rtol=1e-3)
 
     @staticmethod
@@ -83,11 +83,11 @@ class Test_NFFT_runtime(unittest.TestCase):
         N = Nfft.N
         f = Nfft.f
         f_hat = Nfft.f_hat
-        k = np.mgrid[slice(N[0]), slice(N[1])]
-        k = k.reshape([2, -1]) - np.asarray(N).reshape([2, 1]) / 2
+        k = numpy.mgrid[slice(N[0]), slice(N[1])]
+        k = k.reshape([2, -1]) - numpy.asarray(N).reshape([2, 1]) / 2
         x = Nfft.x.reshape([-1, 2])
-        F = np.exp(-2j * pi * np.dot(x, k))
-        f_hat_dft = np.dot(np.conjugate(F).T, f)
+        F = numpy.exp(-2j * pi * numpy.dot(x, k))
+        f_hat_dft = numpy.dot(numpy.conjugate(F).T, f)
         assert_allclose(f_hat, f_hat_dft, rtol=1e-3)
 
     def __init__(self, *args, **kwargs):
@@ -117,6 +117,106 @@ class Test_NFFT_runtime(unittest.TestCase):
         self.compare_with_idft(self.Nfft)
 
 
+class Test_NFFT_errors(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+        super(Test_NFFT_errors, self).__init__(*args, **kwargs)
+
+    def test_for_invalid_N(self):
+        # N must be between 0 and INT_MAX
+        N = -1
+        M = 32
+        self.assertRaises(ValueError, lambda: NFFT(N=N, M=M))
+        N = numpy.iinfo(numpy.int32).max + 1
+        self.assertRaises(ValueError, lambda: NFFT(N=N, M=M))
+        # N_total should not be more than INT_MAX
+        N = (4, numpy.iinfo(numpy.int32).max / 2)
+        self.assertRaises(ValueError, lambda: NFFT(N=N, M=M))
+
+    def test_for_invalid_M(self):
+        # M_total must be between 0 and INT_MAX
+        N = 32
+        M = -1
+        self.assertRaises(ValueError, lambda: NFFT(N=N, M=M))
+        M = numpy.iinfo(numpy.int32).max + 1
+        self.assertRaises(ValueError, lambda: NFFT(N=N, M=M))
+
+    def test_for_invalid_n(self):
+        # n must be between 0 and INT_MAX
+        N = 32
+        M = 32
+        n = -1
+        self.assertRaises(ValueError, lambda: NFFT(N=N, M=M, n=n))
+        n = numpy.iinfo(numpy.int32).max + 1
+        self.assertRaises(ValueError, lambda: NFFT(N=N, M=M, n=n))
+
+    def test_for_invalid_x(self):
+        N = 32
+        M = 32
+        x = numpy.linspace(-0.5, 0.5, M, endpoint=False)
+        x = x.astype(numpy.float64)
+        # array must be contigous
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M/2, x=x[::2]))
+        # array must be of the right size
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M, x=x[:M/2]))
+        # array must be of the right type
+        x = x.astype(numpy.float32)
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M, x=x))
+
+    def test_for_invalid_f(self):
+        N = 32
+        M = 32
+        f = numpy.arange(M)
+        f = f.astype(numpy.complex128)
+        # array must be contigous
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M/2, f=f[::2]))
+        # array must be of the right size
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M, f=f[:M/2]))
+        # array must be of the right type
+        f = f.astype(numpy.complex64)
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M, f=f))
+
+    def test_for_invalid_f_hat(self):
+        N = 32
+        M = 32
+        f_hat = numpy.arange(N)
+        f_hat = f_hat.astype(numpy.complex128)
+        # array must be contigous
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N/2, M=M, f_hat=f_hat[::2]))
+        # array must be of the right size
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M, f_hat=f_hat[:N/2]))
+        # array must be of the right type
+        f_hat = f_hat.astype(numpy.complex64)
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M, f_hat=f_hat))
+
+    def test_for_invalid_flags(self):
+        N = 32
+        M = 32
+        # non existing flags
+        invalid_flags = ('PRE_PHI_HOT', 'PRE_FOOL_PSI', 'FG_RADIO_PSI')
+        for flag in invalid_flags:
+            self.assertRaises(ValueError,
+                              lambda: NFFT(N=N, M=M, flags=(flag,)))
+        # managed flags
+        managed_flags = []
+        managed_flags.append([flag for flag in nfft_flags.keys()
+                              if flag not in nfft_supported_flags])
+        managed_flags.append([flag for flag in fftw_flags.keys()
+                              if flag not in nfft_supported_flags])
+        for flag in managed_flags:
+            self.assertRaises(ValueError,
+                              lambda: NFFT(N=N, M=M, flags=(flag,)))
+
+
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(Test_NFFT_init("test_default_args"))
@@ -125,6 +225,13 @@ def suite():
     suite.addTest(Test_NFFT_runtime("test_trafo_direct"))
     suite.addTest(Test_NFFT_runtime("test_adjoint"))
     suite.addTest(Test_NFFT_runtime("test_adjoint_direct"))
+    suite.addTest(Test_NFFT_errors('test_for_invalid_N'))
+    suite.addTest(Test_NFFT_errors('test_for_invalid_M'))
+    suite.addTest(Test_NFFT_errors('test_for_invalid_n'))
+    suite.addTest(Test_NFFT_errors('test_for_invalid_x'))
+    suite.addTest(Test_NFFT_errors('test_for_invalid_f'))
+    suite.addTest(Test_NFFT_errors('test_for_invalid_f_hat'))
+    suite.addTest(Test_NFFT_errors('test_for_invalid_flags'))
     return suite
 
 

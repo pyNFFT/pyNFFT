@@ -1,151 +1,239 @@
-"""
-Unit tests for NFFTPY (cython wrapper for NFFT libraries)
-
-This also serves as a simple example of using NFFTPY from Python.
-
-In part, this is a python translation of NFFT's examples/nfft/simple_test.c.
-
-However, for reproducibility, instead of using NFFT's pseudo-random data
-generator here, we use the input and output arrays which were previously
-generated and saved to files by simple_test_class.pyx, and were spot-checked
-by hand against the data printed by NFFT's original simple_test.c.
-
-These data files are different when generated on different systems, presumably
-because of different pseudo-random number generation, but they should work on
-any system. Here, for each of the 1d and 2d tests, we use two sets of files,
-which were generated on 32 and 64-bit Ubuntu VMs.
-
-FIXME: Need unit tests examining non-random data sampled from simple
-functions with known transforms.
-
-"""
-import os
-import numpy as np
-from numpy.testing import (assert_equal, assert_array_almost_equal)
+# -*- coding: utf-8 -*-
+#
+# Copyright (C) 2013  Ghislain Vaillant
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+from __future__ import division
+import numpy
 import unittest
-import pynfft.nfft as nfft
+from numpy import pi
+from numpy.testing import assert_allclose
+from pynfft.nfft import NFFT, fftw_flags, nfft_flags, nfft_supported_flags
+from pynfft.util import vrand_unit_complex, vrand_shifted_unit_double
 
 
-def read_sample_data(filename, pw):
-    """
-    Read a set of sample data which was written by simple_test_class.pyx. It
-    consists of 4 concatenated arrays, each preceded by its number of elements.
-    Validate the length of each array against the expected length, given the
-    plan wrapper pw.
+class Test_NFFT_init(unittest.TestCase):
 
-    Returns a list of 4 numpy arrays:
-        x_data : dtype=float
-        f_hat_data, f_data, adjoint_f_hat_data : dtype=complex
-    """
-    num_x = pw.d * pw.M_total
-    data_filename = os.path.join(os.path.dirname(__file__), filename)
-    data = np.loadtxt(data_filename, dtype=np.complex128)
-    data_divided = []
-    i = 0
-    corruption_msg = ('test data in %s is apparently corrupted at row %%i' %
-                      data_filename)
-    for expected_len in (num_x, pw.N_total, pw.M_total, pw.N_total):
-        n_elem = int(round(data[i].real))
-        if n_elem != expected_len:
-            raise IOError(corruption_msg % i)
-        i += 1
-        next_elem = i + n_elem
-        data_divided.append(data[i:next_elem])
-        i += n_elem
-    if next_elem != len(data):
-        raise IOError(corruption_msg % i)
-    data_divided[0] = data_divided[0].real.astype(np.float64)
-    return data_divided
+    def __init__(self, *args, **kwargs):
+        super(Test_NFFT_init, self).__init__(*args, **kwargs)
+        self.N = (16, 16)
+        self.M = 96
+        self.m = 6
+        self.flags = ('PRE_PHI_HUT', 'FG_PSI', 'PRE_FG_PSI')
 
+    def test_default_args(self):
+        Nfft = NFFT(N=self.N, M=self.M)
 
-def check_a_plan(pw, x_data, f_hat_data, f_data, adjoint_f_hat_data):
-    """
-    After a plan is initialized, feed it data, compute transforms,
-    and check the results.
-    """
-    # init pseudo random nodes and check that their values took:
-    pw.x = x_data
-    _x = pw.x
-    assert_array_almost_equal(_x, x_data)
+        default_m = 12
+        self.assertEqual(Nfft.m, default_m)
 
-    # precompute psi, the entries of the matrix B
-    pw.precompute()
+        default_flags = ('PRE_PHI_HUT', 'PRE_PSI')
+        for each_flag in default_flags:
+            self.assertIn(each_flag, Nfft.flags)
 
-    # init pseudo random Fourier coefficients and check their values took:
-    pw.f_hat = f_hat_data
-    _f_hat = pw.f_hat
-    assert_array_almost_equal(_f_hat, f_hat_data)
+    def test_user_specified_args(self):
+        Nfft = NFFT(N=self.N, M=self.M, m=self.m,
+                    flags=self.flags)
 
-    # direct trafo and test the result
-    pw.trafo_direct()
-    _f = pw.f
-    assert_array_almost_equal(_f, f_data)
+        self.assertEqual(Nfft.d, len(self.N))
 
-    # approx. trafo and check the result
-    # first clear the result array to be sure that it is actually touched.
-    pw.f = np.zeros_like(f_data)
-    pw.trafo()
-    _f2 = pw.f
-    assert_array_almost_equal(_f2, f_data)
+        for t, Nt in enumerate(self.N):
+            self.assertEqual(Nfft.N[t], Nt)
 
-    # direct adjoint and check the result
-    pw.adjoint_direct()
-    _f_hat2 = pw.f_hat
-    assert_array_almost_equal(_f_hat2, adjoint_f_hat_data)
+        self.assertEqual(Nfft.N_total, numpy.prod(self.N))
 
-    # approx. adjoint and check the result.
-    # first clear the result array to be sure that it is actually touched.
-    pw.f_hat = np.zeros_like(f_hat_data)
-    pw.adjoint()
-    _f_hat3 = pw.f_hat
-    assert_array_almost_equal(_f_hat3, adjoint_f_hat_data)
+        self.assertEqual(Nfft.M_total, self.M)
+
+        self.assertEqual(Nfft.m, self.m)
+
+        for each_flag in self.flags:
+            self.assertIn(each_flag, Nfft.flags)
 
 
-def read_and_check(pw, data_filename):
-    sample_data_arrays = read_sample_data(data_filename, pw)
-    check_a_plan(pw, *sample_data_arrays)
+class Test_NFFT_runtime(unittest.TestCase):
+
+    N = (32, 32)
+    M = 1280
+
+    @staticmethod
+    def compare_with_fdft(Nfft):
+        N = Nfft.N
+        f = Nfft.f
+        f_hat = Nfft.f_hat
+        k = numpy.mgrid[slice(N[0]), slice(N[1])]
+        k = k.reshape([2, -1]) - numpy.asarray(N).reshape([2, 1]) / 2
+        x = Nfft.x.reshape([-1, 2])
+        F = numpy.exp(-2j * pi * numpy.dot(x, k))
+        f_dft = numpy.dot(F, f_hat)
+        assert_allclose(f, f_dft, rtol=1e-3)
+
+    @staticmethod
+    def compare_with_idft(Nfft):
+        N = Nfft.N
+        f = Nfft.f
+        f_hat = Nfft.f_hat
+        k = numpy.mgrid[slice(N[0]), slice(N[1])]
+        k = k.reshape([2, -1]) - numpy.asarray(N).reshape([2, 1]) / 2
+        x = Nfft.x.reshape([-1, 2])
+        F = numpy.exp(-2j * pi * numpy.dot(x, k))
+        f_hat_dft = numpy.dot(numpy.conjugate(F).T, f)
+        assert_allclose(f_hat, f_hat_dft, rtol=1e-3)
+
+    def __init__(self, *args, **kwargs):
+        super(Test_NFFT_runtime, self).__init__(*args, **kwargs)
+        self.Nfft = NFFT(N=self.N, M=self.M)
+        vrand_shifted_unit_double(self.Nfft.x)
+        self.Nfft.precompute()
+
+    def test_trafo(self):
+        vrand_unit_complex(self.Nfft.f_hat)
+        self.Nfft.trafo()
+        self.compare_with_fdft(self.Nfft)
+
+    def test_trafo_direct(self):
+        vrand_unit_complex(self.Nfft.f_hat)
+        self.Nfft.trafo_direct()
+        self.compare_with_fdft(self.Nfft)
+
+    def test_adjoint(self):
+        vrand_unit_complex(self.Nfft.f)
+        self.Nfft.adjoint()
+        self.compare_with_idft(self.Nfft)
+
+    def test_adjoint_direct(self):
+        vrand_unit_complex(self.Nfft.f)
+        self.Nfft.adjoint_direct()
+        self.compare_with_idft(self.Nfft)
 
 
-def test_nfft_1d():
-    """
-    Reproduce and check the 1d case from examples/nfft/simple_test.c.
-    """
-    N = 14
-    M = 19
-    for data_file in ('simple_test_nfft_1d_32.txt',
-                      'simple_test_nfft_1d_64.txt'):
-        # init a one dimensional plan
-        pw = nfft.NFFT(N, M)
-        assert_equal(pw.M_total, M)
-        assert_equal(pw.N_total, N)
-        assert_equal(pw.d, 1)
-        read_and_check(pw, data_file)
+class Test_NFFT_errors(unittest.TestCase):
+
+    def __init__(self, *args, **kwargs):
+        super(Test_NFFT_errors, self).__init__(*args, **kwargs)
+
+    def test_for_invalid_N(self):
+        # N must be between 0 and INT_MAX
+        N = -1
+        M = 32
+        self.assertRaises(ValueError, lambda: NFFT(N=N, M=M))
+        N = numpy.iinfo(numpy.int32).max + 1
+        self.assertRaises(ValueError, lambda: NFFT(N=N, M=M))
+        # N_total should not be more than INT_MAX
+        N = (4, numpy.iinfo(numpy.int32).max / 2)
+        self.assertRaises(ValueError, lambda: NFFT(N=N, M=M))
+
+    def test_for_invalid_M(self):
+        # M_total must be between 0 and INT_MAX
+        N = 32
+        M = -1
+        self.assertRaises(ValueError, lambda: NFFT(N=N, M=M))
+        M = numpy.iinfo(numpy.int32).max + 1
+        self.assertRaises(ValueError, lambda: NFFT(N=N, M=M))
+
+    def test_for_invalid_n(self):
+        # n must be between 0 and INT_MAX
+        N = 32
+        M = 32
+        n = -1
+        self.assertRaises(ValueError, lambda: NFFT(N=N, M=M, n=n))
+        n = numpy.iinfo(numpy.int32).max + 1
+        self.assertRaises(ValueError, lambda: NFFT(N=N, M=M, n=n))
+
+    def test_for_invalid_x(self):
+        N = 32
+        M = 32
+        x = numpy.linspace(-0.5, 0.5, M, endpoint=False)
+        x = x.astype(numpy.float64)
+        # array must be contigous
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M/2, x=x[::2]))
+        # array must be of the right size
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M, x=x[:M/2]))
+        # array must be of the right type
+        x = x.astype(numpy.float32)
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M, x=x))
+
+    def test_for_invalid_f(self):
+        N = 32
+        M = 32
+        f = numpy.arange(M)
+        f = f.astype(numpy.complex128)
+        # array must be contigous
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M/2, f=f[::2]))
+        # array must be of the right size
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M, f=f[:M/2]))
+        # array must be of the right type
+        f = f.astype(numpy.complex64)
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M, f=f))
+
+    def test_for_invalid_f_hat(self):
+        N = 32
+        M = 32
+        f_hat = numpy.arange(N)
+        f_hat = f_hat.astype(numpy.complex128)
+        # array must be contigous
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N/2, M=M, f_hat=f_hat[::2]))
+        # array must be of the right size
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M, f_hat=f_hat[:N/2]))
+        # array must be of the right type
+        f_hat = f_hat.astype(numpy.complex64)
+        self.assertRaises(ValueError,
+                          lambda: NFFT(N=N, M=M, f_hat=f_hat))
+
+    def test_for_invalid_flags(self):
+        N = 32
+        M = 32
+        # non existing flags
+        invalid_flags = ('PRE_PHI_HOT', 'PRE_FOOL_PSI', 'FG_RADIO_PSI')
+        for flag in invalid_flags:
+            self.assertRaises(ValueError,
+                              lambda: NFFT(N=N, M=M, flags=(flag,)))
+        # managed flags
+        managed_flags = []
+        managed_flags.append([flag for flag in nfft_flags.keys()
+                              if flag not in nfft_supported_flags])
+        managed_flags.append([flag for flag in fftw_flags.keys()
+                              if flag not in nfft_supported_flags])
+        for flag in managed_flags:
+            self.assertRaises(ValueError,
+                              lambda: NFFT(N=N, M=M, flags=(flag,)))
 
 
-def test_nfft_2d():
-    """
-    Reproduce and check the 2d case from examples/nfft/simple_test.c.
-    """
-    N = np.array([32, 14], dtype=np.int32)
-    n = np.array([64, 32], dtype=np.int32)
-    M = N.prod()
-    for data_file in ('simple_test_nfft_2d_32.txt',
-                      'simple_test_nfft_2d_64.txt'):
-
-        # init a two dimensional plan
-        flags = ('PRE_PHI_HUT', 'PRE_FULL_PSI',)
-        pw = nfft.NFFT(N, M, n, m=7, flags=flags)
-
-        assert_equal(pw.M_total, M)
-        assert_equal(pw.d, 2)
-        read_and_check(pw, data_file)
-
-
-test_nfft_1d_case = unittest.FunctionTestCase(test_nfft_1d)
-test_nfft_2d_case = unittest.FunctionTestCase(test_nfft_2d)
+def suite():
+    suite = unittest.TestSuite()
+    suite.addTest(Test_NFFT_init("test_default_args"))
+    suite.addTest(Test_NFFT_init("test_user_specified_args"))
+    suite.addTest(Test_NFFT_runtime("test_trafo"))
+    suite.addTest(Test_NFFT_runtime("test_trafo_direct"))
+    suite.addTest(Test_NFFT_runtime("test_adjoint"))
+    suite.addTest(Test_NFFT_runtime("test_adjoint_direct"))
+    suite.addTest(Test_NFFT_errors('test_for_invalid_N'))
+    suite.addTest(Test_NFFT_errors('test_for_invalid_M'))
+    suite.addTest(Test_NFFT_errors('test_for_invalid_n'))
+    suite.addTest(Test_NFFT_errors('test_for_invalid_x'))
+    suite.addTest(Test_NFFT_errors('test_for_invalid_f'))
+    suite.addTest(Test_NFFT_errors('test_for_invalid_f_hat'))
+    suite.addTest(Test_NFFT_errors('test_for_invalid_flags'))
+    return suite
 
 
 if __name__ == '__main__':
-    suite = unittest.TestSuite()
-    suite.addTests([test_nfft_1d_case, test_nfft_2d_case])
-    unittest.TextTestRunner(verbosity=2).run(suite)
+    unittest.TextTestRunner(verbosity=2).run(suite())

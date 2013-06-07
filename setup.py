@@ -96,7 +96,7 @@ classifiers = [
     'Topic :: Scientific/Engineering',
     'Topic :: Scientific/Engineering :: Mathematics',
     'Topic :: Multimedia :: Sound/Audio :: Analysis',
-],
+]
 
 setup_args = {
     'name': 'pyNFFT',

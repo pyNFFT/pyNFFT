@@ -16,7 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from distutils.core import setup
+from distutils.core import setup, Command
 from distutils.extension import Extension
 
 import os
@@ -57,6 +57,26 @@ ext_modules = [
                            '-fstrict-aliasing -ffast-math'.split(),
     ),
 ]
+
+
+class clean(Command):
+
+    description = "Force clean of build files and directories."
+    user_options = []
+
+    def initialize_options(self):
+        self.all = None
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import os
+        os.system("rm -f MANIFEST")
+        os.system("rm -rf build/")
+        os.system("rm -rf dist/")
+        os.system("rm -rf pynfft/*.so")
+        os.system("rm -rf doc/_build/")
 
 
 def get_version():
@@ -111,6 +131,7 @@ setup_args = {
     'ext_modules': ext_modules,
     'include_dirs': include_dirs,
     'package_data': package_data,
+    'cmdclass': {'clean': clean},
 }
 
 if __name__ == '__main__':

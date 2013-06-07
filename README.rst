@@ -1,5 +1,5 @@
-pyNFFT - Cython wrapper around the NFFT library
-===============================================
+pyNFFT - a Pythonic wrapper around the NFFT library
+===================================================
 
 "The NFFT is a C subroutine library for computing the nonequispaced discrete
 Fourier transform (NDFT) in one or more dimensions, of arbitrary input size,

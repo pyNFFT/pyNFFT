@@ -44,21 +44,10 @@ cdef extern from "nfft3.h":
 
     # double precision NFFT plan
     ctypedef struct nfft_plan:
-        int N_total
-            # Total number of Fourier coefficients.
-        int M_total
-            # Total number of samples.
         fftw_complex *f_hat
             # Vector of Fourier coefficients, size is N_total float_types.
         fftw_complex *f
             # Vector of samples, size is M_total float types.
-        int d
-            # Dimension, rank.
-        int *N
-            # Multi bandwidth.
-        int m
-            # Cut-off parameter of the window function, default value is 6 \
-            # (KAISER_BESSEL), 9 (SINC_POWER), 11 (B_SPLINE), 12 (GAUSSIAN).
         double *x
             # Nodes in time/spatial domain, size is $dM$ doubles.
 

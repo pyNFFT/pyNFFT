@@ -30,6 +30,22 @@ ctypedef void (*nfft_generic_set_f_hat)(void *_plan, object f_hat)
 
 cdef class NFFT:
     cdef void *__plan
+    cdef int _d
+    cdef int _m
+    cdef int _M_total
+    cdef int _N_total
+    cdef object _f
+    cdef object _f_hat
+    cdef object _x
+    cdef object _N
+    cdef object _n
+    cdef object _dtype
+    cdef object _flags
+    cpdef precompute(self)
+    cpdef trafo(self)
+    cpdef trafo_direct(self)
+    cpdef adjoint(self)
+    cpdef adjoint_direct(self)
     cdef nfft_generic_init __nfft_init
     cdef nfft_generic_finalize __nfft_finalize
     cdef nfft_generic_precompute __nfft_precompute
@@ -40,21 +56,6 @@ cdef class NFFT:
     cdef nfft_generic_set_x __nfft_set_x
     cdef nfft_generic_set_f __nfft_set_f
     cdef nfft_generic_set_f_hat __nfft_set_f_hat
-    cdef object _f
-    cdef object _f_hat
-    cdef object _x
-    cdef int _d
-    cdef int _m
-    cdef int _M_total
-    cdef int _N_total
-    cdef object _N
-    cdef object _dtype
-    cdef object _flags
-    cpdef precompute(self)
-    cpdef trafo(self)
-    cpdef trafo_direct(self)
-    cpdef adjoint(self)
-    cpdef adjoint_direct(self)
 
 cdef object nfft_supported_flags_tuple
 cdef object nfft_flags_dict

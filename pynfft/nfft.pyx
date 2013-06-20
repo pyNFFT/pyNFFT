@@ -181,14 +181,14 @@ cdef nfft_generic_set_f_hat* _build_nfft_set_f_hat_list():
     #nfft_set_f_hat_per_dtype[2] = <nfft_generic_set_f_hat>&nfft_set_f_hat_ldouble
 
 cdef object nfft_complex_dtypes
-nfft_compatible_dtypes = {
+nfft_complex_dtypes = {
         np.dtype('float64'): np.dtype('complex128')
         #np.dtype('float32'): np.dtype('complex64')
         #np.dtype('float128'): np.dtype('complex256')
         }
 
 cdef object nfft_dtype_to_index
-nfft_dtype_to_function_indice = {
+nfft_dtype_to_index = {
         np.dtype('float64'): 0
         #np.dtype('float32'): 1
         #np.dtype('float128'): 2
@@ -238,7 +238,7 @@ cdef class NFFT:
                   dtype=None, flags=None, *args, **kwargs):
 
         # check dtype and assign function pointers accordingly
-        dtype = np.float64 if dtype is None else np.dtype(dtype)
+        dtype = np.dtype('float64') if dtype is None else np.dtype(dtype)
         try:
             dtype_complex = nfft_complex_dtypes[dtype]
             func_idx = nfft_dtype_to_index[dtype]

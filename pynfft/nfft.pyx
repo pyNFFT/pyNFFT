@@ -236,6 +236,25 @@ cdef class NFFT:
     # where the C-related content of the class is being initialized
     def __cinit__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
                   dtype=None, flags=None, *args, **kwargs):
+
+        # check dtype and assign function pointers accordingly
+        dtype = np.float64 if dtype is None else np.dtype(dtype)
+        try:
+            dtype_complex = nfft_complex_dtypes[dtype]
+            func_idx = nfft_dtype_to_index[dtype]
+            self.__nfft_init = nfft_init_per_dtype[func_idx]
+            self.__nfft_finalize = nfft_finalize_per_dtype[func_idx]
+            self.__nfft_precompute = nfft_precompute_per_dtype[func_idx]
+            self.__nfft_trafo = nfft_trafo_per_dtype[func_idx]
+            self.__nfft_trafo_direct = nfft_trafo_direct_per_dtype[func_idx]
+            self.__nfft_adjoint = nfft_adjoint_per_dtype[func_idx]
+            self.__nfft_adjoint_direct = nfft_adjoint_direct_per_dtype[func_idx]
+            self.__nfft_set_x = nfft_set_x_per_dtype[func_idx]
+            self.__nfft_set_f = nfft_set_f_per_dtype[func_idx]
+            self.__nfft_set_f_hat = nfft_set_f_hat_per_dtype[func_idx]
+        except KeyError:
+            raise ValueError('dtype %s is not supported' % dtype)
+
         # NOTE: use of reshape([-1, 1]) to avoid working with 0-d arrays which
         # cannot be indexed explictly
         N = np.asarray(N).reshape([-1, 1])
@@ -282,6 +301,9 @@ cdef class NFFT:
                 raise ValueError('x must be of type float64')
             if x.size != M_total * d:
                 raise ValueError('x must be of size %d'%(M_total * d))
+            self._x = x
+        else:
+            self._x = np.empty(M_total*d, dtype=dtype)
 
         if f is not None:
             if not f.flags.c_contiguous:
@@ -290,6 +312,9 @@ cdef class NFFT:
                 raise ValueError('f must be of type float64')
             if f.size != M_total:
                 raise ValueError('f must be of size %d'%(M_total))
+            self._f = f
+        else:
+            self._f = np.empty(M_total, dtype=dtype_complex)
 
         if f_hat is not None:
             if not f_hat.flags.c_contiguous:
@@ -298,6 +323,9 @@ cdef class NFFT:
                 raise ValueError('f_hat must be of type float64')
             if f_hat.size != N_total:
                 raise ValueError('f_hat must be of size %d'%(N_total))
+            self._f_hat = f_hat
+        else:
+            self._f_hat = np.empty(N_total, dtype=dtype_complex)
 
         # convert tuple of litteral precomputation flags to its expected
         # C-compatible value. Each flag is a power of 2, which allows to compute
@@ -346,24 +374,6 @@ cdef class NFFT:
                     raise ValueError('Invalid flag: ' + '\'' +
                         each_flag + '\' is not a valid flag.')
 
-        # check dtype and assign function pointers accordingly
-        dtype = np.float64 if dtype is None else np.dtype(dtype)
-        try:
-            dtype_complex = nfft_complex_dtypes[dtype]
-            func_idx = nfft_dtype_to_index[dtype]
-            self.__nfft_init = nfft_init_per_dtype[func_idx]
-            self.__nfft_finalize = nfft_finalize_per_dtype[func_idx]
-            self.__nfft_precompute = nfft_precompute_per_dtype[func_idx]
-            self.__nfft_trafo = nfft_trafo_per_dtype[func_idx]
-            self.__nfft_trafo_direct = nfft_trafo_direct_per_dtype[func_idx]
-            self.__nfft_adjoint = nfft_adjoint_per_dtype[func_idx]
-            self.__nfft_adjoint_direct = nfft_adjoint_direct_per_dtype[func_idx]
-            self.__nfft_set_x = nfft_set_x_per_dtype[func_idx]
-            self.__nfft_set_f = nfft_set_f_per_dtype[func_idx]
-            self.__nfft_set_f_hat = nfft_set_f_hat_per_dtype[func_idx]
-        except KeyError:
-            raise ValueError('dtype %s is not supported' % dtype)
-
         # initialize plan
         cdef int _d = d
         cdef int _m = m[0, 0]
@@ -394,24 +404,9 @@ cdef class NFFT:
             free(_N)
             free(_n)
 
-        if x is not None:
-            self._x = x
-        else:
-            self._x = np.empty(M_total*d, dtype=dtype)
         self.__nfft_set_x(self.__plan, self._x)
-
-        if f is not None:
-            self._f = f
-        else:
-            self._f = np.empty(M_total, dtype=dtype_complex)
         self.__nfft_set_f(self.__plan, self._f)
-
-        if f_hat is not None:
-            self._f_hat = f_hat
-        else:
-            self._f_hat = np.empty(N_total, dtype=dtype_complex)
         self.__nfft_set_f_hat(self.__plan, self._f_hat)
-
         self._d = _d
         self._m = _m
         self._M_total = _M_total

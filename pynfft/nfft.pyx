@@ -66,34 +66,49 @@ fftw_flags = fftw_flags_dict.copy()
 
 cdef void *nfft_init_double(int d, int *N, int M, int *n, int m,
                             unsigned nfft_flags, unsigned fftw_flags):
-    pass
+    cdef nfft_plan *ths = <nfft_plan *>malloc(sizeof(nfft_plan))
+    if ths != NULL:
+        nfft_init_guru(ths, d, N, M, n, m, nfft_flags, fftw_flags)
+    return ths
 
 cdef void nfft_finalize_double(void *_plan):
-    pass
+    cdef nfft_plan *ths = <nfft_plan *> _plan
+    nfft_finalize(ths)
 
 cdef void nfft_precompute_double(void *_plan) nogil:
-    pass
+    cdef nfft_plan *ths = <nfft_plan *> _plan
+    nfft_precompute_one_psi(ths)
 
 cdef void nfft_trafo_double(void *_plan) nogil:
-    pass
+    cdef nfft_plan *ths = <nfft_plan *> _plan
+    nfft_trafo(ths)
 
 cdef void nfft_trafo_direct_double(void *_plan) nogil:
-    pass
+    cdef nfft_plan *ths = <nfft_plan *> _plan
+    nfft_trafo_direct(ths)
 
 cdef void nfft_adjoint_double(void *_plan) nogil:
-    pass
+    cdef nfft_plan *ths = <nfft_plan *> _plan
+    nfft_adjoint(ths)
 
 cdef void nfft_adjoint_direct_double(void *_plan) nogil:
-    pass
+    cdef nfft_plan *ths = <nfft_plan *> _plan
+    nfft_adjoint_direct(ths)
 
 cdef void nfft_set_x_double(void *_plan, object x):
-    pass
+    cdef nfft_plan *ths = <nfft_plan *> _plan
+    if ths != NULL:
+        ths.x = <double *>np.PyArray_DATA(x)
 
 cdef void nfft_set_f_double(void *_plan, object f):
-    pass
+    cdef nfft_plan *ths = <nfft_plan *> _plan
+    if ths != NULL:
+        ths.f = <fftw_complex *>np.PyArray_DATA(f)
 
 cdef void nfft_set_f_hat_double(void *_plan, object f_hat):
-    pass
+    cdef nfft_plan *ths = <nfft_plan *> _plan
+    if ths != NULL:
+        ths.f_hat = <fftw_complex *>np.PyArray_DATA(f_hat)
 
 cdef nfft_generic_init nfft_init_per_dtype[1]
 
@@ -467,6 +482,7 @@ cdef class NFFT:
     def __dealloc__(self):
         if self.__plan != NULL:
             self.__nfft_finalize(self.__plan)
+            free(self.__plan)
 
     cpdef precompute(self):
         '''

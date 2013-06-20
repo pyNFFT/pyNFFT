@@ -384,9 +384,15 @@ cdef class NFFT:
 
         try:
             self. __plan = self.__nfft_init(_d, _N, _M_total, _n, _m,
-                           _nfft_flags, _fftw_flags)
+                    _nfft_flags, _fftw_flags)
+            # in case malloc failed
+            if self.__plan == NULL:
+                raise MemoryError
         except:
-            raise MemoryError
+            raise
+        finally:
+            free(_N)
+            free(_n)
 
         if x is not None:
             self._x = x
@@ -414,10 +420,6 @@ cdef class NFFT:
         self._n = tuple([_n[t] for t in range(_d)])
         self._dtype = dtype
         self._flags = flags_used
-
-        free(_N)
-        free(_n)
-
 
     # here, just holds the documentation of the class constructor
     def __init__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,

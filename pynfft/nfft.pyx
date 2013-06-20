@@ -21,7 +21,7 @@ from libc.stdlib cimport malloc, free
 from libc cimport limits
 from cnfft3 cimport (nfft_adjoint, nfft_adjoint_direct, nfft_init_guru,
                      nfft_trafo, nfft_trafo_direct, nfft_precompute_one_psi,
-                     nfft_finalize, fftw_complex)
+                     nfft_finalize, fftw_complex, nfft_plan)
 from cnfft3 cimport (PRE_PHI_HUT, FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI,
                      PRE_FULL_PSI, MALLOC_X, MALLOC_F_HAT, MALLOC_F,
                      FFT_OUT_OF_PLACE, FFTW_INIT, NFFT_SORT_NODES,
@@ -64,9 +64,136 @@ fftw_flags_dict = {
     }
 fftw_flags = fftw_flags_dict.copy()
 
+cdef void *nfft_init_double(int d, int *N, int M, int *n, int m,
+                            unsigned nfft_flags, unsigned fftw_flags):
+    pass
+
+cdef void nfft_finalize_double(void *_plan):
+    pass
+
+cdef void nfft_precompute_double(void *_plan) nogil:
+    pass
+
+cdef void nfft_trafo_double(void *_plan) nogil:
+    pass
+
+cdef void nfft_trafo_direct_double(void *_plan) nogil:
+    pass
+
+cdef void nfft_adjoint_double(void *_plan) nogil:
+    pass
+
+cdef void nfft_adjoint_direct_double(void *_plan) nogil:
+    pass
+
+cdef void nfft_set_x_double(void *_plan, object x):
+    pass
+
+cdef void nfft_set_f_double(void *_plan, object f):
+    pass
+
+cdef void nfft_set_f_hat_double(void *_plan, object f_hat):
+    pass
+
+cdef nfft_generic_init nfft_init_per_dtype[1]
+
+cdef nfft_generic_init* _build_nfft_init_list():
+    nfft_init_per_dtype[0] = <nfft_generic_init>&nfft_init_double
+    #nfft_init_per_dtype[1] = <nfft_generic_init>&nfft_init_single
+    #nfft_init_per_dtype[2] = <nfft_generic_init>&nfft_init_ldouble
+
+cdef nfft_generic_finalize nfft_finalize_per_dtype[1]
+
+cdef nfft_generic_finalize* _build_nfft_finalize_list():
+    nfft_finalize_per_dtype[0] = <nfft_generic_finalize>&nfft_finalize_double
+    #nfft_finalize_per_dtype[1] = <nfft_generic_finalize>&nfft_finalize_single
+    #nfft_finalize_per_dtype[2] = <nfft_generic_finalize>&nfft_finalize_ldouble
+
+cdef nfft_generic_precompute nfft_precompute_per_dtype[1]
+
+cdef nfft_generic_precompute* _build_nfft_precompute_list():
+    nfft_precompute_per_dtype[0] = <nfft_generic_precompute>&nfft_precompute_double
+    #nfft_precompute_per_dtype[1] = <nfft_generic_precompute>&nfft_precompute_single
+    #nfft_precompute_per_dtype[2] = <nfft_generic_precompute>&nfft_precompute_ldouble
+
+cdef nfft_generic_trafo nfft_trafo_per_dtype[1]
+
+cdef nfft_generic_trafo* _build_nfft_trafo_list():
+    nfft_trafo_per_dtype[0] = <nfft_generic_trafo>&nfft_trafo_double
+    #nfft_trafo_per_dtype[1] = <nfft_generic_trafo>&nfft_trafo_single
+    #nfft_trafo_per_dtype[2] = <nfft_generic_trafo>&nfft_trafo_ldouble
+
+cdef nfft_generic_trafo_direct nfft_trafo_direct_per_dtype[1]
+
+cdef nfft_generic_trafo_direct* _build_nfft_trafo_direct_list():
+    nfft_trafo_direct_per_dtype[0] = <nfft_generic_trafo_direct>&nfft_trafo_direct_double
+    #nfft_trafo_direct_per_dtype[1] = <nfft_generic_trafo_direct>&nfft_trafo_direct_single
+    #nfft_trafo_direct_per_dtype[2] = <nfft_generic_trafo_direct>&nfft_trafo_direct_ldouble
+
+cdef nfft_generic_adjoint nfft_adjoint_per_dtype[1]
+
+cdef nfft_generic_adjoint* _build_nfft_adjoint_list():
+    nfft_adjoint_per_dtype[0] = <nfft_generic_adjoint>&nfft_adjoint_double
+    #nfft_adjoint_per_dtype[1] = <nfft_generic_adjoint>&nfft_adjoint_single
+    #nfft_adjoint_per_dtype[2] = <nfft_generic_adjoint>&nfft_adjoint_ldouble
+
+cdef nfft_generic_adjoint_direct nfft_adjoint_direct_per_dtype[1]
+
+cdef nfft_generic_adjoint_direct* _build_nfft_adjoint_direct_list():
+    nfft_adjoint_direct_per_dtype[0] = <nfft_generic_adjoint_direct>&nfft_adjoint_direct_double
+    #nfft_adjoint_direct_per_dtype[1] = <nfft_generic_adjoint_direct>&nfft_adjoint_direct_single
+    #nfft_adjoint_direct_per_dtype[2] = <nfft_generic_adjoint_direct>&nfft_adjoint_direct_ldouble
+
+cdef nfft_generic_set_x nfft_set_x_per_dtype[1]
+
+cdef nfft_generic_set_x* _build_nfft_set_x_list():
+    nfft_set_x_per_dtype[0] = <nfft_generic_set_x>&nfft_set_x_double
+    #nfft_set_x_per_dtype[1] = <nfft_generic_set_x>&nfft_set_x_single
+    #nfft_set_x_per_dtype[2] = <nfft_generic_set_x>&nfft_set_x_ldouble
+
+cdef nfft_generic_set_f nfft_set_f_per_dtype[1]
+
+cdef nfft_generic_set_f* _build_nfft_set_f_list():
+    nfft_set_f_per_dtype[0] = <nfft_generic_set_f>&nfft_set_f_double
+    #nfft_set_f_per_dtype[1] = <nfft_generic_set_f>&nfft_set_f_single
+    #nfft_set_f_per_dtype[2] = <nfft_generic_set_f>&nfft_set_f_ldouble
+
+cdef nfft_generic_set_f_hat nfft_set_f_hat_per_dtype[1]
+
+cdef nfft_generic_set_f_hat* _build_nfft_set_f_hat_list():
+    nfft_set_f_hat_per_dtype[0] = <nfft_generic_set_f_hat>&nfft_set_f_hat_double
+    #nfft_set_f_hat_per_dtype[1] = <nfft_generic_set_f_hat>&nfft_set_f_hat_single
+    #nfft_set_f_hat_per_dtype[2] = <nfft_generic_set_f_hat>&nfft_set_f_hat_ldouble
+
+cdef object nfft_complex_dtypes
+nfft_compatible_dtypes = {
+        np.dtype('float64'): np.dtype('complex128')
+        #np.dtype('float32'): np.dtype('complex64')
+        #np.dtype('float128'): np.dtype('complex256')
+        }
+
+cdef object nfft_dtype_to_index
+nfft_dtype_to_function_indice = {
+        np.dtype('float64'): 0
+        #np.dtype('float32'): 1
+        #np.dtype('float128'): 2
+        }
+
 # Numpy must be initialized. When using numpy from C or Cython you must
 # _always_ do that, or you will have segfaults
 np.import_array()
+
+# initialize module
+_build_nfft_init_list()
+_build_nfft_finalize_list()
+_build_nfft_precompute_list()
+_build_nfft_trafo_list()
+_build_nfft_trafo_direct_list()
+_build_nfft_adjoint_list()
+_build_nfft_adjoint_direct_list()
+_build_nfft_set_x_list()
+_build_nfft_set_f_list()
+_build_nfft_set_f_hat_list()
 
 cdef class NFFT:
     '''
@@ -204,8 +331,25 @@ cdef class NFFT:
                     raise ValueError('Invalid flag: ' + '\'' +
                         each_flag + '\' is not a valid flag.')
 
-        # intialize plan
+        # check dtype and assign function pointers accordingly
+        dtype = np.float64 if dtype is None else np.dtype(dtype)
+        try:
+            dtype_complex = nfft_complex_dtypes[dtype]
+            func_idx = nfft_dtype_to_index[dtype]
+            self.__nfft_init = nfft_init_per_dtype[func_idx]
+            self.__nfft_finalize = nfft_finalize_per_dtype[func_idx]
+            self.__nfft_precompute = nfft_precompute_per_dtype[func_idx]
+            self.__nfft_trafo = nfft_trafo_per_dtype[func_idx]
+            self.__nfft_trafo_direct = nfft_trafo_direct_per_dtype[func_idx]
+            self.__nfft_adjoint = nfft_adjoint_per_dtype[func_idx]
+            self.__nfft_adjoint_direct = nfft_adjoint_direct_per_dtype[func_idx]
+            self.__nfft_set_x = nfft_set_x_per_dtype[func_idx]
+            self.__nfft_set_f = nfft_set_f_per_dtype[func_idx]
+            self.__nfft_set_f_hat = nfft_set_f_hat_per_dtype[func_idx]
+        except KeyError:
+            raise ValueError('dtype %s is not supported' % dtype)
 
+        # initialize plan
         cdef int _d = d
         cdef int _m = m[0, 0]
         cdef int _M_total = M_total[0, 0]
@@ -223,41 +367,42 @@ cdef class NFFT:
         for t in range(0, d):
             _n[t] = n[t, 0]
 
-        cdef nfft_plan *_plan = &self.__plan
         try:
-            nfft_init_guru(_plan, _d, _N, _M_total, _n, _m,
+            self. __plan = self.__nfft_init(_d, _N, _M_total, _n, _m,
                            _nfft_flags, _fftw_flags)
         except:
             raise MemoryError
-        finally:
-            free(_N)
-            free(_n)
 
         if x is not None:
             self._x = x
         else:
-            self._x = np.empty(M_total*d, dtype=np.float64)
-        self.__plan.x = <double *>np.PyArray_DATA(self._x)
+            self._x = np.empty(M_total*d, dtype=dtype)
+        self.__nfft_set_x(self.__plan, self._x)
 
         if f is not None:
             self._f = f
         else:
-            self._f = np.empty(M_total, dtype=np.complex128)
-        self.__plan.f = <fftw_complex *>np.PyArray_DATA(self._f)
+            self._f = np.empty(M_total, dtype=dtype_complex)
+        self.__nfft_set_f(self.__plan, self._f)
 
         if f_hat is not None:
             self._f_hat = f_hat
         else:
-            self._f_hat = np.empty(N_total, dtype=np.complex128)
-        self.__plan.f_hat = <fftw_complex *>np.PyArray_DATA(self._f_hat)
+            self._f_hat = np.empty(N_total, dtype=dtype_complex)
+        self.__nfft_set_f_hat(self.__plan, self._f_hat)
 
-        self._d = self.__plan.d
-        self._m = self.__plan.m
-        self._M_total = self.__plan.M_total
-        self._N_total = self.__plan.N_total
-        self._N = tuple([self.__plan.N[t] for t in range(self.__plan.d)])
-        self._dtype = np.float64
+        self._d = _d
+        self._m = _m
+        self._M_total = _M_total
+        self._N_total = _N_total
+        self._N = tuple([_N[t] for t in range(_d)])
+        self._n = tuple([_n[t] for t in range(_d)])
+        self._dtype = dtype
         self._flags = flags_used
+
+        free(_N)
+        free(_n)
+
 
     # here, just holds the documentation of the class constructor
     def __init__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
@@ -320,7 +465,8 @@ cdef class NFFT:
 
     # where the C-related content of the class needs to be cleaned
     def __dealloc__(self):
-        nfft_finalize(&self.__plan)
+        if self.__plan != NULL:
+            self.__nfft_finalize(self.__plan)
 
     cpdef precompute(self):
         '''
@@ -330,7 +476,9 @@ cdef class NFFT:
             The nodes :attr:`~pynfft.NFFT.x` must be initialized before
             precomputing.
         '''
-        nfft_precompute_one_psi(&self.__plan)
+        if self.__plan != NULL:
+            with nogil:
+                self.__nfft_precompute(self.__plan)
 
     cpdef trafo(self):
         '''
@@ -339,7 +487,9 @@ cdef class NFFT:
         Reads :attr:`~pynfft.NFFT.f_hat` and stores the result in
         :attr:`~pynfft.NFFT.f`.
         '''
-        nfft_trafo(&self.__plan)
+        if self.__plan != NULL:
+            with nogil:
+                self.__nfft_trafo(self.__plan)
 
     cpdef trafo_direct(self):
         '''
@@ -348,7 +498,9 @@ cdef class NFFT:
         Reads :attr:`~pynfft.NFFT.f_hat` and stores the result in
         :attr:`~pynfft.NFFT.f`.
         '''
-        nfft_trafo_direct(&self.__plan)
+        if self.__plan != NULL:
+            with nogil:
+                self.__nfft_trafo_direct(self.__plan)
 
     cpdef adjoint(self):
         '''
@@ -357,7 +509,9 @@ cdef class NFFT:
         Reads :attr:`~pynfft.NFFT.f` and stores the result in
         :attr:`~pynfft.NFFT.f_hat`.
         '''
-        nfft_adjoint(&self.__plan)
+        if self.__plan != NULL:
+            with nogil:
+                self.__nfft_adjoint(self.__plan)
 
     cpdef adjoint_direct(self):
         '''
@@ -366,7 +520,9 @@ cdef class NFFT:
         Reads :attr:`~pynfft.NFFT.f` and stores the result in
         :attr:`~pynfft.NFFT.f_hat`.
         '''
-        nfft_adjoint_direct(&self.__plan)
+        if self.__plan != NULL:
+            with nogil:
+                self.__nfft_adjoint_direct(self.__plan)
 
     def __get_f(self):
         '''

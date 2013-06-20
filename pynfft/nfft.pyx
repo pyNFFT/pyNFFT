@@ -407,12 +407,12 @@ cdef class NFFT:
         self.__nfft_set_x(self.__plan, self._x)
         self.__nfft_set_f(self.__plan, self._f)
         self.__nfft_set_f_hat(self.__plan, self._f_hat)
-        self._d = _d
-        self._m = _m
-        self._M_total = _M_total
-        self._N_total = _N_total
-        self._N = tuple([_N[t] for t in range(_d)])
-        self._n = tuple([_n[t] for t in range(_d)])
+        self._d = d
+        self._m = m[0, 0]
+        self._M_total = M_total
+        self._N_total = N_total
+        self._N = tuple([N[t, 0] for t in range(d)])
+        self._n = tuple([n[t, 0] for t in range(d)])
         self._dtype = dtype
         self._flags = flags_used
 
@@ -609,6 +609,14 @@ cdef class NFFT:
         return self._N
 
     N = property(__get_N)
+
+    def __get_n(self):
+        '''
+        The oversampled multi-bandwith size.
+        '''
+        return self._n
+
+    n = property(__get_n)
 
     def __get_dtype(self):
         '''

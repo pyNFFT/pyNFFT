@@ -6,7 +6,7 @@
 NFFT Class
 ----------
 
-.. autoclass:: pynfft.nfft.NFFT(N, M, n=None, m=12, x=None, f=None, f_hat=None, dtype=None, flags=None, *args, **kwargs)
+.. autoclass:: pynfft.nfft.NFFT(N, M, n=None, m=12, x=None, f=None, f_hat=None, dtype=None, flags=None)
 
    .. autoattribute:: pynfft.nfft.NFFT.d
 

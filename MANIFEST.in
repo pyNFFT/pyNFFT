@@ -2,7 +2,6 @@ include COPYING.txt
 include README.rst
 include pynfft/*.c
 include tests/*.py
-include tests/*.txt
 include doc/*.rst
 include doc/api/*.rst
 include doc/Makefile

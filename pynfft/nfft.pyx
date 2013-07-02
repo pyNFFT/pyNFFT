@@ -424,8 +424,8 @@ cdef class NFFT:
         :type N: int, tuple of int
         :param M: number of non-uniform samples.
         :type M: int
-        :param N: oversampled multi-bandwith, default to 2 * N.
-        :type N: int, tuple of int
+        :param n: oversampled multi-bandwith, default to 2 * N.
+        :type n: int, tuple of int
         :param m: Cut-off parameter of the window function.
         :type m: int
         :param x: external array holding the nodes.

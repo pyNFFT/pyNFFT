@@ -287,8 +287,6 @@ cdef class Solver:
         :param flags: list of instantiation flags, see below.
         :type flags: tuple
 
-        .. _instantiation_flags::
-
         **Instantiation flags**
 
         +---------------------+-----------------------------------------------------------------------------+

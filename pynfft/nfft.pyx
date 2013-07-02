@@ -424,8 +424,8 @@ cdef class NFFT:
         :type N: int, tuple of int
         :param M: number of non-uniform samples.
         :type M: int
-        :param N: oversampled multi-bandwith, default to 2 * N.
-        :type N: int, tuple of int
+        :param n: oversampled multi-bandwith, default to 2 * N.
+        :type n: int, tuple of int
         :param m: Cut-off parameter of the window function.
         :type m: int
         :param x: external array holding the nodes.
@@ -439,8 +439,6 @@ cdef class NFFT:
         :param flags: list of precomputation flags, see note below.
         :type flags: tuple
 
-        .. _floating_precision::
-
         **Floating precision**
 
         Parameter ``dtype`` allows to specify the desired floating point
@@ -448,8 +446,6 @@ cdef class NFFT:
         parameter is here for later compatibility with a future version of
         the NFFT library which supports multiple precision, as available with
         FFTW.
-
-        .. _precomputation_flags::
 
         **Precomputation flags**
 

@@ -18,6 +18,8 @@ NFFT Class
    
    .. autoattribute:: pynfft.nfft.NFFT.m
 
+   .. autoattribute:: pynfft.nfft.NFFT.n
+
    .. autoattribute:: pynfft.nfft.NFFT.x
 
    .. autoattribute:: pynfft.nfft.NFFT.f

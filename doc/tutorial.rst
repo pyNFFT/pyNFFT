@@ -1,20 +1,23 @@
-Getting started
-===============
+Using the NFFT
+==============
 
 This tutorial assumes that you are already familiar with what the 
 Non-Uniform Fast Fourier Transform (NFFT) does and is used for.
 
-Using the NFFT
---------------
+Workflow
+--------
 
-Computation of the NFFT is done in 3 steps: 
-	- First a :class:`pynfft.nfft.NFFT` object is instantiated with the 
+Computation of the NFFT is done in 3 steps:
+        
+      - First a :class:`pynfft.nfft.NFFT` object is instantiated with the 
 	right geometry paramaters and desired pre-allocation flags.
-	- After setting the location of the non-uniform knots 
+        
+      - After setting the location of the non-uniform knots 
 	:attr:`pynfft.nfft.NFFT.x`, the :meth:`pynfft.nfft.NFFT.precompute` 
 	method is called in order to initialize the NFFT operator internals 
 	appropriately.
-	- Finally, the forward and adjoint NFFT are called using the 
+	
+      - Finally, the forward and adjoint NFFT are called using the 
 	:meth:`pynfft.nfft.NFFT.trafo` and :meth:`pynfft.nfft.NFFT.adjoint` 
 	methods. Input and output data can be accessed through the 
 	:attr:`pynfft.nfft.NFFT.f` and :attr:`pynfft.nfft.NFFT.f_hat` 
@@ -37,9 +40,8 @@ grid of the transformed data::
     92
 
 By default, the NFFT uses high precision parameters for the kernel 
-width :attr:`pynfft.nfft.NFFT.m` and oversampled grid size 
-:attr:`pynfft.nfft.NFFT.n` parameters. These can be overriden at 
-construct time (see `Advanced instantiation`).
+width (m = 12) and oversampled grid size (n = 2 * N) parameters. 
+These can be overriden at construct time (see `Advanced instantiation`).
 
 Advanced instantiation
 ----------------------
@@ -51,31 +53,51 @@ constructor.
 The trade-off between speed and precision can be tweaked by specifying 
 custom values for parameters `m`, the convolution kernel width, and 
 `n`, the oversampled grid size. Higher `m` and `n` lead to higher 
-accuracy but may significantly increase the computation time of the 
-transforms.
+accuracy but may increase the computation time of the transforms significantly.
 
-% TODO: warning n >= N
+.. warning:: if `n` is specified manually, `n` must be superior or equal to N. 
 
 In order to speed up the computation of the NFFT, some of the NFFT 
 internals can be precomputed. This is controlled by precomputation 
-flags specified in a tuple `flags` to the constructor. 
+flags specified in a tuple `flags` to the constructor. The default uses 
+moderate precomputation with flags `PRE_PHI_HUT` and `PRE_PSI` enabled.
 
+Maximum precomputation can be obtained using flag `PRE_FULL_PSI` instead of 
+`PRE_PSI`. In this case, the NFFT operator requires more storage and the 
+precomputation step takes more time, whilst execution of the transforms 
+are the fastest.
 
+For applications with lower storage requirements, flag `PRE_PHI_HUT` may be 
+omitted. Lighter precomputation can also be obtained using flags `FG_PSI`,
+`PRE_FG_PSI` or `PRE_LIN_PSI`.
 
-
+External NumPy arrays for storage of `x`, `f`, and `f_hat` can also be
+specified, provided they respect the data type and geometry of the transform 
+and the arrays are c-contiguous.
 
 Computing the forward and inverse NFFT
 --------------------------------------
 
-By default, the NFFT uses high precision parameters for the kernel 
-size :attr:`pynfft.nfft.NFFT.m` and oversampled grid size 
-:attr:`pynfft.nfft.NFFT.n` parameters. These can be overriden at 
-construct time::
+After instantiation, the location of the irregularly sampled data must be
+passed to the NFFT instance using the :attr:`pynfft.nfft.NFFT.x` attribute.
+Then, the NFFT operator has to be explictly precomputed.
 
-	>>> print Nfft.m
-	12
-	>>> print Nfft.n
-	(32, 32)
-	
-Using the solver
-----------------
+        >>> from pynfft.util import vrand_shifted_unit_double
+        >>> vrand_shifted_unit_double(Nfft.x)  # Nfft.x in [-0.5, 0.5]
+        >>> Nfft.precompute()
+
+After precomputation, the forward NFFT can be computed by first filling the 
+:attr:`pynfft.nfft.NFFT.f_hat` attribute with the input data and then calling
+the :meth:`pynfft.nfft.NFFT.trafo` method.
+
+        >>> from pynfft.util import vrand_unit_complex
+        >>> vrand_unit_complex(Nfft.f_hat)
+        >>> Nfft.trafo()  # results stored in Nfft.f
+
+Similar to the forward transform, the adjoint operation is performed by first 
+filling the :attr:`pynfft.nfft.NFFT.f` attribute prior to calling the 
+:meth:`pynfft.nfft.NFFT.adjoint` method.
+
+        >>> from pynfft.util import vrand_unit_complex
+        >>> vrand_unit_complex(Nfft.f)
+        >>> Nfft.adjoint()  # results stored in Nfft.f_hat

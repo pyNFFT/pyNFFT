@@ -282,8 +282,6 @@ cdef class NFFT:
         :param flags: list of precomputation flags, see note below.
         :type flags: tuple
 
-        .. _floating_precision::
-
         **Floating precision**
 
         Parameter ``dtype`` allows to specify the desired floating point
@@ -291,8 +289,6 @@ cdef class NFFT:
         parameter is here for later compatibility with a future version of
         the NFFT library which supports multiple precision, as available with
         FFTW.
-
-        .. _precomputation_flags::
 
         **Precomputation flags**
 

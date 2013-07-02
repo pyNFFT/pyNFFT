@@ -14,25 +14,38 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+from numpy cimport npy_intp
 
-from cnfft3 cimport solver_plan_complex
-from nfft cimport NFFT
-
+ctypedef void *(*solver_generic_init)(void *nfft_plan, unsigned flags)
+ctypedef void (*solver_generic_finalize)(void *plan)
+ctypedef void (*solver_generic_before_loop)(void *plan)
+ctypedef void (*solver_generic_loop_one_step)(void *plan)
+ctypedef object (*solver_generic_get_w)(void *plan, npy_intp shape[])
+ctypedef object (*solver_generic_get_w_hat)(void *plan, npy_intp shape[])
+ctypedef object (*solver_generic_get_y)(void *plan, npy_intp shape[])
+ctypedef object (*solver_generic_get_f_hat_iter)(void *plan, npy_intp shape[])
+ctypedef object (*solver_generic_get_r_iter)(void *plan, npy_intp shape[])
 
 cdef class Solver:
-    cdef solver_plan_complex __plan
-    cdef NFFT __nfft_plan
+    cdef void *__plan
+    cdef void *__nfft_plan
     cdef object _w
     cdef object _w_hat
     cdef object _y
     cdef object _f_hat_iter
     cdef object _r_iter
-    cdef object _z_hat_iter
-    cdef object _p_hat_iter
-    cdef object _v_iter
     cdef object _dtype
     cdef object _flags
     cpdef before_loop(self)
     cpdef loop_one_step(self)
+    cdef solver_generic_init __solver_init
+    cdef solver_generic_finalize __solver_finalize
+    cdef solver_generic_before_loop __solver_before_loop
+    cdef solver_generic_loop_one_step __solver_loop_one_step
+    cdef solver_generic_get_w __solver_get_w
+    cdef solver_generic_get_w_hat __solver_get_w_hat
+    cdef solver_generic_get_y __solver_get_y
+    cdef solver_generic_get_f_hat_iter __solver_get_f_hat_iter
+    cdef solver_generic_get_r_iter __solver_get_r_iter
 
 cdef object solver_flags_dict

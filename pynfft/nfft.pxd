@@ -15,18 +15,30 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from cnfft3 cimport nfft_plan
+# function pointers for data type abstraction
+ctypedef void *(*nfft_generic_init)(int d, int *N, int M, int *n, int m,
+                                    unsigned nfft_flags, unsigned fftw_flags)
+ctypedef void (*nfft_generic_finalize)(void *_plan)
+ctypedef void (*nfft_generic_precompute)(void *_plan) nogil
+ctypedef void (*nfft_generic_trafo)(void *_plan) nogil
+ctypedef void (*nfft_generic_trafo_direct)(void *_plan) nogil
+ctypedef void (*nfft_generic_adjoint)(void *_plan) nogil
+ctypedef void (*nfft_generic_adjoint_direct)(void *_plan) nogil
+ctypedef void (*nfft_generic_set_x)(void *_plan, object x)
+ctypedef void (*nfft_generic_set_f)(void *_plan, object f)
+ctypedef void (*nfft_generic_set_f_hat)(void *_plan, object f_hat)
 
 cdef class NFFT:
-    cdef nfft_plan __plan
-    cdef object _f
-    cdef object _f_hat
-    cdef object _x
+    cdef void *__plan
     cdef int _d
     cdef int _m
     cdef int _M_total
     cdef int _N_total
+    cdef object _f
+    cdef object _f_hat
+    cdef object _x
     cdef object _N
+    cdef object _n
     cdef object _dtype
     cdef object _flags
     cpdef precompute(self)
@@ -34,9 +46,17 @@ cdef class NFFT:
     cpdef trafo_direct(self)
     cpdef adjoint(self)
     cpdef adjoint_direct(self)
+    cdef nfft_generic_init __nfft_init
+    cdef nfft_generic_finalize __nfft_finalize
+    cdef nfft_generic_precompute __nfft_precompute
+    cdef nfft_generic_trafo __nfft_trafo
+    cdef nfft_generic_trafo_direct __nfft_trafo_direct
+    cdef nfft_generic_adjoint __nfft_adjoint
+    cdef nfft_generic_adjoint_direct __nfft_adjoint_direct
+    cdef nfft_generic_set_x __nfft_set_x
+    cdef nfft_generic_set_f __nfft_set_f
+    cdef nfft_generic_set_f_hat __nfft_set_f_hat
 
 cdef object nfft_supported_flags_tuple
-
 cdef object nfft_flags_dict
-
 cdef object fftw_flags_dict

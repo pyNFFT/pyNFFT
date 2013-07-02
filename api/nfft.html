@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pynfft.nfft - The core NFFT functionalities &mdash; pyNFFT 0.3 documentation</title>
+    <title>pynfft.nfft - The core NFFT functionalities &mdash; pyNFFT 0.5.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.3',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="pyNFFT 0.3 documentation" href="../index.html" />
+    <link rel="top" title="pyNFFT 0.5.0 documentation" href="../index.html" />
     <link rel="up" title="API Reference" href="../api.html" />
     <link rel="next" title="pynfft.solver - iterative solver for the adjoint NFFT" href="solver.html" />
     <link rel="prev" title="API Reference" href="../api.html" /> 
@@ -46,7 +46,7 @@
         <li class="right" >
           <a href="../api.html" title="API Reference"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">pyNFFT 0.3 documentation</a> &raquo;</li>
+        <li><a href="../index.html">pyNFFT 0.5.0 documentation</a> &raquo;</li>
           <li><a href="../api.html" accesskey="U">API Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -62,7 +62,7 @@
 <h2>NFFT Class<a class="headerlink" href="#nfft-class" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="pynfft.nfft.NFFT">
-<em class="property">class </em><tt class="descclassname">pynfft.nfft.</tt><tt class="descname">NFFT</tt><big>(</big><em>N</em>, <em>M</em>, <em>n=None</em>, <em>m=12</em>, <em>x=None</em>, <em>f=None</em>, <em>f_hat=None</em>, <em>dtype=None</em>, <em>flags=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pynfft.nfft.NFFT" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pynfft.nfft.</tt><tt class="descname">NFFT</tt><big>(</big><em>N</em>, <em>M</em>, <em>n=None</em>, <em>m=12</em>, <em>x=None</em>, <em>f=None</em>, <em>f_hat=None</em>, <em>dtype=None</em>, <em>flags=None</em><big>)</big><a class="headerlink" href="#pynfft.nfft.NFFT" title="Permalink to this definition">¶</a></dt>
 <dd><p>NFFT is a class for computing the multivariate Non-uniform Discrete
 Fourier (NDFT) transform using the NFFT library. The interface is
 designed to be somewhat pythonic, while retaining the features and
@@ -87,7 +87,7 @@ methods. The NDFT may also be computed by calling the
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>N</strong> (<em>int, tuple of int</em>) &#8211; multi-bandwith size.</li>
 <li><strong>M</strong> (<em>int</em>) &#8211; number of non-uniform samples.</li>
-<li><strong>N</strong> &#8211; oversampled multi-bandwith, default to 2 * N.</li>
+<li><strong>n</strong> (<em>int, tuple of int</em>) &#8211; oversampled multi-bandwith, default to 2 * N.</li>
 <li><strong>m</strong> (<em>int</em>) &#8211; Cut-off parameter of the window function.</li>
 <li><strong>x</strong> (<em>ndarray</em>) &#8211; external array holding the nodes.</li>
 <li><strong>f</strong> (<em>ndarray</em>) &#8211; external array holding the non-uniform samples.</li>
@@ -167,6 +167,12 @@ FFTW.</p>
 <dt id="pynfft.nfft.NFFT.m">
 <tt class="descname">m</tt><a class="headerlink" href="#pynfft.nfft.NFFT.m" title="Permalink to this definition">¶</a></dt>
 <dd><p>The cut-off parameter of the window function.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pynfft.nfft.NFFT.n">
+<tt class="descname">n</tt><a class="headerlink" href="#pynfft.nfft.NFFT.n" title="Permalink to this definition">¶</a></dt>
+<dd><p>The oversampled multi-bandwith size.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -304,7 +310,7 @@ precomputing.</p>
         <li class="right" >
           <a href="../api.html" title="API Reference"
              >previous</a> |</li>
-        <li><a href="../index.html">pyNFFT 0.3 documentation</a> &raquo;</li>
+        <li><a href="../index.html">pyNFFT 0.5.0 documentation</a> &raquo;</li>
           <li><a href="../api.html" >API Reference</a> &raquo;</li> 
       </ul>
     </div>

@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to pyNFFT’s documentation! &mdash; pyNFFT 0.3 documentation</title>
+    <title>Welcome to pyNFFT’s documentation! &mdash; pyNFFT 0.5.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.3',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,8 +25,8 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="pyNFFT 0.3 documentation" href="#" />
-    <link rel="next" title="Getting started" href="tutorial.html" /> 
+    <link rel="top" title="pyNFFT 0.5.0 documentation" href="#" />
+    <link rel="next" title="Using the NFFT" href="tutorial.html" /> 
   </head>
   <body>
     <div class="related">
@@ -39,9 +39,9 @@
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="tutorial.html" title="Getting started"
+          <a href="tutorial.html" title="Using the NFFT"
              accesskey="N">next</a> |</li>
-        <li><a href="#">pyNFFT 0.3 documentation</a> &raquo;</li> 
+        <li><a href="#">pyNFFT 0.5.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -72,12 +72,7 @@ The suite will be updated as more functionalities get introducted.</p>
 </div>
 <div class="section" id="tutorial">
 <h2>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h2>
-<p>See the <a class="reference internal" href="tutorial.html"><em>Getting started</em></a> to get started with using pyNFFT.</p>
-</div>
-<div class="section" id="changes">
-<h2>Changes<a class="headerlink" href="#changes" title="Permalink to this headline">¶</a></h2>
-<p>See the <a class="reference internal" href="changelog.html"><em>Changelog</em></a> for a list of the changes in pyNFFT over the
-versions.</p>
+<p>See the <a class="reference internal" href="tutorial.html"><em>Using the NFFT</em></a> to get started with using pyNFFT.</p>
 </div>
 <div class="section" id="about-this-documentation">
 <h2>About this documentation<a class="headerlink" href="#about-this-documentation" title="Permalink to this headline">¶</a></h2>
@@ -93,20 +88,16 @@ versions.</p>
 </ul>
 <div class="toctree-wrapper compound">
 <ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Getting started</a></li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Using the NFFT</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#workflow">Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#basic-instantiation">Basic instantiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#advanced-instantiation">Advanced instantiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#computing-the-forward-and-inverse-nfft">Computing the forward and inverse NFFT</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="api/nfft.html"><tt class="docutils literal"><span class="pre">pynfft.nfft</span></tt> - The core NFFT functionalities</a></li>
 <li class="toctree-l2"><a class="reference internal" href="api/solver.html"><tt class="docutils literal"><span class="pre">pynfft.solver</span></tt> - iterative solver for the adjoint NFFT</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#changes-in-version-0-2-4">Changes in version 0.2.4</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#changes-in-version-0-2-3">Changes in version 0.2.3</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#changes-in-version-0-2-2">Changes in version 0.2.2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#changes-in-version-0-2-1">Changes in version 0.2.1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#changes-in-version-0-2">Changes in version 0.2</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#changes-in-version-0-1-1">Changes in version 0.1.1</a></li>
-<li class="toctree-l2"><a class="reference internal" href="changelog.html#version-0-1">Version 0.1</a></li>
 </ul>
 </li>
 </ul>
@@ -124,7 +115,6 @@ versions.</p>
 <li><a class="reference internal" href="#">Welcome to pyNFFT&#8217;s documentation!</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
 <li><a class="reference internal" href="#tutorial">Tutorial</a></li>
-<li><a class="reference internal" href="#changes">Changes</a></li>
 <li><a class="reference internal" href="#about-this-documentation">About this documentation</a></li>
 </ul>
 </li>
@@ -135,7 +125,7 @@ versions.</p>
 
   <h4>Next topic</h4>
   <p class="topless"><a href="tutorial.html"
-                        title="next chapter">Getting started</a></p>
+                        title="next chapter">Using the NFFT</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/index.txt"
@@ -168,9 +158,9 @@ versions.</p>
           <a href="py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="tutorial.html" title="Getting started"
+          <a href="tutorial.html" title="Using the NFFT"
              >next</a> |</li>
-        <li><a href="#">pyNFFT 0.3 documentation</a> &raquo;</li> 
+        <li><a href="#">pyNFFT 0.5.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

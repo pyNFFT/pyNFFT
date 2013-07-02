@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>pynfft.solver - iterative solver for the adjoint NFFT &mdash; pyNFFT 0.3 documentation</title>
+    <title>pynfft.solver - iterative solver for the adjoint NFFT &mdash; pyNFFT 0.5.0 documentation</title>
     
     <link rel="stylesheet" href="../_static/default.css" type="text/css" />
     <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '../',
-        VERSION:     '0.3',
+        VERSION:     '0.5.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,9 +25,8 @@
     <script type="text/javascript" src="../_static/jquery.js"></script>
     <script type="text/javascript" src="../_static/underscore.js"></script>
     <script type="text/javascript" src="../_static/doctools.js"></script>
-    <link rel="top" title="pyNFFT 0.3 documentation" href="../index.html" />
+    <link rel="top" title="pyNFFT 0.5.0 documentation" href="../index.html" />
     <link rel="up" title="API Reference" href="../api.html" />
-    <link rel="next" title="Changelog" href="../changelog.html" />
     <link rel="prev" title="pynfft.nfft - The core NFFT functionalities" href="nfft.html" /> 
   </head>
   <body>
@@ -41,12 +40,9 @@
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="../changelog.html" title="Changelog"
-             accesskey="N">next</a> |</li>
-        <li class="right" >
           <a href="nfft.html" title="pynfft.nfft - The core NFFT functionalities"
              accesskey="P">previous</a> |</li>
-        <li><a href="../index.html">pyNFFT 0.3 documentation</a> &raquo;</li>
+        <li><a href="../index.html">pyNFFT 0.5.0 documentation</a> &raquo;</li>
           <li><a href="../api.html" accesskey="U">API Reference</a> &raquo;</li> 
       </ul>
     </div>  
@@ -62,7 +58,7 @@
 <h2>Solver Class<a class="headerlink" href="#solver-class" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="pynfft.solver.Solver">
-<em class="property">class </em><tt class="descclassname">pynfft.solver.</tt><tt class="descname">Solver</tt><big>(</big><em>nfft_plan</em>, <em>flags=None</em>, <em>*args</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#pynfft.solver.Solver" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><tt class="descclassname">pynfft.solver.</tt><tt class="descname">Solver</tt><big>(</big><em>nfft_plan</em>, <em>flags=None</em><big>)</big><a class="headerlink" href="#pynfft.solver.Solver" title="Permalink to this definition">¶</a></dt>
 <dd><p>Solver is a class for computing the adjoint NFFT iteratively. Using the
 solver should theoretically lead to more accurate results, even with just
 one iteration, than using <a class="reference internal" href="nfft.html#pynfft.nfft.NFFT.adjoint" title="pynfft.nfft.NFFT.adjoint"><tt class="xref py py-meth docutils literal"><span class="pre">adjoint()</span></tt></a> or
@@ -156,72 +152,6 @@ respective properties. They should be treated as read-only values.</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="pynfft.solver.Solver.z_hat_iter">
-<tt class="descname">z_hat_iter</tt><a class="headerlink" href="#pynfft.solver.Solver.z_hat_iter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Residual of normal equation.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pynfft.solver.Solver.p_hat_iter">
-<tt class="descname">p_hat_iter</tt><a class="headerlink" href="#pynfft.solver.Solver.p_hat_iter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Search direction.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pynfft.solver.Solver.v_iter">
-<tt class="descname">v_iter</tt><a class="headerlink" href="#pynfft.solver.Solver.v_iter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Residual vector update.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pynfft.solver.Solver.alpha_iter">
-<tt class="descname">alpha_iter</tt><a class="headerlink" href="#pynfft.solver.Solver.alpha_iter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Step size for search direction.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pynfft.solver.Solver.beta_iter">
-<tt class="descname">beta_iter</tt><a class="headerlink" href="#pynfft.solver.Solver.beta_iter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Step size for search direction.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pynfft.solver.Solver.dot_r_iter">
-<tt class="descname">dot_r_iter</tt><a class="headerlink" href="#pynfft.solver.Solver.dot_r_iter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Weighted dotproduct of r_iter.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pynfft.solver.Solver.dot_r_iter_old">
-<tt class="descname">dot_r_iter_old</tt><a class="headerlink" href="#pynfft.solver.Solver.dot_r_iter_old" title="Permalink to this definition">¶</a></dt>
-<dd><p>Previous value of dot_r_iter.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pynfft.solver.Solver.dot_z_hat_iter">
-<tt class="descname">dot_z_hat_iter</tt><a class="headerlink" href="#pynfft.solver.Solver.dot_z_hat_iter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Weighted dotproduct of z_hat_iter.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pynfft.solver.Solver.dot_z_hat_iter_old">
-<tt class="descname">dot_z_hat_iter_old</tt><a class="headerlink" href="#pynfft.solver.Solver.dot_z_hat_iter_old" title="Permalink to this definition">¶</a></dt>
-<dd><p>Previous value of dot_z_hat_iter.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pynfft.solver.Solver.dot_p_hat_iter">
-<tt class="descname">dot_p_hat_iter</tt><a class="headerlink" href="#pynfft.solver.Solver.dot_p_hat_iter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Weighted dotproduct of p_hat_iter.</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pynfft.solver.Solver.dot_v_iter">
-<tt class="descname">dot_v_iter</tt><a class="headerlink" href="#pynfft.solver.Solver.dot_v_iter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Weighted dotproduct of v_iter.</p>
-</dd></dl>
-
-<dl class="attribute">
 <dt id="pynfft.solver.Solver.dtype">
 <tt class="descname">dtype</tt><a class="headerlink" href="#pynfft.solver.Solver.dtype" title="Permalink to this definition">¶</a></dt>
 <dd><p>The floating precision.</p>
@@ -267,9 +197,6 @@ respective properties. They should be treated as read-only values.</p>
   <h4>Previous topic</h4>
   <p class="topless"><a href="nfft.html"
                         title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">pynfft.nfft</span></tt> - The core NFFT functionalities</a></p>
-  <h4>Next topic</h4>
-  <p class="topless"><a href="../changelog.html"
-                        title="next chapter">Changelog</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="../_sources/api/solver.txt"
@@ -302,12 +229,9 @@ respective properties. They should be treated as read-only values.</p>
           <a href="../py-modindex.html" title="Python Module Index"
              >modules</a> |</li>
         <li class="right" >
-          <a href="../changelog.html" title="Changelog"
-             >next</a> |</li>
-        <li class="right" >
           <a href="nfft.html" title="pynfft.nfft - The core NFFT functionalities"
              >previous</a> |</li>
-        <li><a href="../index.html">pyNFFT 0.3 documentation</a> &raquo;</li>
+        <li><a href="../index.html">pyNFFT 0.5.0 documentation</a> &raquo;</li>
           <li><a href="../api.html" >API Reference</a> &raquo;</li> 
       </ul>
     </div>

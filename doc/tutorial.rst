@@ -7,14 +7,17 @@ Non-Uniform Fast Fourier Transform (NFFT) does and is used for.
 Using the NFFT
 --------------
 
-Computation of the NFFT is done in 3 steps: 
-	- First a :class:`pynfft.nfft.NFFT` object is instantiated with the 
+Computation of the NFFT is done in 3 steps:
+        
+      - First a :class:`pynfft.nfft.NFFT` object is instantiated with the 
 	right geometry paramaters and desired pre-allocation flags.
-	- After setting the location of the non-uniform knots 
+        
+      - After setting the location of the non-uniform knots 
 	:attr:`pynfft.nfft.NFFT.x`, the :meth:`pynfft.nfft.NFFT.precompute` 
 	method is called in order to initialize the NFFT operator internals 
 	appropriately.
-	- Finally, the forward and adjoint NFFT are called using the 
+	
+      - Finally, the forward and adjoint NFFT are called using the 
 	:meth:`pynfft.nfft.NFFT.trafo` and :meth:`pynfft.nfft.NFFT.adjoint` 
 	methods. Input and output data can be accessed through the 
 	:attr:`pynfft.nfft.NFFT.f` and :attr:`pynfft.nfft.NFFT.f_hat` 
@@ -60,10 +63,6 @@ In order to speed up the computation of the NFFT, some of the NFFT
 internals can be precomputed. This is controlled by precomputation 
 flags specified in a tuple `flags` to the constructor. 
 
-
-
-
-
 Computing the forward and inverse NFFT
 --------------------------------------
 
@@ -76,6 +75,3 @@ construct time::
 	12
 	>>> print Nfft.n
 	(32, 32)
-	
-Using the solver
-----------------

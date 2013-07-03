@@ -147,15 +147,3 @@ cdef extern from "nfft3.h":
 
     void fftw_cleanup_threads()
         # threading routines
-
-    void fftwf_init_threads()
-        # threading routines
-
-    void fftwf_cleanup_threads()
-        # threading routines
-
-    void fftwl_init_threads()
-        # threading routines
-
-    void fftwl_cleanup_threads()
-        # threading routines

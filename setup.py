@@ -26,8 +26,7 @@ include_dirs = [numpy.get_include()]
 library_dirs = []
 package_data = {}
 
-libraries = ['nfft3_threads', 'fftw3_threads', 'fftw3f_threads',
-             'fftw3l_threads', 'fftw3', 'fftw3f', 'fftw3l', 'm']
+libraries = ['nfft3_threads', 'fftw3_threads', 'fftw3', 'm']
 
 ext_modules = [
     Extension(

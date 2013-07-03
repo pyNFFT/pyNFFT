@@ -140,3 +140,22 @@ cdef extern from "nfft3.h":
 
     void solver_finalize_complex(solver_plan_complex *ths)
         # Destroys the plan for the inverse transform.
+
+
+    void fftw_init_threads()
+        # threading routines
+
+    void fftw_cleanup_threads()
+        # threading routines
+
+    void fftwf_init_threads()
+        # threading routines
+
+    void fftwf_cleanup_threads()
+        # threading routines
+
+    void fftwl_init_threads()
+        # threading routines
+
+    void fftwl_cleanup_threads()
+        # threading routines

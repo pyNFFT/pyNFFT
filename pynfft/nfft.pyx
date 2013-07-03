@@ -27,6 +27,7 @@ from cnfft3 cimport (PRE_PHI_HUT, FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI,
                      FFT_OUT_OF_PLACE, FFTW_INIT, NFFT_SORT_NODES,
                      NFFT_OMP_BLOCKWISE_ADJOINT, PRE_ONE_PSI, FFTW_ESTIMATE,
                      FFTW_DESTROY_INPUT,)
+from cnfft3 cimport fftw_init_threads, fftw_cleanup_threads
 
 
 # expose flag management internals for testing
@@ -209,6 +210,19 @@ _build_nfft_adjoint_direct_list()
 _build_nfft_set_x_list()
 _build_nfft_set_f_list()
 _build_nfft_set_f_hat_list()
+
+# initialize FFTW threads
+fftw_init_threads()
+#fftwf_init_threads()
+#fftwl_init_threads()
+
+# set threads' cleanup routine
+import atexit
+@atexit.register
+def _cleanup():
+    fftw_cleanup_threads()
+#    fftwf_cleanup_threads()
+#    fftwl_cleanup_threads()
 
 cdef class NFFT:
     '''

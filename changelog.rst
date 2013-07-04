@@ -1,6 +1,19 @@
 Changelog
 =========
 
+Changes in version 0.6
+----------------------
+
+    - pynfft.nfft: enable openmp support
+
+Changes in version 0.5
+----------------------
+
+    - pynfft.nfft: rewrite NFFT class internals to support multiple floating 
+      point precision, coming in a future version of libnfft3
+
+    - Documenation: first draft of the tutorial section
+
 Changes in version 0.4.1
 ------------------------
 

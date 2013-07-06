@@ -36,15 +36,6 @@ ext_modules = [
                            '-fstrict-aliasing -ffast-math'.split(),
     ),
     Extension(
-        name='pynfft.solver',
-        sources=[os.path.join('pynfft', 'solver.pyx')],
-        include_dirs=include_dirs,
-        libraries=libraries,
-        library_dirs=library_dirs,
-        extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-                           '-fstrict-aliasing -ffast-math'.split(),
-    ),
-    Extension(
         name='pynfft.util',
         sources=[os.path.join('pynfft', 'util.pyx')],
         include_dirs=include_dirs,

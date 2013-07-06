@@ -17,7 +17,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import absolute_import
+from .nfft import NFFT, Solver
 
 from ._version import VERSION
 __version__ = VERSION
-

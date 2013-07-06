@@ -23,17 +23,21 @@ wrapped as well, please feel free to contribute.
 The design of the pyNFFT package assumes that the NFFT has been **compiled with
 OpenMP support**.
 
-The core interface of the NFFT is provided by a unified class, 
-:class:`pynfft.nfft.NFFT`. The solver interface is in 
-:class:`pynfft.solver.Solver`.
+The core interface of the NFFT is provided by the unified class, 
+:class:`pynfft.NFFT`. The solver interface is in 
+:class:`pynfft.Solver`.
 
 A comprehensive unittest suite is included with the source on the repository.
 The suite will be updated as more functionalities get introducted.
 
-Tutorial
---------
+Content
+-------
 
-See the :doc:`tutorial` to get started with using pyNFFT.
+.. toctree::
+   :maxdepth: 2
+
+   tutorial
+   api
 
 About this documentation
 ------------------------
@@ -48,8 +52,3 @@ Indices and tables
 * :ref:`modindex`
 * :ref:`search`
 
-.. toctree::
-   :maxdepth: 2
-
-   tutorial
-   api

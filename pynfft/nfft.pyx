@@ -575,8 +575,8 @@ cdef class Solver:
 
         # initialize plan
         try:
-            solver_init_advanced_complex(self._plan,
-                <mv_plan_complex*>&(nfft_plan._plan), _flags)
+            solver_init_advanced_complex(&self._plan,
+                <nfft_mv_plan_complex*>&(nfft_plan._plan), _flags)
         except:
             raise MemoryError
         

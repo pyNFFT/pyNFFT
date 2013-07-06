@@ -132,10 +132,10 @@ cdef extern from "nfft3.h":
                                       unsigned flags)
         # Advanced initialisation.
 
-    void solver_before_loop_complex(solver_plan_complex *ths)
+    void solver_before_loop_complex(solver_plan_complex *ths) nogil
         # Setting up residuals before the actual iteration.
 
-    void solver_loop_one_step_complex(solver_plan_complex *ths)
+    void solver_loop_one_step_complex(solver_plan_complex *ths) nogil
         # Doing one step in the iteration.
 
     void solver_finalize_complex(solver_plan_complex *ths)

@@ -657,13 +657,15 @@ cdef class Solver:
         '''
         Initialize solver internals.
         '''
-       solver_before_loop_complex(&self._plan)
+        with nogil:
+            solver_before_loop_complex(&self._plan)
 
     cpdef loop_one_step(self):
         '''
         Perform one iteration.
         '''
-        solver_loop_one_step_complex(&self._plan)
+        with nogil:
+            solver_loop_one_step_complex(&self._plan)
 
     def __get_w(self):
         '''

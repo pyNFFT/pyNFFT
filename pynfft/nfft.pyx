@@ -651,23 +651,19 @@ cdef class Solver:
         pass
 
     def __dealloc__(self):
-        if self.__plan != NULL:
-            self.__solver_finalize(self.__plan)
-            free(self.__plan)
+        solver_finalize_complex(&self._plan)
 
     cpdef before_loop(self):
         '''
         Initialize solver internals.
         '''
-        if self.__plan != NULL:
-            self.__solver_before_loop(self.__plan)
+       solver_before_loop_complex(&self._plan)
 
     cpdef loop_one_step(self):
         '''
         Perform one iteration.
         '''
-        if self.__plan != NULL:
-            self.__solver_loop_one_step(self.__plan)
+        solver_loop_one_step_complex(&self._plan)
 
     def __get_w(self):
         '''

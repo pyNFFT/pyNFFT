@@ -40,7 +40,7 @@ def _cleanup():
 ########
 # NFFT #
 ########
- 
+
 cdef object nfft_supported_flags_tuple
 nfft_supported_flags_tuple = (
     'PRE_PHI_HUT',
@@ -94,13 +94,13 @@ cdef class NFFT:
     a ``ValueError`` exception.
 
     The nodes must be initialized prior to precomputing the operator with the
-    :meth:`~pynfft.nfft.NFFT.precompute` method.
+    :meth:`pynfft.NFFT.precompute` method.
 
     The forward and adjoint NFFT operation may be performed by calling the
-    :meth:`~pynfft.nfft.NFFT.trafo` or :meth:`~pynfft.nfft.NFFT.adjoint`
+    :meth:`pynfft.NFFT.trafo` or :meth:`pynfft.NFFT.adjoint`
     methods. The NDFT may also be computed by calling the
-    :meth:`~pynfft.nfft.NFFT.trafo_direct` or
-    :meth:`~pynfft.nfft.NFFT.adjoint_direct`.
+    :meth:`pynfft.NFFT.trafo_direct` or
+    :meth:`pynfft.NFFT.adjoint_direct`.
     '''
     cdef nfft_plan _plan
     cdef int _d
@@ -114,14 +114,14 @@ cdef class NFFT:
     cdef object _n
     cdef object _dtype
     cdef object _flags
-        
+
     # where the C-related content of the class is being initialized
     def __cinit__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
                   flags=None, *args, **kwargs):
 
         # support only double / double complex NFFT
-        # TODO: if support for multiple floating precision lands in the 
-        # NFFT library, adapt this section to dynamically figure the 
+        # TODO: if support for multiple floating precision lands in the
+        # NFFT library, adapt this section to dynamically figure the
         # real and complex dtypes
         dtype_real = np.dtype('float64')
         dtype_complex = np.dtype('complex128')
@@ -308,14 +308,6 @@ cdef class NFFT:
         :param flags: list of precomputation flags, see note below.
         :type flags: tuple
 
-        **Floating precision**
-
-        Parameter ``dtype`` allows to specify the desired floating point
-        precision. It defaults to None and should not be changed. This
-        parameter is here for later compatibility with a future version of
-        the NFFT library which supports multiple precision, as available with
-        FFTW.
-
         **Precomputation flags**
 
         This table lists the supported precomputation flags for the NFFT.
@@ -349,7 +341,7 @@ cdef class NFFT:
         Precomputes the NFFT plan internals.
 
         .. warning::
-            The nodes :attr:`~pynfft.NFFT.x` must be initialized before
+            The nodes :attr:`pynfft.NFFT.x` must be initialized before
             precomputing.
         '''
         with nogil:
@@ -359,8 +351,8 @@ cdef class NFFT:
         '''
         Performs the forward NFFT.
 
-        Reads :attr:`~pynfft.NFFT.f_hat` and stores the result in
-        :attr:`~pynfft.NFFT.f`.
+        Reads :attr:`pynfft.NFFT.f_hat` and stores the result in
+        :attr:`pynfft.NFFT.f`.
         '''
         with nogil:
             nfft_trafo(&self._plan)
@@ -369,8 +361,8 @@ cdef class NFFT:
         '''
         Performs the forward NDFT.
 
-        Reads :attr:`~pynfft.NFFT.f_hat` and stores the result in
-        :attr:`~pynfft.NFFT.f`.
+        Reads :attr:`pynfft.NFFT.f_hat` and stores the result in
+        :attr:`pynfft.NFFT.f`.
         '''
         with nogil:
              nfft_trafo_direct(&self._plan)
@@ -379,8 +371,8 @@ cdef class NFFT:
         '''
         Performs the adjoint NFFT.
 
-        Reads :attr:`~pynfft.NFFT.f` and stores the result in
-        :attr:`~pynfft.NFFT.f_hat`.
+        Reads :attr:`pynfft.NFFT.f` and stores the result in
+        :attr:`pynfft.NFFT.f_hat`.
         '''
         with nogil:
             nfft_adjoint(&self._plan)
@@ -389,8 +381,8 @@ cdef class NFFT:
         '''
         Performs the adjoint NDFT.
 
-        Reads :attr:`~pynfft.NFFT.f` and stores the result in
-        :attr:`~pynfft.NFFT.f_hat`.
+        Reads :attr:`pynfft.NFFT.f` and stores the result in
+        :attr:`pynfft.NFFT.f_hat`.
         '''
         with nogil:
              nfft_adjoint_direct(&self._plan)
@@ -513,8 +505,8 @@ cdef class Solver:
     '''
     Solver is a class for computing the adjoint NFFT iteratively. Using the
     solver should theoretically lead to more accurate results, even with just
-    one iteration, than using :meth:`~pynfft.nfft.NFFT.adjoint` or
-    :meth:`~pynfft.nfft.NFFT.adjoint_direct`.
+    one iteration, than using :meth:`pynfft.NFFT.adjoint` or
+    :meth:`pynfft.NFFT.adjoint_direct`.
 
     The instantiation requires a NFFT object used internally for the multiple
     forward and adjoint NFFT performed. The class uses conjugate-gradient as
@@ -523,8 +515,8 @@ cdef class Solver:
     Because the stopping conidition of the iterative computation may change
     from one application to another, the implementation only let you carry
     one iteration at a time with a call to
-    :meth:`~pynfft.solver.Solver.loop_one_step`. Initialization of the solver
-    is done by calling the :meth:`~pynfft.solver.Solver.before_loop` method.
+    :meth:`pynfft.Solver.loop_one_step`. Initialization of the solver
+    is done by calling the :meth:`pynfft.Solver.before_loop` method.
 
     The class exposes the internals of the solver through call to their
     respective properties. They should be treated as read-only values.
@@ -538,12 +530,12 @@ cdef class Solver:
     cdef object _r_iter
     cdef object _dtype
     cdef object _flags
-    
+
     def __cinit__(self, NFFT nfft_plan, flags=None):
 
         # support only double / double complex NFFT
-        # TODO: if support for multiple floating precision lands in the 
-        # NFFT library, adapt this section to dynamically figure the 
+        # TODO: if support for multiple floating precision lands in the
+        # NFFT library, adapt this section to dynamically figure the
         # real and complex dtypes
         dtype_real = np.dtype('float64')
         dtype_complex = np.dtype('complex128')
@@ -579,7 +571,7 @@ cdef class Solver:
                 <nfft_mv_plan_complex*>&(nfft_plan._plan), _flags)
         except:
             raise MemoryError
-        
+
         self._nfft_plan = nfft_plan
 
         cdef np.npy_intp shape[1]
@@ -608,13 +600,13 @@ cdef class Solver:
 
         shape[0] = N_total
         self._f_hat_iter = np.PyArray_SimpleNewFromData(1, shape,
-            np.NPY_COMPLEX128, <void *>(self._plan.f_hat_iter))        
+            np.NPY_COMPLEX128, <void *>(self._plan.f_hat_iter))
         self._f_hat_iter[:] = 0  # default initial guess
-        
+
         shape[0] = M_total
         self._r_iter = np.PyArray_SimpleNewFromData(1, shape,
             np.NPY_COMPLEX128, <void *>(self._plan.r_iter))
-        
+
         self._dtype = dtype_real
         self._flags = flags_used
 
@@ -622,7 +614,7 @@ cdef class Solver:
     def __init__(self, nfft_plan, flags=None):
         '''
         :param plan: instance of NFFT.
-        :type plan: :class:`~pynfft.nfft.NFFT`
+        :type plan: :class:`pynfft.NFFT`
         :param flags: list of instantiation flags, see below.
         :type flags: tuple
 

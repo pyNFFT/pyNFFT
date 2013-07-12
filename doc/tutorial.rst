@@ -101,3 +101,66 @@ filling the :attr:`pynfft.NFFT.f` attribute prior to calling the
         >>> from pynfft.util import vrand_unit_complex
         >>> vrand_unit_complex(Nfft.f)
         >>> Nfft.adjoint()  # results stored in Nfft.f_hat
+
+
+Using the solver
+================
+
+Workflow
+--------
+
+Computation of the inverse NFFT using the iterative solver is done 
+following these 5 steps:
+
+	#. Instantiate a :class:`pynfft.Solver` object,
+	#. Initialize the solver attributes, including the input data 
+	:attr:`pynfft.Solver.y`, initial solution 
+	:attr:`pynfft.Solver.f_hat_iter` and optional weights 
+	:attr:`pynfft.Solver.w` and :attr:`pynfft.Solver.w_hat`,
+	#. Initialize the solver internals, by calling 
+	:meth:`pynfft.Solver.before_loop`,
+	#. Compute N iterations, by calling 
+	:meth:`pynfft.Solver.loop_one_step`,
+	#. Read the current solution in :attr:`pynfft.Solver.f_hat_iter`.
+
+Instantiation
+-------------
+
+In order to instantiate a :class:`pynfft.Solver` object, a valid 
+instantiated and precomputed :class:`pynfft.NFFT` object is required. 
+The iterative solver will use multiple forward and adjoint transforms 
+from the supplied NFFT object, faster runtime speed will be obtained by 
+using maximum precomputation for the NFFT object, via the 
+`PRECOMPUTE_FULL_PSI` flag:
+
+	>>> from pynfft import NFFT
+	>>> Nfft = NFFT(N=(32, 32), M=96, flags='PRECOMPUTE_FULL_PSI')
+	>>> Nfft.x = some_x
+	>>> Nfft.precompute()
+
+The solver is then instantiated with the previously initialized NFFT 
+object. 
+
+	>>> from pynfft import Solver
+	>>> Solv = Solver(Nfft)  # CGNR default solver
+
+A different solver can be chosen via the `flags` parameter, the 
+default being the Conjugate Gradient of the first kind. Please consult 
+the :class:`pynfft.Solver` documentation for more information.
+
+	>>> Solv = Solver(Nfft, flags='CGNE')  # overrides solver
+
+Use of weighting functions may boost the solver performance. These can 
+be specified by the flags 'PRECOMPUTE_WEIGHT' and 'PRECOMPUTE_DAMP'.
+
+	>>> Solv = Solver(Nfft, flags=('LANDWEBER', 'PRECOMPUTE_WEIGHT'))
+
+By default, the samples' and Fourier coefficients' weighting functions, 
+respectively accessed by :attr:`pynfft.Solver.w` and 
+:attr:`pynfft.Solver.w_hat` are set to 1.
+
+Initialization
+--------------
+
+Iterative computation
+---------------------

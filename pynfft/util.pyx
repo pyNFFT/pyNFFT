@@ -29,7 +29,7 @@ def vrand_unit_complex (object[np.complex128_t, mode='c'] x not None):
     Utilitary function for initializing a vector of knots to random
     values within the range [-0.5, 0.5).
 
-    Used for testing :attr:`~pynfft.nfft.NFFT.x`.
+    Used for testing :attr:`pynfft.NFFT.x`.
 
     :param x: pre-allocated array
     :type x: ndarray <complex128>
@@ -41,8 +41,8 @@ def vrand_shifted_unit_double (object[np.float64_t, mode='c'] x not None):
     Utilitary function for initializing a vector of data to random
     complex values within the range [0, 1).
 
-    Used for testing :attr:`~pynfft.nfft.NFFT.f` and
-    :attr:`~pynfft.nfft.NFFT.f_hat`.
+    Used for testing :attr:`pynfft.NFFT.f` and
+    :attr:`pynfft.NFFT.f_hat`.
 
     :param x: pre-allocated array
     :type x: ndarray <float64>

@@ -16,7 +16,7 @@ instantiation through Python classes, while keeping similar naming
 conventions as in the C structures and routines.
 
 Right now, only the NFFT and solver components of the library are supported.
-Support for other components **may** come in the future, but is conditionned 
+Support for other components `may` come in the future, but is conditionned 
 by the author's need for them. If you're interested in getting these components
 wrapped as well, please feel free to contribute.
 

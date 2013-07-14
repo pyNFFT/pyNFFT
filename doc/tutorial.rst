@@ -112,16 +112,15 @@ Workflow
 Computation of the inverse NFFT using the iterative solver is done 
 following these 5 steps:
 
-	#. Instantiate a :class:`pynfft.Solver` object,
-	#. Initialize the solver attributes, including the input data 
-	:attr:`pynfft.Solver.y`, initial solution 
-	:attr:`pynfft.Solver.f_hat_iter` and optional weights 
-	:attr:`pynfft.Solver.w` and :attr:`pynfft.Solver.w_hat`,
-	#. Initialize the solver internals, by calling 
-	:meth:`pynfft.Solver.before_loop`,
-	#. Compute N iterations, by calling 
-	:meth:`pynfft.Solver.loop_one_step`,
-	#. Read the current solution in :attr:`pynfft.Solver.f_hat_iter`.
+    #. Instantiate a :class:`pynfft.Solver` object,
+
+    #. Initialize the solver attributes, including the input data :attr:`pynfft.Solver.y`, initial solution :attr:`pynfft.Solver.f_hat_iter` and optional weights :attr:`pynfft.Solver.w` and :attr:`pynfft.Solver.w_hat`,
+    
+    #. Initialize the solver internals, by calling :meth:`pynfft.Solver.before_loop`,
+    
+    #. Compute N iterations, by calling :meth:`pynfft.Solver.loop_one_step`,
+    
+    #. Read the current solution in :attr:`pynfft.Solver.f_hat_iter`.
 
 Instantiation
 -------------
@@ -133,34 +132,72 @@ from the supplied NFFT object, faster runtime speed will be obtained by
 using maximum precomputation for the NFFT object, via the 
 `PRECOMPUTE_FULL_PSI` flag:
 
-	>>> from pynfft import NFFT
-	>>> Nfft = NFFT(N=(32, 32), M=96, flags='PRECOMPUTE_FULL_PSI')
-	>>> Nfft.x = some_x
-	>>> Nfft.precompute()
+    >>> from pynfft import NFFT
+    >>> Nfft = NFFT(N=(32, 32), M=96, flags='PRECOMPUTE_FULL_PSI')
+    >>> Nfft.x = some_x
+    >>> Nfft.precompute()
 
 The solver is then instantiated with the previously initialized NFFT 
 object. 
 
-	>>> from pynfft import Solver
-	>>> Solv = Solver(Nfft)  # CGNR default solver
+    >>> from pynfft import Solver
+    >>> Solv = Solver(Nfft)  # CGNR default solver
 
 A different solver can be chosen via the `flags` parameter, the 
 default being the Conjugate Gradient of the first kind. Please consult 
 the :class:`pynfft.Solver` documentation for more information.
 
-	>>> Solv = Solver(Nfft, flags='CGNE')  # overrides solver
+    >>> Solv = Solver(Nfft, flags='CGNE')  # overrides solver
 
 Use of weighting functions may boost the solver performance. These can 
 be specified by the flags 'PRECOMPUTE_WEIGHT' and 'PRECOMPUTE_DAMP'.
 
-	>>> Solv = Solver(Nfft, flags=('LANDWEBER', 'PRECOMPUTE_WEIGHT'))
+    >>> Solv = Solver(Nfft, flags=('LANDWEBER', 'PRECOMPUTE_WEIGHT'))
 
-By default, the samples' and Fourier coefficients' weighting functions, 
+By default, the weights of the non-uniform samples and Fourier coefficients, 
 respectively accessed by :attr:`pynfft.Solver.w` and 
 :attr:`pynfft.Solver.w_hat` are set to 1.
 
 Initialization
 --------------
 
+Initialization of the solver is performed by calling the 
+:meth:`pynfft.Solver.before_loop` method after setting the 
+non-uniform samples :attr:`pynfft.Solver.y` and initial guess of the solution 
+:attr:`pynfft.Solver.f_hat_iter`.
+
+    >>> Solv.y = some_y
+    >>> Solv.f_hat_iter = some_f_hat_iter
+    >>> Solv.before_loop()
+
+By default, the initial guess of the solution is set to 0, which makes the
+first iteration of the solver behave like a call to the adjoint NFFT.
+
+
 Iterative computation
 ---------------------
+
+After successful initialization of the solver, a single iteration can be
+performed by calling the :meth:`pynfft.Solver.loop_one_step` method.
+The :class:`pynfft.Solver` class only supports one by one iteration. The user
+is responsible for implementing the desired stopping condition for the solver,
+which may differ between applications. Here are examples for the 2 most common
+cases:
+
+    - with a user-defined number of iterations:
+
+    >>> nIter = 10  # set number of iterations to 10
+    >>> for iIter in range(nIter):
+    >>>	    Solv.loop_one_step()
+
+    - with a threshold value on the residual values, accessible through the 
+      :attr:`pynfft.Solver.r_iter` attribute:
+
+    >>> threshold = 1e-3   # stop if changes between iteration is below 1%
+    >>> try:
+    >>>	    while True:
+    >>>		Solv.loop_one_step()
+    >>>		if(np.all(Solv.r_iter < threshold)):
+    >>>		    raise StopCondition
+    >>> except StopCondition:
+    >>>	    # rest of the algorithm

@@ -1,6 +1,18 @@
 Changelog
 =========
 
+Changes in version 1.0
+----------------------
+
+    - simplify code base
+
+    - pynfft.nfft and pynfft.solver moved to pynfft
+
+    - revert support for multiple floating precision 
+
+    - fix missing documentation for the solver
+
+
 Changes in version 0.6
 ----------------------
 

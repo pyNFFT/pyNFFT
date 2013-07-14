@@ -1,41 +1,64 @@
-``pynfft.nfft`` - The core NFFT functionalities
-===============================================
+``pynfft`` - The core NFFT functionalities
+==========================================
 
-.. automodule:: pynfft.nfft
+.. automodule:: pynfft
 
 NFFT Class
 ----------
 
-.. autoclass:: pynfft.nfft.NFFT(N, M, n=None, m=12, x=None, f=None, f_hat=None, dtype=None, flags=None)
+.. autoclass:: pynfft.NFFT(N, M, n=None, m=12, x=None, f=None, f_hat=None, flags=None)
 
-   .. autoattribute:: pynfft.nfft.NFFT.d
+   .. autoattribute:: pynfft.NFFT.d
 
-   .. autoattribute:: pynfft.nfft.NFFT.N
+   .. autoattribute:: pynfft.NFFT.N
 
-   .. autoattribute:: pynfft.nfft.NFFT.N_total
+   .. autoattribute:: pynfft.NFFT.N_total
    
-   .. autoattribute:: pynfft.nfft.NFFT.M_total
+   .. autoattribute:: pynfft.NFFT.M_total
    
-   .. autoattribute:: pynfft.nfft.NFFT.m
+   .. autoattribute:: pynfft.NFFT.m
 
-   .. autoattribute:: pynfft.nfft.NFFT.n
+   .. autoattribute:: pynfft.NFFT.n
 
-   .. autoattribute:: pynfft.nfft.NFFT.x
+   .. autoattribute:: pynfft.NFFT.x
 
-   .. autoattribute:: pynfft.nfft.NFFT.f
+   .. autoattribute:: pynfft.NFFT.f
 
-   .. autoattribute:: pynfft.nfft.NFFT.f_hat
+   .. autoattribute:: pynfft.NFFT.f_hat
 
-   .. autoattribute:: pynfft.nfft.NFFT.dtype
+   .. autoattribute:: pynfft.NFFT.dtype
 
-   .. autoattribute:: pynfft.nfft.NFFT.flags
+   .. autoattribute:: pynfft.NFFT.flags
 
-   .. automethod:: pynfft.nfft.NFFT.precompute
+   .. automethod:: pynfft.NFFT.precompute
 
-   .. automethod:: pynfft.nfft.NFFT.trafo
+   .. automethod:: pynfft.NFFT.trafo
 
-   .. automethod:: pynfft.nfft.NFFT.trafo_direct
+   .. automethod:: pynfft.NFFT.trafo_direct
 
-   .. automethod:: pynfft.nfft.NFFT.adjoint
+   .. automethod:: pynfft.NFFT.adjoint
 
-   .. automethod:: pynfft.nfft.NFFT.adjoint_direct
+   .. automethod:: pynfft.NFFT.adjoint_direct
+
+Solver Class
+------------
+
+.. autoclass:: pynfft.Solver(nfft_plan, flags=None)
+
+   .. autoattribute:: pynfft.Solver.w
+   
+   .. autoattribute:: pynfft.Solver.w_hat
+   
+   .. autoattribute:: pynfft.Solver.y
+
+   .. autoattribute:: pynfft.Solver.f_hat_iter
+
+   .. autoattribute:: pynfft.Solver.r_iter
+
+   .. autoattribute:: pynfft.Solver.dtype
+
+   .. autoattribute:: pynfft.Solver.flags
+
+   .. automethod:: pynfft.Solver.before_loop
+
+   .. automethod:: pynfft.Solver.loop_one_step

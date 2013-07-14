@@ -14,12 +14,14 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 from __future__ import division
 import numpy
 import unittest
 from numpy import pi
 from numpy.testing import assert_allclose
-from pynfft.nfft import NFFT, fftw_flags, nfft_flags, nfft_supported_flags
+from pynfft import NFFT
+from pynfft.nfft import fftw_flags, nfft_flags, nfft_supported_flags
 from pynfft.util import vrand_unit_complex, vrand_shifted_unit_double
 
 

@@ -12,11 +12,6 @@ This wrapper provides a somewhat Pythonic access to some of the core NFFT
 library functionalities and is largely inspired from the pyFFTW project 
 developped by Henry Gomersall (http://hgomersall.github.io/pyFFTW/).
 
-This project is still work in progress and is still considered beta quality.
-In particular, the API is not yet frozen and is likely to change as the 
-development continues. Please consult the documentation and changelog for 
-more information.
-
 The documentation is hosted on `github pages <http://ghisvail.github.io/pyNFFT>`_, the source code is available on `github <https://github.com/ghisvail/pyNFFT>`_ and the Python package index page is `here <https://pypi.python.org/pypi/pyNFFT>`_.
 
 Usage

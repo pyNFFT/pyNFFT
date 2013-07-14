@@ -17,7 +17,7 @@ The documentation is hosted on `github pages <http://ghisvail.github.io/pyNFFT>`
 Usage
 -----
 
-See the `tutorial <http://ghisvail.github.io/pyNFFT/tutorial.html>_` section of the `documentation <http://ghisvail.github.io/pyNFFT>`_.
+See the `tutorial <http://ghisvail.github.io/pyNFFT/tutorial.html>`_ section of the `documentation <http://ghisvail.github.io/pyNFFT>`_.
 
 Installation
 ------------

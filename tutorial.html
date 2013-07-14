@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Using the NFFT &mdash; pyNFFT 0.5.0 documentation</title>
+    <title>Using the NFFT &mdash; pyNFFT 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.5.0',
+        VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="pyNFFT 0.5.0 documentation" href="index.html" />
+    <link rel="top" title="pyNFFT 1.0.0 documentation" href="index.html" />
     <link rel="next" title="API Reference" href="api.html" />
     <link rel="prev" title="Welcome to pyNFFT’s documentation!" href="index.html" /> 
   </head>
@@ -45,7 +45,7 @@
         <li class="right" >
           <a href="index.html" title="Welcome to pyNFFT’s documentation!"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">pyNFFT 0.5.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">pyNFFT 1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -60,21 +60,13 @@
 Non-Uniform Fast Fourier Transform (NFFT) does and is used for.</p>
 <div class="section" id="workflow">
 <h2>Workflow<a class="headerlink" href="#workflow" title="Permalink to this headline">¶</a></h2>
-<p>Computation of the NFFT is done in 3 steps:</p>
+<p>Computation of the NFFT is done following these 3 steps:</p>
 <blockquote>
-<div><ul class="simple">
-<li>First a <a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT" title="pynfft.nfft.NFFT"><tt class="xref py py-class docutils literal"><span class="pre">pynfft.nfft.NFFT</span></tt></a> object is instantiated with the
-right geometry paramaters and desired pre-allocation flags.</li>
-<li>After setting the location of the non-uniform knots
-<a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT.x" title="pynfft.nfft.NFFT.x"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.nfft.NFFT.x</span></tt></a>, the <a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT.precompute" title="pynfft.nfft.NFFT.precompute"><tt class="xref py py-meth docutils literal"><span class="pre">pynfft.nfft.NFFT.precompute()</span></tt></a>
-method is called in order to initialize the NFFT operator internals
-appropriately.</li>
-<li>Finally, the forward and adjoint NFFT are called using the
-<a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT.trafo" title="pynfft.nfft.NFFT.trafo"><tt class="xref py py-meth docutils literal"><span class="pre">pynfft.nfft.NFFT.trafo()</span></tt></a> and <a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT.adjoint" title="pynfft.nfft.NFFT.adjoint"><tt class="xref py py-meth docutils literal"><span class="pre">pynfft.nfft.NFFT.adjoint()</span></tt></a>
-methods. Input and output data can be accessed through the
-<a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT.f" title="pynfft.nfft.NFFT.f"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.nfft.NFFT.f</span></tt></a> and <a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT.f_hat" title="pynfft.nfft.NFFT.f_hat"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.nfft.NFFT.f_hat</span></tt></a>
-attributes.</li>
-</ul>
+<div><ol class="arabic simple">
+<li>Instantiation of a <a class="reference internal" href="api/nfft.html#pynfft.NFFT" title="pynfft.NFFT"><tt class="xref py py-class docutils literal"><span class="pre">pynfft.NFFT</span></tt></a> object with the right geometry paramaters and desired pre-allocation flags.</li>
+<li>Set the location of the non-uniform knots in <a class="reference internal" href="api/nfft.html#pynfft.NFFT.x" title="pynfft.NFFT.x"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.NFFT.x</span></tt></a> and precompute the NFFT internals with <a class="reference internal" href="api/nfft.html#pynfft.NFFT.precompute" title="pynfft.NFFT.precompute"><tt class="xref py py-meth docutils literal"><span class="pre">pynfft.NFFT.precompute()</span></tt></a>.</li>
+<li>Compute the forward and adjoint NFFT with the <a class="reference internal" href="api/nfft.html#pynfft.NFFT.trafo" title="pynfft.NFFT.trafo"><tt class="xref py py-meth docutils literal"><span class="pre">pynfft.NFFT.trafo()</span></tt></a> and <a class="reference internal" href="api/nfft.html#pynfft.NFFT.adjoint" title="pynfft.NFFT.adjoint"><tt class="xref py py-meth docutils literal"><span class="pre">pynfft.NFFT.adjoint()</span></tt></a> methods. Input and output data can be accessed through the <a class="reference internal" href="api/nfft.html#pynfft.NFFT.f" title="pynfft.NFFT.f"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.NFFT.f</span></tt></a> and <a class="reference internal" href="api/nfft.html#pynfft.NFFT.f_hat" title="pynfft.NFFT.f_hat"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.NFFT.f_hat</span></tt></a> attributes.</li>
+</ol>
 </div></blockquote>
 </div>
 <div class="section" id="basic-instantiation">
@@ -82,7 +74,7 @@ attributes.</li>
 <p>A new NFFT instance can be generated by specifying parameters <cite>M</cite>,
 the number of non-uniform samples and <cite>N</cite>, the shape of the uniform
 grid of the transformed data:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynfft.nfft</span> <span class="kn">import</span> <span class="n">NFFT</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynfft</span> <span class="kn">import</span> <span class="n">NFFT</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Nfft</span> <span class="o">=</span> <span class="n">NFFT</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span> <span class="n">M</span><span class="o">=</span><span class="mi">92</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="k">print</span> <span class="n">Nfft</span><span class="o">.</span><span class="n">N</span>
 <span class="go">(16, 16)</span>
@@ -99,7 +91,7 @@ These can be overriden at construct time (see <cite>Advanced instantiation</cite
 <div class="section" id="advanced-instantiation">
 <h2>Advanced instantiation<a class="headerlink" href="#advanced-instantiation" title="Permalink to this headline">¶</a></h2>
 <p>More control over the precision, storage and speed requirements can be
-gained using the optional parameters of the <a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT" title="pynfft.nfft.NFFT"><tt class="xref py py-class docutils literal"><span class="pre">pynfft.nfft.NFFT</span></tt></a>
+gained using the optional parameters of the <a class="reference internal" href="api/nfft.html#pynfft.NFFT" title="pynfft.NFFT"><tt class="xref py py-class docutils literal"><span class="pre">pynfft.NFFT</span></tt></a>
 constructor.</p>
 <p>The trade-off between speed and precision can be tweaked by specifying
 custom values for parameters <cite>m</cite>, the convolution kernel width, and
@@ -127,7 +119,7 @@ and the arrays are c-contiguous.</p>
 <div class="section" id="computing-the-forward-and-inverse-nfft">
 <h2>Computing the forward and inverse NFFT<a class="headerlink" href="#computing-the-forward-and-inverse-nfft" title="Permalink to this headline">¶</a></h2>
 <p>After instantiation, the location of the irregularly sampled data must be
-passed to the NFFT instance using the <a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT.x" title="pynfft.nfft.NFFT.x"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.nfft.NFFT.x</span></tt></a> attribute.
+passed to the NFFT instance using the <a class="reference internal" href="api/nfft.html#pynfft.NFFT.x" title="pynfft.NFFT.x"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.NFFT.x</span></tt></a> attribute.
 Then, the NFFT operator has to be explictly precomputed.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynfft.util</span> <span class="kn">import</span> <span class="n">vrand_shifted_unit_double</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">vrand_shifted_unit_double</span><span class="p">(</span><span class="n">Nfft</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>  <span class="c"># Nfft.x in [-0.5, 0.5]</span>
@@ -135,21 +127,120 @@ Then, the NFFT operator has to be explictly precomputed.</p>
 </pre></div>
 </div>
 <p>After precomputation, the forward NFFT can be computed by first filling the
-<a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT.f_hat" title="pynfft.nfft.NFFT.f_hat"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.nfft.NFFT.f_hat</span></tt></a> attribute with the input data and then calling
-the <a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT.trafo" title="pynfft.nfft.NFFT.trafo"><tt class="xref py py-meth docutils literal"><span class="pre">pynfft.nfft.NFFT.trafo()</span></tt></a> method.</p>
+<a class="reference internal" href="api/nfft.html#pynfft.NFFT.f_hat" title="pynfft.NFFT.f_hat"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.NFFT.f_hat</span></tt></a> attribute with the input data and then calling
+the <a class="reference internal" href="api/nfft.html#pynfft.NFFT.trafo" title="pynfft.NFFT.trafo"><tt class="xref py py-meth docutils literal"><span class="pre">pynfft.NFFT.trafo()</span></tt></a> method.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynfft.util</span> <span class="kn">import</span> <span class="n">vrand_unit_complex</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">vrand_unit_complex</span><span class="p">(</span><span class="n">Nfft</span><span class="o">.</span><span class="n">f_hat</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Nfft</span><span class="o">.</span><span class="n">trafo</span><span class="p">()</span>  <span class="c"># results stored in Nfft.f</span>
 </pre></div>
 </div>
 <p>Similar to the forward transform, the adjoint operation is performed by first
-filling the <a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT.f" title="pynfft.nfft.NFFT.f"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.nfft.NFFT.f</span></tt></a> attribute prior to calling the
-<a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT.adjoint" title="pynfft.nfft.NFFT.adjoint"><tt class="xref py py-meth docutils literal"><span class="pre">pynfft.nfft.NFFT.adjoint()</span></tt></a> method.</p>
+filling the <a class="reference internal" href="api/nfft.html#pynfft.NFFT.f" title="pynfft.NFFT.f"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.NFFT.f</span></tt></a> attribute prior to calling the
+<a class="reference internal" href="api/nfft.html#pynfft.NFFT.adjoint" title="pynfft.NFFT.adjoint"><tt class="xref py py-meth docutils literal"><span class="pre">pynfft.NFFT.adjoint()</span></tt></a> method.</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynfft.util</span> <span class="kn">import</span> <span class="n">vrand_unit_complex</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">vrand_unit_complex</span><span class="p">(</span><span class="n">Nfft</span><span class="o">.</span><span class="n">f</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">Nfft</span><span class="o">.</span><span class="n">adjoint</span><span class="p">()</span>  <span class="c"># results stored in Nfft.f_hat</span>
 </pre></div>
 </div>
+</div>
+</div>
+<div class="section" id="using-the-solver">
+<h1>Using the solver<a class="headerlink" href="#using-the-solver" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2>Workflow<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<p>Computation of the inverse NFFT using the iterative solver is done
+following these 5 steps:</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>Instantiate a <a class="reference internal" href="api/nfft.html#pynfft.Solver" title="pynfft.Solver"><tt class="xref py py-class docutils literal"><span class="pre">pynfft.Solver</span></tt></a> object,</li>
+<li>Initialize the solver attributes, including the input data <a class="reference internal" href="api/nfft.html#pynfft.Solver.y" title="pynfft.Solver.y"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.Solver.y</span></tt></a>, initial solution <a class="reference internal" href="api/nfft.html#pynfft.Solver.f_hat_iter" title="pynfft.Solver.f_hat_iter"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.Solver.f_hat_iter</span></tt></a> and optional weights <a class="reference internal" href="api/nfft.html#pynfft.Solver.w" title="pynfft.Solver.w"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.Solver.w</span></tt></a> and <a class="reference internal" href="api/nfft.html#pynfft.Solver.w_hat" title="pynfft.Solver.w_hat"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.Solver.w_hat</span></tt></a>,</li>
+<li>Initialize the solver internals, by calling <a class="reference internal" href="api/nfft.html#pynfft.Solver.before_loop" title="pynfft.Solver.before_loop"><tt class="xref py py-meth docutils literal"><span class="pre">pynfft.Solver.before_loop()</span></tt></a>,</li>
+<li>Compute N iterations, by calling <a class="reference internal" href="api/nfft.html#pynfft.Solver.loop_one_step" title="pynfft.Solver.loop_one_step"><tt class="xref py py-meth docutils literal"><span class="pre">pynfft.Solver.loop_one_step()</span></tt></a>,</li>
+<li>Read the current solution in <a class="reference internal" href="api/nfft.html#pynfft.Solver.f_hat_iter" title="pynfft.Solver.f_hat_iter"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.Solver.f_hat_iter</span></tt></a>.</li>
+</ol>
+</div></blockquote>
+</div>
+<div class="section" id="instantiation">
+<h2>Instantiation<a class="headerlink" href="#instantiation" title="Permalink to this headline">¶</a></h2>
+<p>In order to instantiate a <a class="reference internal" href="api/nfft.html#pynfft.Solver" title="pynfft.Solver"><tt class="xref py py-class docutils literal"><span class="pre">pynfft.Solver</span></tt></a> object, a valid
+instantiated and precomputed <a class="reference internal" href="api/nfft.html#pynfft.NFFT" title="pynfft.NFFT"><tt class="xref py py-class docutils literal"><span class="pre">pynfft.NFFT</span></tt></a> object is required.
+The iterative solver will use multiple forward and adjoint transforms
+from the supplied NFFT object, faster runtime speed will be obtained by
+using maximum precomputation for the NFFT object, via the
+<cite>PRECOMPUTE_FULL_PSI</cite> flag:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynfft</span> <span class="kn">import</span> <span class="n">NFFT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Nfft</span> <span class="o">=</span> <span class="n">NFFT</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="p">(</span><span class="mi">32</span><span class="p">,</span> <span class="mi">32</span><span class="p">),</span> <span class="n">M</span><span class="o">=</span><span class="mi">96</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="s">&#39;PRECOMPUTE_FULL_PSI&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Nfft</span><span class="o">.</span><span class="n">x</span> <span class="o">=</span> <span class="n">some_x</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Nfft</span><span class="o">.</span><span class="n">precompute</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The solver is then instantiated with the previously initialized NFFT
+object.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynfft</span> <span class="kn">import</span> <span class="n">Solver</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Solv</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span><span class="n">Nfft</span><span class="p">)</span>  <span class="c"># CGNR default solver</span>
+</pre></div>
+</div>
+<p>A different solver can be chosen via the <cite>flags</cite> parameter, the
+default being the Conjugate Gradient of the first kind. Please consult
+the <a class="reference internal" href="api/nfft.html#pynfft.Solver" title="pynfft.Solver"><tt class="xref py py-class docutils literal"><span class="pre">pynfft.Solver</span></tt></a> documentation for more information.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Solv</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span><span class="n">Nfft</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="s">&#39;CGNE&#39;</span><span class="p">)</span>  <span class="c"># overrides solver</span>
+</pre></div>
+</div>
+<p>Use of weighting functions may boost the solver performance. These can
+be specified by the flags &#8216;PRECOMPUTE_WEIGHT&#8217; and &#8216;PRECOMPUTE_DAMP&#8217;.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Solv</span> <span class="o">=</span> <span class="n">Solver</span><span class="p">(</span><span class="n">Nfft</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="p">(</span><span class="s">&#39;LANDWEBER&#39;</span><span class="p">,</span> <span class="s">&#39;PRECOMPUTE_WEIGHT&#39;</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>By default, the weights of the non-uniform samples and Fourier coefficients,
+respectively accessed by <a class="reference internal" href="api/nfft.html#pynfft.Solver.w" title="pynfft.Solver.w"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.Solver.w</span></tt></a> and
+<a class="reference internal" href="api/nfft.html#pynfft.Solver.w_hat" title="pynfft.Solver.w_hat"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.Solver.w_hat</span></tt></a> are set to 1.</p>
+</div>
+<div class="section" id="initialization">
+<h2>Initialization<a class="headerlink" href="#initialization" title="Permalink to this headline">¶</a></h2>
+<p>Initialization of the solver is performed by calling the
+<a class="reference internal" href="api/nfft.html#pynfft.Solver.before_loop" title="pynfft.Solver.before_loop"><tt class="xref py py-meth docutils literal"><span class="pre">pynfft.Solver.before_loop()</span></tt></a> method after setting the
+non-uniform samples <a class="reference internal" href="api/nfft.html#pynfft.Solver.y" title="pynfft.Solver.y"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.Solver.y</span></tt></a> and initial guess of the solution
+<a class="reference internal" href="api/nfft.html#pynfft.Solver.f_hat_iter" title="pynfft.Solver.f_hat_iter"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.Solver.f_hat_iter</span></tt></a>.</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">Solv</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">some_y</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Solv</span><span class="o">.</span><span class="n">f_hat_iter</span> <span class="o">=</span> <span class="n">some_f_hat_iter</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Solv</span><span class="o">.</span><span class="n">before_loop</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>By default, the initial guess of the solution is set to 0, which makes the
+first iteration of the solver behave like a call to the adjoint NFFT.</p>
+</div>
+<div class="section" id="iterative-computation">
+<h2>Iterative computation<a class="headerlink" href="#iterative-computation" title="Permalink to this headline">¶</a></h2>
+<p>After successful initialization of the solver, a single iteration can be
+performed by calling the <a class="reference internal" href="api/nfft.html#pynfft.Solver.loop_one_step" title="pynfft.Solver.loop_one_step"><tt class="xref py py-meth docutils literal"><span class="pre">pynfft.Solver.loop_one_step()</span></tt></a> method.
+The <a class="reference internal" href="api/nfft.html#pynfft.Solver" title="pynfft.Solver"><tt class="xref py py-class docutils literal"><span class="pre">pynfft.Solver</span></tt></a> class only supports one by one iteration. The user
+is responsible for implementing the desired stopping condition for the solver,
+which may differ between applications. Here are examples for the 2 most common
+cases:</p>
+<blockquote>
+<div><ul class="simple">
+<li>with a user-defined number of iterations:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">nIter</span> <span class="o">=</span> <span class="mi">10</span>  <span class="c"># set number of iterations to 10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">for</span> <span class="n">iIter</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">nIter</span><span class="p">):</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="n">Solv</span><span class="o">.</span><span class="n">loop_one_step</span><span class="p">()</span>
+</pre></div>
+</div>
+<ul class="simple">
+<li>with a threshold value on the residual values, accessible through the
+<a class="reference internal" href="api/nfft.html#pynfft.Solver.r_iter" title="pynfft.Solver.r_iter"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.Solver.r_iter</span></tt></a> attribute:</li>
+</ul>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="n">threshold</span> <span class="o">=</span> <span class="mf">1e-3</span>   <span class="c"># stop if changes between iteration is below 1%</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">try</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="k">while</span> <span class="bp">True</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="n">Solv</span><span class="o">.</span><span class="n">loop_one_step</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span>        <span class="k">if</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">Solv</span><span class="o">.</span><span class="n">r_iter</span> <span class="o">&lt;</span> <span class="n">threshold</span><span class="p">)):</span>
+<span class="gp">&gt;&gt;&gt; </span>            <span class="k">raise</span> <span class="n">StopCondition</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="k">except</span> <span class="n">StopCondition</span><span class="p">:</span>
+<span class="gp">&gt;&gt;&gt; </span>    <span class="c"># rest of the algorithm</span>
+</pre></div>
+</div>
+</div></blockquote>
 </div>
 </div>
 
@@ -166,6 +257,13 @@ filling the <a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT.f
 <li><a class="reference internal" href="#basic-instantiation">Basic instantiation</a></li>
 <li><a class="reference internal" href="#advanced-instantiation">Advanced instantiation</a></li>
 <li><a class="reference internal" href="#computing-the-forward-and-inverse-nfft">Computing the forward and inverse NFFT</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#using-the-solver">Using the solver</a><ul>
+<li><a class="reference internal" href="#id1">Workflow</a></li>
+<li><a class="reference internal" href="#instantiation">Instantiation</a></li>
+<li><a class="reference internal" href="#initialization">Initialization</a></li>
+<li><a class="reference internal" href="#iterative-computation">Iterative computation</a></li>
 </ul>
 </li>
 </ul>
@@ -213,7 +311,7 @@ filling the <a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT.f
         <li class="right" >
           <a href="index.html" title="Welcome to pyNFFT’s documentation!"
              >previous</a> |</li>
-        <li><a href="index.html">pyNFFT 0.5.0 documentation</a> &raquo;</li> 
+        <li><a href="index.html">pyNFFT 1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

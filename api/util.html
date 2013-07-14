@@ -1,0 +1,195 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>pynfft.util - Utility functions &mdash; pyNFFT 1.0.0 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.0.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="pyNFFT 1.0.0 documentation" href="../index.html" />
+    <link rel="up" title="API Reference" href="../api.html" />
+    <link rel="prev" title="pynfft - The core NFFT functionalities" href="nfft.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nfft.html" title="pynfft - The core NFFT functionalities"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">pyNFFT 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../api.html" accesskey="U">API Reference</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-pynfft.util">
+<span id="pynfft-util-utility-functions"></span><h1><tt class="docutils literal"><span class="pre">pynfft.util</span></tt> - Utility functions<a class="headerlink" href="#module-pynfft.util" title="Permalink to this headline">¶</a></h1>
+<p>Functions used for initialization of <a class="reference internal" href="nfft.html#pynfft.NFFT" title="pynfft.NFFT"><tt class="xref py py-class docutils literal"><span class="pre">pynfft.NFFT</span></tt></a> attributes in test
+scripts. For instance:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynfft</span> <span class="kn">import</span> <span class="n">NFFT</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pynfft.util</span> <span class="kn">import</span> <span class="n">vrand_unit_complex</span><span class="p">,</span> <span class="n">vrand_shifted_unit_double</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Nfft</span><span class="o">.</span><span class="n">NFFT</span><span class="p">(</span><span class="n">N</span><span class="o">=</span><span class="p">(</span><span class="mi">16</span><span class="p">,</span> <span class="mi">16</span><span class="p">),</span> <span class="n">M</span><span class="o">=</span><span class="mi">92</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vrand_shifted_unit_double</span><span class="p">(</span><span class="n">Nfft</span><span class="o">.</span><span class="n">x</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Nfft</span><span class="o">.</span><span class="n">precompute</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">vrand_unit_complex</span><span class="p">(</span><span class="n">Nfft</span><span class="o">.</span><span class="n">f_hat</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">Nfft</span><span class="o">.</span><span class="n">trafo</span><span class="p">()</span>
+</pre></div>
+</div>
+<dl class="function">
+<dt id="pynfft.util.vrand_unit_complex">
+<tt class="descclassname">pynfft.util.</tt><tt class="descname">vrand_unit_complex</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#pynfft.util.vrand_unit_complex" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utilitary function for initializing a vector of knots to random
+values within the range [-0.5, 0.5).</p>
+<p>Used for testing <a class="reference internal" href="nfft.html#pynfft.NFFT.x" title="pynfft.NFFT.x"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.NFFT.x</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>ndarray &lt;complex128&gt;</em>) &#8211; pre-allocated array</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pynfft.util.vrand_shifted_unit_double">
+<tt class="descclassname">pynfft.util.</tt><tt class="descname">vrand_shifted_unit_double</tt><big>(</big><em>x</em><big>)</big><a class="headerlink" href="#pynfft.util.vrand_shifted_unit_double" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utilitary function for initializing a vector of data to random
+complex values within the range [0, 1).</p>
+<p>Used for testing <a class="reference internal" href="nfft.html#pynfft.NFFT.f" title="pynfft.NFFT.f"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.NFFT.f</span></tt></a> and
+<a class="reference internal" href="nfft.html#pynfft.NFFT.f_hat" title="pynfft.NFFT.f_hat"><tt class="xref py py-attr docutils literal"><span class="pre">pynfft.NFFT.f_hat</span></tt></a>.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>x</strong> (<em>ndarray &lt;float64&gt;</em>) &#8211; pre-allocated array</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<p>Functions used for computing the density compensation weights necessary for the
+iterative solver and adjoint NFFT.</p>
+<dl class="function">
+<dt id="pynfft.util.voronoi_weights_1d">
+<tt class="descclassname">pynfft.util.</tt><tt class="descname">voronoi_weights_1d</tt><big>(</big><em>w</em>, <em>x</em><big>)</big><a class="headerlink" href="#pynfft.util.voronoi_weights_1d" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utilitary function for computing density compensation weights from 1D knots.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>w</strong> (<em>ndarray &lt;float64&gt;</em>) &#8211; pre-allocated array</li>
+<li><strong>x</strong> (<em>ndarray &lt;float64&gt;</em>) &#8211; ordered 1D knots</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pynfft.util.voronoi_weights_S2">
+<tt class="descclassname">pynfft.util.</tt><tt class="descname">voronoi_weights_S2</tt><big>(</big><em>w</em>, <em>xi</em><big>)</big><a class="headerlink" href="#pynfft.util.voronoi_weights_S2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Utilitary function for computing density compensation weights from knots
+located on the surface of a sphere.</p>
+<p>Useful for reconstruction of 3D radial data.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>w</strong> (<em>ndarray &lt;float64&gt;</em>) &#8211; pre-allocated array</li>
+<li><strong>xi</strong> (<em>ndarray &lt;float64&gt;</em>) &#8211; angular locations (2D) on the unit sphere</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="nfft.html"
+                        title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">pynfft</span></tt> - The core NFFT functionalities</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/api/util.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="nfft.html" title="pynfft - The core NFFT functionalities"
+             >previous</a> |</li>
+        <li><a href="../index.html">pyNFFT 1.0.0 documentation</a> &raquo;</li>
+          <li><a href="../api.html" >API Reference</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, Ghislain Vaillant.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>

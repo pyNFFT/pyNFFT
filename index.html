@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Welcome to pyNFFT’s documentation! &mdash; pyNFFT 0.5.0 documentation</title>
+    <title>Welcome to pyNFFT’s documentation! &mdash; pyNFFT 1.0.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.5.0',
+        VERSION:     '1.0.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -25,7 +25,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="pyNFFT 0.5.0 documentation" href="#" />
+    <link rel="top" title="pyNFFT 1.0.0 documentation" href="#" />
     <link rel="next" title="Using the NFFT" href="tutorial.html" /> 
   </head>
   <body>
@@ -41,7 +41,7 @@
         <li class="right" >
           <a href="tutorial.html" title="Using the NFFT"
              accesskey="N">next</a> |</li>
-        <li><a href="#">pyNFFT 0.5.0 documentation</a> &raquo;</li> 
+        <li><a href="#">pyNFFT 1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -59,20 +59,42 @@ to the core functionalities of the library using a more straightforward
 instantiation through Python classes, while keeping similar naming
 conventions as in the C structures and routines.</p>
 <p>Right now, only the NFFT and solver components of the library are supported.
-Support for other components <strong>may</strong> come in the future, but is conditionned
+Support for other components <cite>may</cite> come in the future, but is conditionned
 by the author&#8217;s need for them. If you&#8217;re interested in getting these components
 wrapped as well, please feel free to contribute.</p>
 <p>The design of the pyNFFT package assumes that the NFFT has been <strong>compiled with
 OpenMP support</strong>.</p>
-<p>The core interface of the NFFT is provided by a unified class,
-<a class="reference internal" href="api/nfft.html#pynfft.nfft.NFFT" title="pynfft.nfft.NFFT"><tt class="xref py py-class docutils literal"><span class="pre">pynfft.nfft.NFFT</span></tt></a>. The solver interface is in
-<a class="reference internal" href="api/solver.html#pynfft.solver.Solver" title="pynfft.solver.Solver"><tt class="xref py py-class docutils literal"><span class="pre">pynfft.solver.Solver</span></tt></a>.</p>
+<p>The core interface of the NFFT is provided by the unified class,
+<a class="reference internal" href="api/nfft.html#pynfft.NFFT" title="pynfft.NFFT"><tt class="xref py py-class docutils literal"><span class="pre">pynfft.NFFT</span></tt></a>. The solver interface is in
+<a class="reference internal" href="api/nfft.html#pynfft.Solver" title="pynfft.Solver"><tt class="xref py py-class docutils literal"><span class="pre">pynfft.Solver</span></tt></a>.</p>
 <p>A comprehensive unittest suite is included with the source on the repository.
 The suite will be updated as more functionalities get introducted.</p>
 </div>
-<div class="section" id="tutorial">
-<h2>Tutorial<a class="headerlink" href="#tutorial" title="Permalink to this headline">¶</a></h2>
-<p>See the <a class="reference internal" href="tutorial.html"><em>Using the NFFT</em></a> to get started with using pyNFFT.</p>
+<div class="section" id="content">
+<h2>Content<a class="headerlink" href="#content" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Using the NFFT</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#workflow">Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#basic-instantiation">Basic instantiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#advanced-instantiation">Advanced instantiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#computing-the-forward-and-inverse-nfft">Computing the forward and inverse NFFT</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="tutorial.html#using-the-solver">Using the solver</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#id1">Workflow</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#instantiation">Instantiation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#initialization">Initialization</a></li>
+<li class="toctree-l2"><a class="reference internal" href="tutorial.html#iterative-computation">Iterative computation</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/nfft.html"><tt class="docutils literal"><span class="pre">pynfft</span></tt> - The core NFFT functionalities</a></li>
+<li class="toctree-l2"><a class="reference internal" href="api/util.html"><tt class="docutils literal"><span class="pre">pynfft.util</span></tt> - Utility functions</a></li>
+</ul>
+</li>
+</ul>
+</div>
 </div>
 <div class="section" id="about-this-documentation">
 <h2>About this documentation<a class="headerlink" href="#about-this-documentation" title="Permalink to this headline">¶</a></h2>
@@ -86,22 +108,6 @@ The suite will be updated as more functionalities get introducted.</p>
 <li><a class="reference internal" href="py-modindex.html"><em>Module Index</em></a></li>
 <li><a class="reference internal" href="search.html"><em>Search Page</em></a></li>
 </ul>
-<div class="toctree-wrapper compound">
-<ul>
-<li class="toctree-l1"><a class="reference internal" href="tutorial.html">Using the NFFT</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#workflow">Workflow</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#basic-instantiation">Basic instantiation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#advanced-instantiation">Advanced instantiation</a></li>
-<li class="toctree-l2"><a class="reference internal" href="tutorial.html#computing-the-forward-and-inverse-nfft">Computing the forward and inverse NFFT</a></li>
-</ul>
-</li>
-<li class="toctree-l1"><a class="reference internal" href="api.html">API Reference</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="api/nfft.html"><tt class="docutils literal"><span class="pre">pynfft.nfft</span></tt> - The core NFFT functionalities</a></li>
-<li class="toctree-l2"><a class="reference internal" href="api/solver.html"><tt class="docutils literal"><span class="pre">pynfft.solver</span></tt> - iterative solver for the adjoint NFFT</a></li>
-</ul>
-</li>
-</ul>
-</div>
 </div>
 
 
@@ -114,13 +120,13 @@ The suite will be updated as more functionalities get introducted.</p>
   <ul>
 <li><a class="reference internal" href="#">Welcome to pyNFFT&#8217;s documentation!</a><ul>
 <li><a class="reference internal" href="#introduction">Introduction</a></li>
-<li><a class="reference internal" href="#tutorial">Tutorial</a></li>
+<li><a class="reference internal" href="#content">Content</a><ul>
+</ul>
+</li>
 <li><a class="reference internal" href="#about-this-documentation">About this documentation</a></li>
 </ul>
 </li>
-<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a><ul>
-</ul>
-</li>
+<li><a class="reference internal" href="#indices-and-tables">Indices and tables</a></li>
 </ul>
 
   <h4>Next topic</h4>
@@ -160,7 +166,7 @@ The suite will be updated as more functionalities get introducted.</p>
         <li class="right" >
           <a href="tutorial.html" title="Using the NFFT"
              >next</a> |</li>
-        <li><a href="#">pyNFFT 0.5.0 documentation</a> &raquo;</li> 
+        <li><a href="#">pyNFFT 1.0.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

@@ -34,7 +34,6 @@ fftw_init_threads()
 
 # register cleanup callbacks
 cdef void _cleanup():
-    fftw_cleanup()
     fftw_cleanup_threads()
 
 Py_AtExit(_cleanup)

@@ -151,4 +151,4 @@ cdef extern from "fftw3.h":
         # threading routines
 
     void fftw_cleanup_threads()
-        # threading routines
+        # cleanup routines

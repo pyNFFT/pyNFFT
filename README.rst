@@ -62,7 +62,7 @@ and extension, use the `cython_setup.py` file with::
 
     $python cython_setup build_ext --inplace
 
-Again, if you installed the NFFT library in a non system-aware location, you can specify the location of the library and include files with the `--library-dirs` and `--include-dirs` flags. For instance, if your NFFT library is installed in $HOME/local::
+Again, if you installed the NFFT library in a non system-aware location, you must specify the location of the library and include files with the `-I`, `-L` and `-R` flags. For instance, if your NFFT library is installed in $HOME/local::
 
     $python cython_setup build_ext --inplace -I <path_to_include>
     -L <path_to_lib> -R <path_to_lib>

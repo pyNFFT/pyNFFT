@@ -38,8 +38,8 @@ location. A workaround for this is to first call pip with::
 
 cd to where pip downloaded the package, then build with `setup.py`::
 
-    python setup.py build_ext --library-dirs=<path_to_libnfft_dir>
-    --include-dirs=<path_to_libnfft_include>
+    python setup.py build_ext -I <path_to_include> -L <path_to_lib>
+    -R <path_to_lib>
 
 and do a final call to pip::
 
@@ -62,10 +62,10 @@ and extension, use the `cython_setup.py` file with::
 
     $python cython_setup build_ext --inplace
 
-Again, if you installed the NFFT library in a non system-aware location, you can specify the location of the library and include files with the `--library-dirs` and `--include-dirs` flags. For instance, if your NFFT library is installed in $HOME/local::
+Again, if you installed the NFFT library in a non system-aware location, you must specify the location of the library and include files with the `-I`, `-L` and `-R` flags. For instance, if your NFFT library is installed in $HOME/local::
 
-    $python cython_setup build_ext --inplace --library-dirs=$HOME/local/lib
-    --include-dirs=$HOME/local/include
+    $python cython_setup build_ext --inplace -I <path_to_include>
+    -L <path_to_lib> -R <path_to_lib>
 
 Build info
 ----------

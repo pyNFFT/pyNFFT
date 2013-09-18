@@ -1,6 +1,14 @@
 Changelog
 =========
 
+Changes in version 1.0.1
+------------------------
+
+    - fix issue #2 by updating the installation instructions
+
+    - change registration of cleanup routine to use Py_AtExit
+
+
 Changes in version 1.0
 ----------------------
 

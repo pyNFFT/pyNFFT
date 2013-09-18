@@ -142,8 +142,13 @@ cdef extern from "nfft3.h":
         # Destroys the plan for the inverse transform.
 
 
+cdef extern from "fftw3.h":
+    
+    void fftw_cleanup()
+        # cleanup routines
+        
     void fftw_init_threads()
         # threading routines
 
     void fftw_cleanup_threads()
-        # threading routines
+        # cleanup routines

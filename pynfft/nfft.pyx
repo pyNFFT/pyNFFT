@@ -21,6 +21,8 @@ from libc.stdlib cimport malloc, free
 from libc cimport limits
 from cnfft3 cimport *
 
+cdef extern from *:
+    int Py_AtExit(void (*callback)()) 
 
 # Initialize module
 # Numpy must be initialized. When using numpy from C or Cython you must
@@ -30,11 +32,12 @@ np.import_array()
 # initialize FFTW threads
 fftw_init_threads()
 
-# register FFTW threads cleanup routine
-import atexit
-@atexit.register
-def _cleanup():
+# register cleanup callbacks
+cdef void _cleanup():
+    fftw_cleanup()
     fftw_cleanup_threads()
+
+Py_AtExit(_cleanup)
 
 
 ########

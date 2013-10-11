@@ -16,8 +16,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from __future__ import absolute_import
-from .nfft import NFFT, Solver
+from ._version import version as __version__
 
-from ._version import VERSION
-__version__ = VERSION
+from .nfft import NFFT, Solver
+import util

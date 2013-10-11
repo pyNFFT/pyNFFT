@@ -18,20 +18,45 @@
 
 from distutils.core import setup, Command
 from distutils.extension import Extension
+from distutils.util import get_platform
 
 import os
 import numpy
 
+package_name = 'pynfft'
+
+# Get the version string in rather a roundabout way.
+# We can't import it directly as the module may not yet be
+# built in pyfftw.
+import imp
+ver_file, ver_pathname, ver_description = imp.find_module(
+            '_version', [package_name])
+try:
+    _version = imp.load_module('version', ver_file, ver_pathname,
+            ver_description)
+finally:
+    ver_file.close()
+
+version = _version.version
+
+
+# Set system-dependent dependencies
 include_dirs = [numpy.get_include()]
 library_dirs = []
 package_data = {}
 
-libraries = ['nfft3_threads', 'fftw3_threads', 'fftw3', 'm']
+if get_platform() in ('win32', 'win-amd64'):
+    raise RuntimeError("Windows is not supported yet")
+else:
+    libraries = ['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm']
 
+
+# Set list of extension modules, assuming the source files has been cythonized 
+# using the cython_setup script
 ext_modules = [
     Extension(
-        name='pynfft.nfft',
-        sources=[os.path.join('pynfft', 'nfft.c')],
+        name=package_name+'.nfft',
+        sources=[os.path.join(os.getcwd(), package_name, 'nfft.c')],
         libraries=libraries,
         library_dirs=library_dirs,
         include_dirs=include_dirs,
@@ -40,7 +65,7 @@ ext_modules = [
     ),
     Extension(
         name='pynfft.util',
-        sources=[os.path.join('pynfft', 'util.c')],
+        sources=[os.path.join(os.getcwd(), package_name, 'util.c')],
         libraries=libraries,
         library_dirs=library_dirs,
         include_dirs=include_dirs,
@@ -69,16 +94,6 @@ class clean(Command):
         os.system("rm -rf pynfft/*.so")
         os.system("rm -rf doc/_build/")
 
-
-def get_version():
-    basedir = os.path.dirname(__file__)
-    with open(os.path.join(basedir, 'pynfft/_version.py')) as f:
-        variables = {}
-        exec(f.read(), variables)
-        return variables.get('VERSION')
-    raise RuntimeError('No version info found.')
-
-version = get_version()
 
 long_description = '''"The NFFT is a C subroutine library for computing the
 nonequispaced discrete Fourier transform (NDFT) in one or more dimensions, of
@@ -118,7 +133,7 @@ setup_args = {
     'long_description': long_description,
     'url': 'https://github.com/ghisvail/pyNFFT.git',
     'classifiers': classifiers,
-    'packages': ['pynfft'],
+    'packages': [package_name],
     'ext_modules': ext_modules,
     'include_dirs': include_dirs,
     'package_data': package_data,

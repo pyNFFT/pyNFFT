@@ -61,6 +61,14 @@ class Test_NFFT_init(unittest.TestCase):
 
         for each_flag in self.flags:
             self.assertIn(each_flag, Nfft.flags)
+    
+    def test_precomputation_flag(self):
+        Nfft = NFFT(N=self.N, M=self.M, m=self.m,
+                    flags=self.flags)
+        self.assertFalse(Nfft.precomputed)
+        Nfft.x = numpy.ones(Nfft.M_total * Nfft.d)
+        Nfft.precompute()
+        self.assertTrue(Nfft.precomputed)
 
 
 class Test_NFFT_runtime(unittest.TestCase):
@@ -218,11 +226,20 @@ class Test_NFFT_errors(unittest.TestCase):
             self.assertRaises(ValueError,
                               lambda: NFFT(N=N, M=M, flags=(flag,)))
 
+    def test_for_precomputation_safeguard(self):
+        N, M = 32, 32
+        Nfft = NFFT(N=N, M=M)
+        self.assertRaises(RuntimeError, lambda: Nfft.trafo())       
+        self.assertRaises(RuntimeError, lambda: Nfft.trafo_direct()) 
+        self.assertRaises(RuntimeError, lambda: Nfft.adjoint()) 
+        self.assertRaises(RuntimeError, lambda: Nfft.adjoint_direct())
+
 
 def suite():
     suite = unittest.TestSuite()
     suite.addTest(Test_NFFT_init("test_default_args"))
     suite.addTest(Test_NFFT_init("test_user_specified_args"))
+    suite.addTest(Test_NFFT_init("test_precomputation_flag"))
     suite.addTest(Test_NFFT_runtime("test_trafo"))
     suite.addTest(Test_NFFT_runtime("test_trafo_direct"))
     suite.addTest(Test_NFFT_runtime("test_adjoint"))
@@ -234,6 +251,7 @@ def suite():
     suite.addTest(Test_NFFT_errors('test_for_invalid_f'))
     suite.addTest(Test_NFFT_errors('test_for_invalid_f_hat'))
     suite.addTest(Test_NFFT_errors('test_for_invalid_flags'))
+    suite.addTest(Test_NFFT_errors('test_for_precomputation_safeguard'))    
     return suite
 
 

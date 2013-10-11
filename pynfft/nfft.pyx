@@ -106,10 +106,7 @@ cdef class NFFT:
     :meth:`pynfft.NFFT.adjoint_direct`.
     '''
     cdef nfft_plan _plan
-    cdef int _d
     cdef int _m
-    cdef int _M_total
-    cdef int _N_total
     cdef object __f
     cdef object __f_dtype
     cdef object __f_shape
@@ -119,7 +116,6 @@ cdef class NFFT:
     cdef object __x
     cdef object __x_dtype
     cdef object __x_shape
-    cdef object _N
     cdef object _n
     cdef object _flags
     cdef bint _precomputed
@@ -127,6 +123,37 @@ cdef class NFFT:
     # where the C-related content of the class is being initialized
     def __cinit__(self, x, f, f_hat, M=None, N=None, n=None, m=12, flags=None,
                   precompute=False, *args, **kwargs):
+
+        # guess geometry from input array if missing from optional inputs
+        M = M if M is not None else f.size
+        N = N if N is not None else f_hat.shape
+        d = len(N) if N is not None else f_hat.ndim
+        n = n if n is not None else [2 * Nt for Nt in N]
+        if len(n) != d:
+            raise ValueError('n should be of same length as N')       
+        N_total = np.prod(N)
+        n_total = np.prod(n)
+
+        # check geometry is compatible with C-class internals
+        int_max = <Py_ssize_t>limits.INT_MAX
+        if not all([Nt > 0 for Nt in N]):
+            raise ValueError('N must be strictly positive')
+        if not all([Nt < int_max for Nt in N]):
+            raise ValueError('N exceeds integer limit value')
+        if not N_total < int_max:
+            raise ValueError('product of N exceeds integer limit value')
+        if not all([nt > 0 for nt in n]):
+            raise ValueError('n must be strictly positive')
+        if not all([nt < int_max for nt in n]):
+            raise ValueError('n exceeds integer limit value')        
+        if not n_total < int_max:
+            raise ValueError('product of n exceeds integer limit value')
+        if not M > 0:
+            raise ValueError('M must be strictly positive')
+        if not M < int_max:
+            raise ValueError('M exceeds integer limit value')
+        if not m > 0:
+            raise ValueError('m must be strictly positive')
 
         # support only double / double complex NFFT
         # TODO: if support for multiple floating precision lands in the
@@ -162,43 +189,22 @@ cdef class NFFT:
 
         if f_hat.dtype != dtype_complex:
             raise ValueError('f_hat must be of type %s'%(dtype_complex)) 
-                        
-        # guess geometry from input array if missing from optional inputs
-        M = M is M is not None else f.size
-        N = N is N is not None else f_hat.shape
-        n = n is n is not None else [2 * Nt for Nt in N]
-        d = len(N)
-        if len(n) != d:
-            raise ValueError('n should be of same length as N')       
-        N_total = np.prod(N)
-        n_total = np.prod(n)
         
-        # make sure x is compatible with the provided geometry
+        # check arrays are compatible with geometry
         try:
             x = x.reshape([M, d])
         except ValueError:
             raise ValueError('x is incompatible with geometry')          
+        
+        try:
+            f = f.reshape(M)
+        except ValueError:
+            raise ValueError('f is incompatible with geometry') 
 
-        # check geometry is compatible with C-class internals
-        int_max = <Py_ssize_t>limits.INT_MAX
-        if not all([Nt > 0 for Nt in N]):
-            raise ValueError('N must be strictly positive')
-        if not all([Nt < int_max for Nt in N]):
-            raise ValueError('N exceeds integer limit value')
-        if not N_total < int_max:
-            raise ValueError('product of N exceeds integer limit value')
-        if not all([nt > 0 for nt in n]):
-            raise ValueError('n must be strictly positive')
-        if not all([nt < int_max for nt in n]):
-            raise ValueError('n exceeds integer limit value')        
-        if not n_total < int_max:
-            raise ValueError('product of n exceeds integer limit value')
-        if not M > 0:
-            raise ValueError('M must be strictly positive')
-        if not M < int_max:
-            raise ValueError('M exceeds integer limit value')
-        if not m > 0:
-            raise ValueError('m must be strictly positive')
+        try:
+            f_hat = f_hat.reshape(N)
+        except ValueError:
+            raise ValueError('f_hat is incompatible with geometry') 
 
         # convert tuple of litteral precomputation flags to its expected
         # C-compatible value. Each flag is a power of 2, which allows to compute
@@ -280,14 +286,13 @@ cdef class NFFT:
         self.__f_hat_shape = f_hat.shape
         self._m = m
         self._n = n
-        self._dtype = dtype_real
         self._flags = flags_used
         self._precomputed = False
         
         if precompute:
-            self._plan.x = (
-                    <double *>np.PyArray_DATA(self.__x))
-            nfft_precompute_one_psi(&self._plan)
+            self._plan.x = <double *>np.PyArray_DATA(self.__x)
+            with nogil:
+                nfft_precompute_one_psi(&self._plan)
             self._precomputed = True
             
 
@@ -349,6 +354,7 @@ cdef class NFFT:
             precomputing.
         '''
         if not self._precomputed:
+            self._plan.x = <double *>np.PyArray_DATA(self.__x)
             with nogil:
                 nfft_precompute_one_psi(&self._plan)
             self._precomputed = True

@@ -23,12 +23,14 @@ from Cython.Distutils import build_ext
 from setup import setup_args, libraries, library_dirs, include_dirs
 import os
 
-include_dirs.append('pynfft')
+package_name = 'pynfft'
+
+include_dirs.append(package_name)
 
 ext_modules = [
     Extension(
-        name='pynfft.nfft',
-        sources=[os.path.join('pynfft', 'nfft.pyx')],
+        name=package_name+'.nfft',
+        sources=[os.path.join(os.getcwd(), package_name, 'nfft.pyx')],
         include_dirs=include_dirs,
         libraries=libraries,
         library_dirs=library_dirs,
@@ -36,8 +38,8 @@ ext_modules = [
                            '-fstrict-aliasing -ffast-math'.split(),
     ),
     Extension(
-        name='pynfft.util',
-        sources=[os.path.join('pynfft', 'util.pyx')],
+        name=package_name+'.util',
+        sources=[os.path.join(os.getcwd(), package_name, 'util.pyx')],
         include_dirs=include_dirs,
         libraries=libraries,
         library_dirs=library_dirs,

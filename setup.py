@@ -64,7 +64,7 @@ ext_modules = [
                            '-fstrict-aliasing -ffast-math'.split(),
     ),
     Extension(
-        name='pynfft.util',
+        name=package_name+'.util',
         sources=[os.path.join(os.getcwd(), package_name, 'util.c')],
         libraries=libraries,
         library_dirs=library_dirs,

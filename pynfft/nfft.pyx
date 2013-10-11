@@ -110,18 +110,23 @@ cdef class NFFT:
     cdef int _m
     cdef int _M_total
     cdef int _N_total
-    cdef object _f
-    cdef object _f_hat
-    cdef object _x
+    cdef object __f
+    cdef object __f_dtype
+    cdef object __f_shape
+    cdef object __f_hat
+    cdef object __f_hat_dtype
+    cdef object __f_hat_shape
+    cdef object __x
+    cdef object __x_dtype
+    cdef object __x_shape
     cdef object _N
     cdef object _n
-    cdef object _dtype
     cdef object _flags
     cdef bint _precomputed
 
     # where the C-related content of the class is being initialized
-    def __cinit__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
-                  flags=None, *args, **kwargs):
+    def __cinit__(self, x, f, f_hat, M=None, N=None, n=None, m=12, flags=None,
+                  precompute=False, *args, **kwargs):
 
         # support only double / double complex NFFT
         # TODO: if support for multiple floating precision lands in the
@@ -130,77 +135,70 @@ cdef class NFFT:
         dtype_real = np.dtype('float64')
         dtype_complex = np.dtype('complex128')
 
-        # NOTE: use of reshape([-1, 1]) to avoid working with 0-d arrays which
-        # cannot be indexed explictly
-        N = np.asarray(N).reshape([-1, 1])
-        M_total = np.asarray(M).reshape([-1, 1])
-        n = np.asarray(n).reshape([-1, 1]) if n is not None else 2 * N
-        m = np.asarray(m).reshape([-1, 1])
-        N_total = np.asarray(np.prod(N)).reshape([-1, 1])
-        d = N.size
+        # sanity checks on mandatory inputs
+        if not isinstance(x, np.ndarray):
+            raise ValueError('x must be an instance of numpy.ndarray')
 
-        # make sure N and n lengths are compatible
-        if n.size != d:
-            raise ValueError("N and n must be of same size")
+        if not x.flags.c_contiguous:
+            raise ValueError('x must be C-contiguous')        
 
-        # make sure all size parameters fit with int32 storage dtype of
-        # nfft_plan, otherwise high risks of malloc errors
-        cdef int t
-        for t in range(0, d):
-            if not N[t, 0] > 0:
-                raise ValueError('N must be strictly positive')
-            if N[t, 0] >= <Py_ssize_t>limits.INT_MAX:
-                raise ValueError('N must be less than ', str(limits.INT_MAX))
-            if not n[t, 0] > 0:
-                raise ValueError('n must be strictly positive')
-            if n[t, 0] >= <Py_ssize_t>limits.INT_MAX:
-                raise ValueError('n must be less than ', str(limits.INT_MAX))
-        if not M_total[0, 0] > 0:
-            raise ValueError("M must be a strictly positive scalar")
-        if M_total[0, 0] >= <Py_ssize_t>limits.INT_MAX:
-            raise ValueError('M must be less than ', str(limits.INT_MAX))
-        if not m[0, 0] > 0:
-            raise ValueError("m must be a strictly positive scalar")
-        if m[0, 0] >= <Py_ssize_t>limits.INT_MAX:
-            raise ValueError('m must be less than ', str(limits.INT_MAX))
-        if not N_total[0, 0] > 0:
-            raise ValueError("M must be a strictly positive scalar")
-        if N_total[0, 0] >= <Py_ssize_t>limits.INT_MAX:
-            raise ValueError('M must be less than ', str(limits.INT_MAX))
+        if x.dtype != dtype_real:
+            raise ValueError('x must be of type %s'%(dtype_real)) 
 
-        # if external arrays are provided, checks whether they are compatible
-        if x is not None:
-            if not x.flags.c_contiguous:
-                raise ValueError('x array must be contiguous')
-            if x.dtype != dtype_real:
-                raise ValueError('x must be of type float64')
-            if x.size != M_total * d:
-                raise ValueError('x must be of size %d'%(M_total * d))
-            self._x = x
-        else:
-            self._x = np.empty(M_total*d, dtype=dtype_real)
+        if not isinstance(f, np.ndarray):
+            raise ValueError('f must be an instance of numpy.ndarray')
 
-        if f is not None:
-            if not f.flags.c_contiguous:
-                raise ValueError('f array must be contiguous')
-            if f.dtype != dtype_complex:
-                raise ValueError('f must be of type float64')
-            if f.size != M_total:
-                raise ValueError('f must be of size %d'%(M_total))
-            self._f = f
-        else:
-            self._f = np.empty(M_total, dtype=dtype_complex)
+        if not f.flags.c_contiguous:
+            raise ValueError('f must be C-contiguous')        
 
-        if f_hat is not None:
-            if not f_hat.flags.c_contiguous:
-                raise ValueError('f_hat array must be contiguous')
-            if f_hat.dtype != dtype_complex:
-                raise ValueError('f_hat must be of type float64')
-            if f_hat.size != N_total:
-                raise ValueError('f_hat must be of size %d'%(N_total))
-            self._f_hat = f_hat
-        else:
-            self._f_hat = np.empty(N_total, dtype=dtype_complex)
+        if f.dtype != dtype_complex:
+            raise ValueError('f must be of type %s'%(dtype_complex))                     
+
+        if not isinstance(f_hat, np.ndarray):
+            raise ValueError('f_hat: must be an instance of numpy.ndarray')                    
+
+        if not f_hat.flags.c_contiguous:
+            raise ValueError('f_hat must be C-contiguous')        
+
+        if f_hat.dtype != dtype_complex:
+            raise ValueError('f_hat must be of type %s'%(dtype_complex)) 
+                        
+        # guess geometry from input array if missing from optional inputs
+        M = M is M is not None else f.size
+        N = N is N is not None else f_hat.shape
+        n = n is n is not None else [2 * Nt for Nt in N]
+        d = len(N)
+        if len(n) != d:
+            raise ValueError('n should be of same length as N')       
+        N_total = np.prod(N)
+        n_total = np.prod(n)
+        
+        # make sure x is compatible with the provided geometry
+        try:
+            x = x.reshape([M, d])
+        except ValueError:
+            raise ValueError('x is incompatible with geometry')          
+
+        # check geometry is compatible with C-class internals
+        int_max = <Py_ssize_t>limits.INT_MAX
+        if not all([Nt > 0 for Nt in N]):
+            raise ValueError('N must be strictly positive')
+        if not all([Nt < int_max for Nt in N]):
+            raise ValueError('N exceeds integer limit value')
+        if not N_total < int_max:
+            raise ValueError('product of N exceeds integer limit value')
+        if not all([nt > 0 for nt in n]):
+            raise ValueError('n must be strictly positive')
+        if not all([nt < int_max for nt in n]):
+            raise ValueError('n exceeds integer limit value')        
+        if not n_total < int_max:
+            raise ValueError('product of n exceeds integer limit value')
+        if not M > 0:
+            raise ValueError('M must be strictly positive')
+        if not M < int_max:
+            raise ValueError('M exceeds integer limit value')
+        if not m > 0:
+            raise ValueError('m must be strictly positive')
 
         # convert tuple of litteral precomputation flags to its expected
         # C-compatible value. Each flag is a power of 2, which allows to compute
@@ -250,47 +248,48 @@ cdef class NFFT:
                         each_flag + '\' is not a valid flag.')
 
         # initialize plan
-        cdef int _d = d
-        cdef int _m = m[0, 0]
-        cdef int _M_total = M_total[0, 0]
-        cdef int _N_total = N_total[0, 0]
-
-        cdef int *_N = <int *>malloc(sizeof(int) * _d)
-        if _N == NULL:
+        cdef int *p_N = <int *>malloc(sizeof(int) * d)
+        if p_N == NULL:
             raise MemoryError
-        for t in range(0, d):
-            _N[t] = N[t, 0]
+        for t in range(d):
+            p_N[t] = N[t]
 
-        cdef int *_n = <int *>malloc(sizeof(int) * _d)
-        if _n == NULL:
+        cdef int *p_n = <int *>malloc(sizeof(int) * d)
+        if p_n == NULL:
             raise MemoryError
-        for t in range(0, d):
-            _n[t] = n[t, 0]
+        for t in range(d):
+            p_n[t] = n[t]
 
         try:
-            nfft_init_guru(&self._plan, _d, _N, _M_total, _n, _m,
+            nfft_init_guru(&self._plan, d, p_N, M, p_n, m,
                     _nfft_flags, _fftw_flags)
         except:
             raise MemoryError
         finally:
-            free(_N)
-            free(_n)
+            free(p_N)
+            free(p_n)
 
-        self._plan.x = (
-            <double *>np.PyArray_DATA(self._x))
-        self._plan.f = (
-            <fftw_complex *>np.PyArray_DATA(self._f))
-        self._plan.f_hat = (
-            <fftw_complex *>np.PyArray_DATA(self._f_hat))
-        self._d = d
-        self._m = m[0, 0]
-        self._M_total = M_total
-        self._N_total = N_total
-        self._N = tuple([N[t, 0] for t in range(d)])
-        self._n = tuple([n[t, 0] for t in range(d)])
+        self.__x = x
+        self.__x_dtype = x.dtype
+        self.__x_shape = x.shape
+        self.__f = f
+        self.__f_dtype = f.dtype
+        self.__f_shape = f.shape
+        self.__f_hat = f_hat
+        self.__f_hat_dtype = f_hat.dtype
+        self.__f_hat_shape = f_hat.shape
+        self._m = m
+        self._n = n
         self._dtype = dtype_real
         self._flags = flags_used
         self._precomputed = False
+        
+        if precompute:
+            self._plan.x = (
+                    <double *>np.PyArray_DATA(self.__x))
+            nfft_precompute_one_psi(&self._plan)
+            self._precomputed = True
+            
 
     # here, just holds the documentation of the class constructor
     def __init__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
@@ -353,7 +352,7 @@ cdef class NFFT:
             nfft_precompute_one_psi(&self._plan)
         self._precomputed = True
 
-    cpdef trafo(self):
+    cpdef trafo(self, f=None, f_hat=None):
         '''
         Performs the forward NFFT.
 
@@ -362,10 +361,12 @@ cdef class NFFT:
         '''
         if not self._precomputed:
             raise RuntimeError("NFFT plan is not initialized")
+        self.update_arrays(f, f_hat)
         with nogil:
             nfft_trafo(&self._plan)
+        return self.__f
 
-    cpdef trafo_direct(self):
+    cpdef trafo_direct(self, f=None, f_hat=None):
         '''
         Performs the forward NDFT.
 
@@ -374,10 +375,12 @@ cdef class NFFT:
         '''
         if not self._precomputed:
             raise RuntimeError("NFFT plan is not initialized")
+        self.update_arrays(f, f_hat)
         with nogil:
-             nfft_trafo_direct(&self._plan)
+            nfft_trafo_direct(&self._plan)
+        return self.__f
 
-    cpdef adjoint(self):
+    cpdef adjoint(self, f=None, f_hat=None):
         '''
         Performs the adjoint NFFT.
 
@@ -386,10 +389,12 @@ cdef class NFFT:
         '''
         if not self._precomputed:
             raise RuntimeError("NFFT plan is not initialized")
+        self.update_arrays(f, f_hat)
         with nogil:
             nfft_adjoint(&self._plan)
+        return self.__f_hat
 
-    cpdef adjoint_direct(self):
+    cpdef adjoint_direct(self, f=None, f_hat=None):
         '''
         Performs the adjoint NDFT.
 
@@ -398,8 +403,63 @@ cdef class NFFT:
         '''
         if not self._precomputed:
             raise RuntimeError("NFFT plan is not initialized")
+        self.update_arrays(f, f_hat)
         with nogil:
              nfft_adjoint_direct(&self._plan)
+        return self.__f_hat
+
+    cpdef update_arrays(self, new_f, new_f_hat):
+        '''
+        Update internal data arrays.
+        '''
+        if new_f is None:
+            new_f = self.__f
+        else:
+            if not isinstance(new_f, np.ndarray):
+                raise ValueError('Invalid f: '
+                        'The new array must be an instance '
+                        'of numpy.ndarray')            
+            if not new_f.flags.c_contiguous:
+                raise ValueError('Invalid f: '
+                        'The new array must be C-contiguous')
+            if new_f.dtype != self.__f_dtype:
+                raise ValueError('Invalid f: '
+                        'The new array must be of type %s'%(self.__f_dtype))
+            if new_f.shape != self.__f_shape:       
+                raise ValueError('Invalid f: '
+                        'The new array must be of shape %s'%(self.__f_shape))        
+        
+        if new_f_hat is None:
+            new_f_hat = self.__f_hat
+        else:
+            if not isinstance(new_f_hat, np.ndarray):
+                raise ValueError('Invalid f_hat: '
+                        'The new array nust be an instance '
+                        'of numpy.ndarray')        
+            if not new_f_hat.flags.c_contiguous:
+                raise ValueError('Invalid f: '
+                        'The new array must be C-contiguous')
+            if new_f_hat.dtype != self.__f_hat_dtype:
+                raise ValueError('Invalid f: '
+                        'The new array must be of type %s'%(self.__f_hat_dtype))
+            if new_f_hat.shape != self.__f_hat_shape:
+                raise ValueError('Invalid f: '
+                        'The new array must be of shape %s'%(self.__f_hat_shape))
+
+        self._update_arrays(new_f, new_f_hat)        
+
+    cdef _update_arrays(self, np.ndarray f, np.ndarray f_hat):
+        '''
+        A C-interface to update_arrays, which does not perform any checks and
+        refreshes the plan's internal vectors
+        '''        
+        self.__f = f
+        self._plan.f = (
+            <fftw_complex *>np.PyArray_DATA(self.__f))
+        
+        self.__f_hat = f_hat
+        self._plan.f_hat = (
+            <fftw_complex *>np.PyArray_DATA(self.__f_hat))
 
     def __get_f(self):
         '''

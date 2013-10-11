@@ -300,22 +300,24 @@ cdef class NFFT:
     def __init__(self, x, f, f_hat, M=None, N=None, n=None, m=12, flags=None,
                   precompute=False, *args, **kwargs):
         '''
-        :param N: multi-bandwith size.
-        :type N: int, tuple of int
-        :param M: number of non-uniform samples.
-        :type M: int
-        :param n: oversampled multi-bandwith, default to 2 * N.
-        :type n: int, tuple of int
-        :param m: Cut-off parameter of the window function.
-        :type m: int
         :param x: external array holding the nodes.
         :type x: ndarray
         :param f: external array holding the non-uniform samples.
         :type f: ndarray
         :param f_hat: external array holding the Fourier coefficients.
         :type f_hat: ndarray
+        :param M: number of non-uniform samples.
+        :type M: int        
+        :param N: multi-bandwith size.
+        :type N: tuple of int
+        :param n: oversampled multi-bandwith, default to 2 * N.
+        :type n: tuple of int
+        :param m: Cut-off parameter of the window function.
+        :type m: int
         :param flags: list of precomputation flags, see note below.
         :type flags: tuple
+        :param precompute: whether to precompute right after instantiation.
+        :type flags: boolean
 
         **Precomputation flags**
 
@@ -349,9 +351,8 @@ cdef class NFFT:
         '''
         Precomputes the NFFT plan internals.
 
-        .. warning::
-            The nodes :attr:`pynfft.NFFT.x` must be initialized before
-            precomputing.
+        .. note::
+           Precomputation is only done once, subsequent calls do nothing.
         '''
         if not self._precomputed:
             self._plan.x = <double *>np.PyArray_DATA(self.__x)
@@ -363,8 +364,10 @@ cdef class NFFT:
         '''
         Performs the forward NFFT.
 
-        Reads :attr:`pynfft.NFFT.f_hat` and stores the result in
-        :attr:`pynfft.NFFT.f`.
+        :param f: array override.
+        :type f: ndarray
+        :param f_hat: array override.
+        :type f_hat: ndarray
         '''
         if not self._precomputed:
             raise RuntimeError("NFFT plan is not initialized")
@@ -377,8 +380,10 @@ cdef class NFFT:
         '''
         Performs the forward NDFT.
 
-        Reads :attr:`pynfft.NFFT.f_hat` and stores the result in
-        :attr:`pynfft.NFFT.f`.
+        :param f: array override.
+        :type f: ndarray
+        :param f_hat: array override.
+        :type f_hat: ndarray
         '''
         if not self._precomputed:
             raise RuntimeError("NFFT plan is not initialized")
@@ -391,8 +396,10 @@ cdef class NFFT:
         '''
         Performs the adjoint NFFT.
 
-        Reads :attr:`pynfft.NFFT.f` and stores the result in
-        :attr:`pynfft.NFFT.f_hat`.
+        :param f: array override.
+        :type f: ndarray
+        :param f_hat: array override.
+        :type f_hat: ndarray
         '''
         if not self._precomputed:
             raise RuntimeError("NFFT plan is not initialized")
@@ -405,8 +412,10 @@ cdef class NFFT:
         '''
         Performs the adjoint NDFT.
 
-        Reads :attr:`pynfft.NFFT.f` and stores the result in
-        :attr:`pynfft.NFFT.f_hat`.
+        :param f: array override.
+        :type f: ndarray
+        :param f_hat: array override.
+        :type f_hat: ndarray
         '''
         if not self._precomputed:
             raise RuntimeError("NFFT plan is not initialized")
@@ -418,6 +427,14 @@ cdef class NFFT:
     cpdef update_arrays(self, new_f, new_f_hat):
         '''
         Update internal data arrays.
+        
+        .. warning:
+           This function is not meant to be called directly.
+        
+        :param new_f: array override.
+        :type new_f: ndarray
+        :param new_f_hat: array override.
+        :type new_f_hat: ndarray
         '''
         if new_f is None:
             new_f = self.__f
@@ -444,13 +461,13 @@ cdef class NFFT:
                         'The new array nust be an instance '
                         'of numpy.ndarray')        
             if not new_f_hat.flags.c_contiguous:
-                raise ValueError('Invalid f: '
+                raise ValueError('Invalid f_hat: '
                         'The new array must be C-contiguous')
             if new_f_hat.dtype != self.__f_hat_dtype:
-                raise ValueError('Invalid f: '
+                raise ValueError('Invalid f_hat: '
                         'The new array must be of type %s'%(self.__f_hat_dtype))
             if new_f_hat.shape != self.__f_hat_shape:
-                raise ValueError('Invalid f: '
+                raise ValueError('Invalid f_hat: '
                         'The new array must be of shape %s'%(self.__f_hat_shape))
 
         self._update_arrays(new_f, new_f_hat)        

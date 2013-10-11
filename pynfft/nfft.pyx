@@ -117,6 +117,7 @@ cdef class NFFT:
     cdef object _n
     cdef object _dtype
     cdef object _flags
+    cdef bint _precomputed
 
     # where the C-related content of the class is being initialized
     def __cinit__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
@@ -289,6 +290,7 @@ cdef class NFFT:
         self._n = tuple([n[t, 0] for t in range(d)])
         self._dtype = dtype_real
         self._flags = flags_used
+        self._precomputed = False
 
     # here, just holds the documentation of the class constructor
     def __init__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
@@ -349,6 +351,7 @@ cdef class NFFT:
         '''
         with nogil:
             nfft_precompute_one_psi(&self._plan)
+        self._precomputed = True
 
     cpdef trafo(self):
         '''
@@ -357,6 +360,8 @@ cdef class NFFT:
         Reads :attr:`pynfft.NFFT.f_hat` and stores the result in
         :attr:`pynfft.NFFT.f`.
         '''
+        if not self._precomputed:
+            raise RuntimeError("NFFT plan is not initialized")
         with nogil:
             nfft_trafo(&self._plan)
 
@@ -367,6 +372,8 @@ cdef class NFFT:
         Reads :attr:`pynfft.NFFT.f_hat` and stores the result in
         :attr:`pynfft.NFFT.f`.
         '''
+        if not self._precomputed:
+            raise RuntimeError("NFFT plan is not initialized")
         with nogil:
              nfft_trafo_direct(&self._plan)
 
@@ -377,6 +384,8 @@ cdef class NFFT:
         Reads :attr:`pynfft.NFFT.f` and stores the result in
         :attr:`pynfft.NFFT.f_hat`.
         '''
+        if not self._precomputed:
+            raise RuntimeError("NFFT plan is not initialized")
         with nogil:
             nfft_adjoint(&self._plan)
 
@@ -387,6 +396,8 @@ cdef class NFFT:
         Reads :attr:`pynfft.NFFT.f` and stores the result in
         :attr:`pynfft.NFFT.f_hat`.
         '''
+        if not self._precomputed:
+            raise RuntimeError("NFFT plan is not initialized")
         with nogil:
              nfft_adjoint_direct(&self._plan)
 
@@ -486,6 +497,14 @@ cdef class NFFT:
         return self._flags
 
     flags = property(__get_flags)
+
+    def __is_precomputed(self):
+        '''
+        Whether the plan is initialized.
+        '''
+        return self._precomputed
+
+    precomputed = property(__is_precomputed)
 
 
 ##########

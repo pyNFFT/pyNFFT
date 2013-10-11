@@ -1,2 +1,6 @@
 # -*- coding: utf-8 -*-
-VERSION = '1.0.1'
+version = '1.0.1'
+release = False
+
+if not release:
+    version += '.dev'

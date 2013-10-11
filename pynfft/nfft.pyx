@@ -292,8 +292,8 @@ cdef class NFFT:
             
 
     # here, just holds the documentation of the class constructor
-    def __init__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
-                 flags=None, *args, **kwargs):
+    def __init__(self, x, f, f_hat, M=None, N=None, n=None, m=12, flags=None,
+                  precompute=False, *args, **kwargs):
         '''
         :param N: multi-bandwith size.
         :type N: int, tuple of int
@@ -348,9 +348,10 @@ cdef class NFFT:
             The nodes :attr:`pynfft.NFFT.x` must be initialized before
             precomputing.
         '''
-        with nogil:
-            nfft_precompute_one_psi(&self._plan)
-        self._precomputed = True
+        if not self._precomputed:
+            with nogil:
+                nfft_precompute_one_psi(&self._plan)
+            self._precomputed = True
 
     cpdef trafo(self, f=None, f_hat=None):
         '''
@@ -461,44 +462,11 @@ cdef class NFFT:
         self._plan.f_hat = (
             <fftw_complex *>np.PyArray_DATA(self.__f_hat))
 
-    def __get_f(self):
-        '''
-        The vector of non-uniform samples.
-        '''
-        return self._f
-
-    def __set_f(self, new_f):
-        self._f[:] = new_f.ravel()[:]
-
-    f = property(__get_f, __set_f)
-
-    def __get_f_hat(self):
-        '''
-        The vector of Fourier coefficients.
-        '''
-        return self._f_hat
-
-    def __set_f_hat(self, new_f_hat):
-        self._f_hat[:] = new_f_hat.ravel()[:]
-
-    f_hat = property(__get_f_hat, __set_f_hat)
-
-    def __get_x(self):
-        '''
-        The nodes in time/spatial domain.
-        '''
-        return self._x
-
-    def __set_x(self, new_x):
-        self._x[:] = new_x.ravel()[:]
-
-    x = property(__get_x, __set_x)
-
     def __get_d(self):
         '''
         The dimensionality of the NFFT.
         '''
-        return self._d
+        return len(self.__f_hat_shape)
 
     d = property(__get_d)
 
@@ -510,19 +478,19 @@ cdef class NFFT:
 
     m = property(__get_m)
 
-    def __get_M_total(self):
+    def __get_M(self):
         '''
         The total number of samples.
         '''
-        return self._M_total
+        return np.prod(self.__f_shape)
 
-    M_total = property(__get_M_total)
+    M = property(__get_M)
 
     def __get_N_total(self):
         '''
         The total number of Fourier coefficients.
         '''
-        return self._N_total
+        return np.prod(self.__f_hat_shape)
 
     N_total = property(__get_N_total)
 
@@ -530,7 +498,7 @@ cdef class NFFT:
         '''
         The multi-bandwith size.
         '''
-        return self._N
+        return self.__f_hat_shape
 
     N = property(__get_N)
 

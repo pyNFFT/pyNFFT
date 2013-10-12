@@ -440,9 +440,9 @@ cdef class NFFT:
         .. warning:
            This function is not meant to be called directly.
         
-        :param new_f: array override.
+        :param new_f: new array, None if no update.
         :type new_f: ndarray
-        :param new_f_hat: array override.
+        :param new_f_hat: new array, None if no update.
         :type new_f_hat: ndarray
         '''
         if new_f is None:

@@ -802,14 +802,6 @@ cdef class Solver:
 
     r_iter = property(__get_r_iter)
 
-    def __get_dtype(self):
-        '''
-        The floating precision.
-        '''
-        return self._dtype
-
-    dtype = property(__get_dtype)
-
     def __get_flags(self):
         '''
         The precomputation flags.

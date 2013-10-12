@@ -110,14 +110,11 @@ cdef class NFFT:
     cdef int _M
     cdef int _m
     cdef object __f
-    cdef object __f_dtype
-    cdef object __f_shape
     cdef object __f_hat
-    cdef object __f_hat_dtype
-    cdef object __f_hat_shape
     cdef object __x
     cdef object _N
     cdef object _n
+    cdef object _dtype
     cdef object _flags
     cdef bint _precomputed
 
@@ -278,16 +275,13 @@ cdef class NFFT:
 
         self.__x = x
         self.__f = f
-        self.__f_dtype = f.dtype
-        self.__f_shape = f.shape
         self.__f_hat = f_hat
-        self.__f_hat_dtype = f_hat.dtype
-        self.__f_hat_shape = f_hat.shape
         self._d = d
         self._M = M
         self._m = m
         self._N = N
         self._n = n
+        self._dtype = dtype_complex
         self._flags = flags_used
         self._precomputed = False
 
@@ -374,13 +368,13 @@ cdef class NFFT:
         '''
         if f is not None or f_hat is not None:
             if f is None:
-                f = self.__f
+                f = self.f
             if f_hat is None:
-                f_hat = self.__f_hat
+                f_hat = self.f_hat
 
             if not isinstance(f_hat, np.ndarray):
                 copy_needed = True
-            elif (not f_hat.dtype == self.__f_hat_dtype):
+            elif (not f_hat.dtype == self._dtype):
                 copy_needed = True 
             elif (not f_hat.flags.c_contiguous):
                 copy_needed = True
@@ -388,10 +382,11 @@ cdef class NFFT:
                 copy_needed = False
 
             if copy_needed:
-                f_hat = np.asanyarray(f_hat)
+                f_hat = np.asanyarray(f_hat, dtype=self._dtype,
+                                      order='C')
 
-            f = f.reshape(self.__f_shape)
-            f_hat = f_hat.reshape(self.__f_hat_shape)
+            f = f.reshape([self.M,])
+            f_hat = f_hat.reshape(self.N)
 
             self.update_arrays(new_f=f, new_f_hat=f_hat)
 
@@ -417,13 +412,13 @@ cdef class NFFT:
         '''
         if f is not None or f_hat is not None:
             if f is None:
-                f = self.__f
+                f = self.f
             if f_hat is None:
-                f_hat = self.__f_hat
+                f_hat = self.f_hat
 
             if not isinstance(f, np.ndarray):
                 copy_needed = True
-            elif (not f.dtype == self.__f_dtype):
+            elif (not f.dtype == self.dtype):
                 copy_needed = True 
             elif (not f.flags.c_contiguous):
                 copy_needed = True
@@ -431,10 +426,10 @@ cdef class NFFT:
                 copy_needed = False
 
             if copy_needed:
-                f = np.asanyarray(f)
+                f = np.asanyarray(f, dtype=self.dtype, order='C')
 
-            f = f.reshape(self.__f_shape)
-            f_hat = f_hat.reshape(self.__f_hat_shape)
+            f = f.reshape([self.M,])
+            f_hat = f_hat.reshape(self.N)
 
             self.update_arrays(new_f=f, new_f_hat=f_hat)
 
@@ -517,12 +512,12 @@ cdef class NFFT:
         if not new_f.flags.c_contiguous:
             raise ValueError('Invalid f: '
                     'The new array must be C-contiguous')
-        if new_f.dtype != self.__f_dtype:
+        if new_f.dtype != self._dtype:
             raise ValueError('Invalid f: '
-                    'The new array must be of type %s'%(self.__f_dtype))
-        if new_f.shape != self.__f_shape:       
+                    'The new array must be of type %s'%(self._dtype))
+        if new_f.shape != tuple([self._M,]):
             raise ValueError('Invalid f: '
-                    'The new array must be of shape %s'%(self.__f_shape))        
+                    'The new array must be of shape %s'%(tuple([self._M,])))        
         
         if not isinstance(new_f_hat, np.ndarray):
             raise ValueError('Invalid f_hat: '
@@ -531,12 +526,12 @@ cdef class NFFT:
         if not new_f_hat.flags.c_contiguous:
             raise ValueError('Invalid f_hat: '
                     'The new array must be C-contiguous')
-        if new_f_hat.dtype != self.__f_hat_dtype:
+        if new_f_hat.dtype != self._dtype:
             raise ValueError('Invalid f_hat: '
-                    'The new array must be of type %s'%(self.__f_hat_dtype))
-        if new_f_hat.shape != self.__f_hat_shape:
+                    'The new array must be of type %s'%(self._dtype))
+        if new_f_hat.shape != self._N:
             raise ValueError('Invalid f_hat: '
-                    'The new array must be of shape %s'%(self.__f_hat_shape))
+                    'The new array must be of shape %s'%(self._N))
 
         self._update_arrays(new_f, new_f_hat)        
 

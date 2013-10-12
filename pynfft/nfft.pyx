@@ -353,9 +353,68 @@ cdef class NFFT:
         '''
         pass
 
-    # where the C-related content of the class needs to be cleaned
     def __dealloc__(self):
         nfft_finalize(&self._plan)
+
+    def forward(self, f=None, f_hat=None, use_dft=False):
+        '''
+        Performs the forward NFFT.
+
+        :param f: array override.
+        :type f: ndarray
+        :param f_hat: array override.
+        :type f_hat: ndarray
+        :param use_dft: whether to use the DFT instead of the fast algorithm.
+        :type use_dft: boolean
+        :returns: the updated f array.
+        :rtype: ndarray
+        :raises: ValueError
+        '''
+        if f is not None or f_hat is not None:
+            if f is None:
+                f = self.__f    
+            if f_hat is None:
+                f_hat = self.__f_hat
+
+            if not isinstance(f_hat, np.ndarray):
+                copy_needed = True
+            elif (not f_hat.dtype == self.__f_hat_dtype):
+                copy_needed = True               
+            elif (not f_hat.flags.c_contiguous):
+                copy_needed = True
+            else:
+                copy_needed = False
+
+            if copy_needed:
+                f_hat = np.asanyarray(f_hat).reshape(self.__f_hat.shape)
+                
+            self.update_arrays(new_f=f, new_f_hat=f_hat)
+
+        if use_dft:
+            self.execute_trafo_direct()
+        else:
+            self.execute_trafo()
+        return self.__f
+    
+    def adjoint(self, f=None, f_hat=None, use_dft=False):
+        '''
+        Performs the adjoint NFFT.
+
+        :param f: array override.
+        :type f: ndarray
+        :param f_hat: array override.
+        :type f_hat: ndarray
+        :param use_dft: whether to use the DFT instead of the fast algorithm.
+        :type use_dft: boolean
+        :returns: the updated f_hat array.
+        :rtype: ndarray
+        :raises: ValueError
+        '''
+        if use_dft:
+            self.execute_adjoint_direct()
+        else:
+            self.execute_adjoint()
+        return self.__f_hat
 
     cpdef precompute(self):
         '''
@@ -369,115 +428,87 @@ cdef class NFFT:
                 nfft_precompute_one_psi(&self._plan)
             self._precomputed = True
 
-    cpdef trafo(self, f=None, f_hat=None):
+    cpdef execute_trafo(self):
         '''
         Performs the forward NFFT.
 
-        :param f: array override.
-        :type f: ndarray
-        :param f_hat: array override.
-        :type f_hat: ndarray
+        :raises: RuntimeError
         '''
         if not self._precomputed:
             raise RuntimeError("NFFT plan is not initialized")
-        self.update_arrays(f, f_hat)
         with nogil:
             nfft_trafo(&self._plan)
-        return self.__f
 
-    cpdef trafo_direct(self, f=None, f_hat=None):
+    cpdef execute_trafo_direct(self):
         '''
         Performs the forward NDFT.
 
-        :param f: array override.
-        :type f: ndarray
-        :param f_hat: array override.
-        :type f_hat: ndarray
+        :raises: RuntimeError
         '''
         if not self._precomputed:
             raise RuntimeError("NFFT plan is not initialized")
-        self.update_arrays(f, f_hat)
         with nogil:
             nfft_trafo_direct(&self._plan)
-        return self.__f
 
-    cpdef adjoint(self, f=None, f_hat=None):
+    cpdef execute_adjoint(self):
         '''
         Performs the adjoint NFFT.
 
-        :param f: array override.
-        :type f: ndarray
-        :param f_hat: array override.
-        :type f_hat: ndarray
+        :raises: RuntimeError
         '''
         if not self._precomputed:
             raise RuntimeError("NFFT plan is not initialized")
-        self.update_arrays(f, f_hat)
         with nogil:
             nfft_adjoint(&self._plan)
-        return self.__f_hat
 
-    cpdef adjoint_direct(self, f=None, f_hat=None):
+    cpdef execute_adjoint_direct(self):
         '''
         Performs the adjoint NDFT.
 
-        :param f: array override.
-        :type f: ndarray
-        :param f_hat: array override.
-        :type f_hat: ndarray
+        :raises: RuntimeError
         '''
         if not self._precomputed:
             raise RuntimeError("NFFT plan is not initialized")
-        self.update_arrays(f, f_hat)
         with nogil:
-             nfft_adjoint_direct(&self._plan)
-        return self.__f_hat
+            nfft_adjoint_direct(&self._plan)
 
     cpdef update_arrays(self, new_f, new_f_hat):
         '''
         Update internal data arrays.
-        
-        .. warning:
-           This function is not meant to be called directly.
-        
-        :param new_f: new array, None if no update.
+                
+        :param new_f: new array.
         :type new_f: ndarray
-        :param new_f_hat: new array, None if no update.
+        :param new_f_hat: new array.
         :type new_f_hat: ndarray
+        :raises: ValueError
         '''
-        if new_f is None:
-            new_f = self.__f
-        else:
-            if not isinstance(new_f, np.ndarray):
-                raise ValueError('Invalid f: '
-                        'The new array must be an instance '
-                        'of numpy.ndarray')            
-            if not new_f.flags.c_contiguous:
-                raise ValueError('Invalid f: '
-                        'The new array must be C-contiguous')
-            if new_f.dtype != self.__f_dtype:
-                raise ValueError('Invalid f: '
-                        'The new array must be of type %s'%(self.__f_dtype))
-            if new_f.shape != self.__f_shape:       
-                raise ValueError('Invalid f: '
-                        'The new array must be of shape %s'%(self.__f_shape))        
+        if not isinstance(new_f, np.ndarray):
+            raise ValueError('Invalid f: '
+                    'The new array must be an instance '
+                    'of numpy.ndarray')            
+        if not new_f.flags.c_contiguous:
+            raise ValueError('Invalid f: '
+                    'The new array must be C-contiguous')
+        if new_f.dtype != self.__f_dtype:
+            raise ValueError('Invalid f: '
+                    'The new array must be of type %s'%(self.__f_dtype))
+        if new_f.shape != self.__f_shape:       
+            raise ValueError('Invalid f: '
+                    'The new array must be of shape %s'%(self.__f_shape))        
         
-        if new_f_hat is None:
-            new_f_hat = self.__f_hat
-        else:
-            if not isinstance(new_f_hat, np.ndarray):
-                raise ValueError('Invalid f_hat: '
-                        'The new array nust be an instance '
-                        'of numpy.ndarray')        
-            if not new_f_hat.flags.c_contiguous:
-                raise ValueError('Invalid f_hat: '
-                        'The new array must be C-contiguous')
-            if new_f_hat.dtype != self.__f_hat_dtype:
-                raise ValueError('Invalid f_hat: '
-                        'The new array must be of type %s'%(self.__f_hat_dtype))
-            if new_f_hat.shape != self.__f_hat_shape:
-                raise ValueError('Invalid f_hat: '
-                        'The new array must be of shape %s'%(self.__f_hat_shape))
+        if not isinstance(new_f_hat, np.ndarray):
+            raise ValueError('Invalid f_hat: '
+                    'The new array nust be an instance '
+                    'of numpy.ndarray')        
+        if not new_f_hat.flags.c_contiguous:
+            raise ValueError('Invalid f_hat: '
+                    'The new array must be C-contiguous')
+        if new_f_hat.dtype != self.__f_hat_dtype:
+            raise ValueError('Invalid f_hat: '
+                    'The new array must be of type %s'%(self.__f_hat_dtype))
+        if new_f_hat.shape != self.__f_hat_shape:
+            raise ValueError('Invalid f_hat: '
+                    'The new array must be of shape %s'%(self.__f_hat_shape))
 
         self._update_arrays(new_f, new_f_hat)        
 

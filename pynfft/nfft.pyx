@@ -545,6 +545,30 @@ cdef class NFFT:
         self._plan.f_hat = (
             <fftw_complex *>np.PyArray_DATA(self.__f_hat))
 
+    def __get_f(self):
+        '''
+        The vector of non-uniform samples.
+        '''
+        return self.__f
+
+    f = property(__get_f)
+
+    def __get_f_hat(self):
+        '''
+        The vector of Fourier coefficients.
+        '''
+        return self.__f_hat
+
+    f_hat = property(__get_f_hat)
+
+    def __get_x(self):
+        '''
+        The nodes in time/spatial domain.
+        '''
+        return self.__x
+
+    x = property(__get_x)
+
     def __get_d(self):
         '''
         The dimensionality of the NFFT.

@@ -6,7 +6,7 @@
 NFFT Class
 ----------
 
-.. autoclass:: pynfft.NFFT(N, M, n=None, m=12, x=None, f=None, f_hat=None, flags=None)
+.. autoclass:: pynfft.NFFT(x, f, f_hat, M, N, n=None, m=12, flags=None, precompute=False)
 
    .. autoattribute:: pynfft.NFFT.d
 
@@ -14,7 +14,7 @@ NFFT Class
 
    .. autoattribute:: pynfft.NFFT.N_total
    
-   .. autoattribute:: pynfft.NFFT.M_total
+   .. autoattribute:: pynfft.NFFT.M
    
    .. autoattribute:: pynfft.NFFT.m
 
@@ -32,13 +32,17 @@ NFFT Class
 
    .. automethod:: pynfft.NFFT.precompute
 
-   .. automethod:: pynfft.NFFT.trafo
-
-   .. automethod:: pynfft.NFFT.trafo_direct
+   .. automethod:: pynfft.NFFT.forward
 
    .. automethod:: pynfft.NFFT.adjoint
 
-   .. automethod:: pynfft.NFFT.adjoint_direct
+   .. automethod:: pynfft.NFFT.execute_trafo
+
+   .. automethod:: pynfft.NFFT.execute_trafo_direct
+
+   .. automethod:: pynfft.NFFT.execute_adjoint
+
+   .. automethod:: pynfft.NFFT.execute_adjoint_direct
 
 Solver Class
 ------------

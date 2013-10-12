@@ -372,22 +372,22 @@ cdef class NFFT:
         '''
         if f is not None or f_hat is not None:
             if f is None:
-                f = self.__f    
+                f = self.__f
             if f_hat is None:
                 f_hat = self.__f_hat
 
             if not isinstance(f_hat, np.ndarray):
                 copy_needed = True
             elif (not f_hat.dtype == self.__f_hat_dtype):
-                copy_needed = True               
+                copy_needed = True 
             elif (not f_hat.flags.c_contiguous):
                 copy_needed = True
             else:
                 copy_needed = False
 
             if copy_needed:
-                f_hat = np.asanyarray(f_hat).reshape(self.__f_hat.shape)
-                
+                f_hat = np.asanyarray(f_hat).reshape(self.__f_hat_shape)
+
             self.update_arrays(new_f=f, new_f_hat=f_hat)
 
         if use_dft:
@@ -410,6 +410,26 @@ cdef class NFFT:
         :rtype: ndarray
         :raises: ValueError
         '''
+        if f is not None or f_hat is not None:
+            if f is None:
+                f = self.__f
+            if f_hat is None:
+                f_hat = self.__f_hat
+
+            if not isinstance(f, np.ndarray):
+                copy_needed = True
+            elif (not f.dtype == self.__f_dtype):
+                copy_needed = True 
+            elif (not f.flags.c_contiguous):
+                copy_needed = True
+            else:
+                copy_needed = False
+
+            if copy_needed:
+                f = np.asanyarray(f).reshape(self.__f_shape)
+
+            self.update_arrays(new_f=f, new_f_hat=f_hat)
+
         if use_dft:
             self.execute_adjoint_direct()
         else:

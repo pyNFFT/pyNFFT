@@ -610,7 +610,6 @@ cdef class Solver:
     cdef object _y
     cdef object _f_hat_iter
     cdef object _r_iter
-    cdef object _dtype
     cdef object _flags
 
     def __cinit__(self, NFFT nfft_plan, flags=None):
@@ -655,41 +654,47 @@ cdef class Solver:
             raise MemoryError
 
         self._nfft_plan = nfft_plan
+        d = nfft_plan.d
+        M = nfft_plan.M
+        N = nfft_plan.N
 
-        cdef np.npy_intp shape[1]
-        cdef int M_total = nfft_plan._M_total
-        cdef int N_total = nfft_plan._N_total
+        cdef np.npy_intp shape_M[1]
+        shape_M[0] = M
+
+        self._r_iter = np.PyArray_SimpleNewFromData(1, shape_M,
+            np.NPY_COMPLEX128, <void *>(self._plan.r_iter))
+
+        self._y = np.PyArray_SimpleNewFromData(1, shape_M,
+            np.NPY_COMPLEX128, <void *>(self._plan.y))
 
         if 'PRECOMPUTE_WEIGHT' in flags_used:
-            shape[0] = M_total
-            self._w = np.PyArray_SimpleNewFromData(1, shape,
+            self._w = np.PyArray_SimpleNewFromData(1, shape_M,
                 np.NPY_FLOAT64, <void *>(self._plan.w))
             self._w[:] = 1  # make sure weights are initialized
         else:
             self._w = None
 
+        cdef np.npy_intp *shape_N
+        try:
+            shape_N = <np.npy_intp*>malloc(d*sizeof(np.npy_intp))
+        except:
+            raise MemoryError
+        for dt in range(d):
+            shape_N[dt] = N[dt]
+
+        self._f_hat_iter = np.PyArray_SimpleNewFromData(d, shape_N,
+            np.NPY_COMPLEX128, <void *>(self._plan.f_hat_iter))
+        self._f_hat_iter[:] = 0  # default initial guess
+
         if 'PRECOMPUTE_DAMP' in flags_used:
-            shape[0] = N_total
-            self._w_hat = np.PyArray_SimpleNewFromData(1, shape,
+            self._w_hat = np.PyArray_SimpleNewFromData(d, shape_N,
                 np.NPY_FLOAT64, <void *>(self._plan.w_hat))
             self._w_hat[:] = 1  # make sure weights are initialized
         else:
             self._w_hat = None
 
-        shape[0] = M_total
-        self._y = np.PyArray_SimpleNewFromData(1, shape,
-            np.NPY_COMPLEX128, <void *>(self._plan.y))
+        free(shape_N)
 
-        shape[0] = N_total
-        self._f_hat_iter = np.PyArray_SimpleNewFromData(1, shape,
-            np.NPY_COMPLEX128, <void *>(self._plan.f_hat_iter))
-        self._f_hat_iter[:] = 0  # default initial guess
-
-        shape[0] = M_total
-        self._r_iter = np.PyArray_SimpleNewFromData(1, shape,
-            np.NPY_COMPLEX128, <void *>(self._plan.r_iter))
-
-        self._dtype = dtype_real
         self._flags = flags_used
 
 

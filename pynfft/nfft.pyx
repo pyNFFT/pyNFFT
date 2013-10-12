@@ -288,9 +288,19 @@ cdef class NFFT:
         self._n = n
         self._flags = flags_used
         self._precomputed = False
+
+        # connect Python arrays to plan internals
+        self._plan.f = (
+            <fftw_complex *>np.PyArray_DATA(self.__f))
         
+        self._plan.f_hat = (
+            <fftw_complex *>np.PyArray_DATA(self.__f_hat))
+        
+        self._plan.x = (
+            <double *>np.PyArray_DATA(self.__x))
+        
+        # optional precomputation
         if precompute:
-            self._plan.x = <double *>np.PyArray_DATA(self.__x)
             with nogil:
                 nfft_precompute_one_psi(&self._plan)
             self._precomputed = True
@@ -355,7 +365,6 @@ cdef class NFFT:
            Precomputation is only done once, subsequent calls do nothing.
         '''
         if not self._precomputed:
-            self._plan.x = <double *>np.PyArray_DATA(self.__x)
             with nogil:
                 nfft_precompute_one_psi(&self._plan)
             self._precomputed = True

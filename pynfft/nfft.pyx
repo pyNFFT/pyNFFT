@@ -327,7 +327,7 @@ cdef class NFFT:
         :param flags: list of precomputation flags, see note below.
         :type flags: tuple
         :param precompute: whether to precompute right after instantiation.
-        :type flags: boolean
+        :type precompute: boolean
 
         **Precomputation flags**
 

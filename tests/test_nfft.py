@@ -84,14 +84,21 @@ class Test_NFFT_runtime(unittest.TestCase):
         F = numpy.exp(-2j * pi * numpy.dot(x, k))
         f_hat_dft = numpy.dot(numpy.conjugate(F).T, f)
         return f_hat_dft        
-        
+
+    def generate_new_arrays(self, init_f=False, init_f_hat=False):
+        f = numpy.empty(self.M, dtype=numpy.complex128)
+        f_hat = numpy.empty(self.N, dtype=numpy.complex128)
+        if init_f:
+            vrand_unit_complex(f.ravel())
+        if init_f_hat:
+            vrand_unit_complex(f_hat.ravel())
+        return f, f_hat
+
     def __init__(self, *args, **kwargs):
         super(Test_NFFT_runtime, self).__init__(*args, **kwargs)
-        self.x = numpy.empty(self.M*len(self.N),
-                             dtype=numpy.float64)
-        self.f = numpy.empty(self.M, dtype=numpy.complex128)
-        self.f_hat = numpy.empty(self.N, dtype=numpy.complex128) 
+        self.x = numpy.empty(self.M*len(self.N), dtype=numpy.float64)
         vrand_shifted_unit_double(self.x.ravel())
+        self.f, self.f_hat = self.generate_new_arrays()
         self.Nfft = NFFT(self.x, self.f, self.f_hat, precompute=True)
 
     def test_trafo(self):
@@ -100,9 +107,7 @@ class Test_NFFT_runtime(unittest.TestCase):
         assert_allclose(self.f, self.fdft(self.f_hat), rtol=1e-3)
 
     def test_trafo_override(self):
-        new_f = numpy.empty(self.M, dtype=numpy.complex128)
-        new_f_hat = numpy.empty(self.N, dtype=numpy.complex128) 
-        vrand_unit_complex(new_f_hat.ravel())
+        new_f, new_f_hat = self.generate_new_arrays(init_f_hat=True)
         self.Nfft.trafo(f=new_f, f_hat=new_f_hat)
         assert_allclose(new_f, self.fdft(new_f_hat), rtol=1e-3)
 
@@ -112,9 +117,7 @@ class Test_NFFT_runtime(unittest.TestCase):
         assert_allclose(self.f, self.fdft(self.f_hat), rtol=1e-3)
 
     def test_trafo_direct_override(self):
-        new_f = numpy.empty(self.M, dtype=numpy.complex128)
-        new_f_hat = numpy.empty(self.N, dtype=numpy.complex128) 
-        vrand_unit_complex(new_f_hat.ravel())
+        new_f, new_f_hat = self.generate_new_arrays(init_f_hat=True)
         self.Nfft.trafo_direct(f=new_f, f_hat=new_f_hat)
         assert_allclose(new_f, self.fdft(new_f_hat), rtol=1e-3)
 
@@ -124,9 +127,7 @@ class Test_NFFT_runtime(unittest.TestCase):
         assert_allclose(self.f_hat.ravel(), self.idft(self.f), rtol=1e-3)
 
     def test_adjoint_override(self):
-        new_f = numpy.empty(self.M, dtype=numpy.complex128)
-        new_f_hat = numpy.empty(self.N, dtype=numpy.complex128) 
-        vrand_unit_complex(new_f.ravel())
+        new_f, new_f_hat = self.generate_new_arrays(init_f=True)
         self.Nfft.adjoint(f=new_f, f_hat=new_f_hat)
         assert_allclose(new_f_hat.ravel(), self.idft(new_f), rtol=1e-3)
 
@@ -136,9 +137,7 @@ class Test_NFFT_runtime(unittest.TestCase):
         assert_allclose(self.f_hat.ravel(), self.idft(self.f), rtol=1e-3)
 
     def test_adjoint_direct_override(self):
-        new_f = numpy.empty(self.M, dtype=numpy.complex128)
-        new_f_hat = numpy.empty(self.N, dtype=numpy.complex128) 
-        vrand_unit_complex(new_f.ravel())
+        new_f, new_f_hat = self.generate_new_arrays(init_f=True)
         self.Nfft.adjoint(f=new_f, f_hat=new_f_hat)
         assert_allclose(new_f_hat.ravel(), self.idft(new_f), rtol=1e-3)
 

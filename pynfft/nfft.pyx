@@ -388,7 +388,10 @@ cdef class NFFT:
                 copy_needed = False
 
             if copy_needed:
-                f_hat = np.asanyarray(f_hat).reshape(self.__f_hat_shape)
+                f_hat = np.asanyarray(f_hat)
+
+            f = f.reshape(self.__f_shape)
+            f_hat = f_hat.reshape(self.__f_hat_shape)
 
             self.update_arrays(new_f=f, new_f_hat=f_hat)
 
@@ -428,7 +431,10 @@ cdef class NFFT:
                 copy_needed = False
 
             if copy_needed:
-                f = np.asanyarray(f).reshape(self.__f_shape)
+                f = np.asanyarray(f)
+
+            f = f.reshape(self.__f_shape)
+            f_hat = f_hat.reshape(self.__f_hat_shape)
 
             self.update_arrays(new_f=f, new_f_hat=f_hat)
 

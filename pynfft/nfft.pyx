@@ -106,6 +106,8 @@ cdef class NFFT:
     :meth:`pynfft.NFFT.adjoint_direct`.
     '''
     cdef nfft_plan _plan
+    cdef int _d
+    cdef int _M
     cdef int _m
     cdef object __f
     cdef object __f_dtype
@@ -114,8 +116,7 @@ cdef class NFFT:
     cdef object __f_hat_dtype
     cdef object __f_hat_shape
     cdef object __x
-    cdef object __x_dtype
-    cdef object __x_shape
+    cdef object _N
     cdef object _n
     cdef object _flags
     cdef bint _precomputed
@@ -276,15 +277,16 @@ cdef class NFFT:
             free(p_n)
 
         self.__x = x
-        self.__x_dtype = x.dtype
-        self.__x_shape = x.shape
         self.__f = f
         self.__f_dtype = f.dtype
         self.__f_shape = f.shape
         self.__f_hat = f_hat
         self.__f_hat_dtype = f_hat.dtype
         self.__f_hat_shape = f_hat.shape
+        self._d = d
+        self._M = M
         self._m = m
+        self._N = N
         self._n = n
         self._flags = flags_used
         self._precomputed = False
@@ -573,7 +575,7 @@ cdef class NFFT:
         '''
         The dimensionality of the NFFT.
         '''
-        return len(self.__f_hat_shape)
+        return self._d
 
     d = property(__get_d)
 
@@ -589,7 +591,7 @@ cdef class NFFT:
         '''
         The total number of samples.
         '''
-        return np.prod(self.__f_shape)
+        return self._M
 
     M = property(__get_M)
 
@@ -597,7 +599,7 @@ cdef class NFFT:
         '''
         The total number of Fourier coefficients.
         '''
-        return np.prod(self.__f_hat_shape)
+        return np.prod(self._N)
 
     N_total = property(__get_N_total)
 
@@ -605,7 +607,7 @@ cdef class NFFT:
         '''
         The multi-bandwith size.
         '''
-        return self.__f_hat_shape
+        return self._N
 
     N = property(__get_N)
 

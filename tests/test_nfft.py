@@ -99,20 +99,48 @@ class Test_NFFT_runtime(unittest.TestCase):
         self.Nfft.trafo()
         assert_allclose(self.f, self.fdft(self.f_hat), rtol=1e-3)
 
+    def test_trafo_override(self):
+        new_f = numpy.empty(self.M, dtype=numpy.complex128)
+        new_f_hat = numpy.empty(self.N, dtype=numpy.complex128) 
+        vrand_unit_complex(new_f_hat.ravel())
+        self.Nfft.trafo(f=new_f, f_hat=new_f_hat)
+        assert_allclose(new_f, self.fdft(new_f_hat), rtol=1e-3)
+
     def test_trafo_direct(self):
         vrand_unit_complex(self.f_hat.ravel())
         self.Nfft.trafo_direct()
         assert_allclose(self.f, self.fdft(self.f_hat), rtol=1e-3)
+
+    def test_trafo_direct_override(self):
+        new_f = numpy.empty(self.M, dtype=numpy.complex128)
+        new_f_hat = numpy.empty(self.N, dtype=numpy.complex128) 
+        vrand_unit_complex(new_f_hat.ravel())
+        self.Nfft.trafo_direct(f=new_f, f_hat=new_f_hat)
+        assert_allclose(new_f, self.fdft(new_f_hat), rtol=1e-3)
 
     def test_adjoint(self):
         vrand_unit_complex(self.f.ravel())
         self.Nfft.adjoint()
         assert_allclose(self.f_hat.ravel(), self.idft(self.f), rtol=1e-3)
 
+    def test_adjoint_override(self):
+        new_f = numpy.empty(self.M, dtype=numpy.complex128)
+        new_f_hat = numpy.empty(self.N, dtype=numpy.complex128) 
+        vrand_unit_complex(new_f.ravel())
+        self.Nfft.adjoint(f=new_f, f_hat=new_f_hat)
+        assert_allclose(new_f_hat.ravel(), self.idft(new_f), rtol=1e-3)
+
     def test_adjoint_direct(self):
         vrand_unit_complex(self.f)
         self.Nfft.adjoint_direct()
         assert_allclose(self.f_hat.ravel(), self.idft(self.f), rtol=1e-3)
+
+    def test_adjoint_direct_override(self):
+        new_f = numpy.empty(self.M, dtype=numpy.complex128)
+        new_f_hat = numpy.empty(self.N, dtype=numpy.complex128) 
+        vrand_unit_complex(new_f.ravel())
+        self.Nfft.adjoint(f=new_f, f_hat=new_f_hat)
+        assert_allclose(new_f_hat.ravel(), self.idft(new_f), rtol=1e-3)
 
 
 class Test_NFFT_errors(unittest.TestCase):

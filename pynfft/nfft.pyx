@@ -110,11 +110,16 @@ cdef class NFFT:
     cdef int _M
     cdef int _m
     cdef object __f
+    cdef object __f_dtype
+    cdef object __f_shape    
     cdef object __f_hat
+    cdef object __f_hat_dtype
+    cdef object __f_hat_shape
     cdef object __x
+    cdef object __x_dtype
+    cdef object __x_shape
     cdef object _N
     cdef object _n
-    cdef object _dtype
     cdef object _flags
 
     # where the C-related content of the class is being initialized
@@ -266,14 +271,19 @@ cdef class NFFT:
             free(p_n)
 
         self.__x = x
+        self.__x_dtype = x.dtype
+        self.__x_shape = x.shape
         self.__f = f
+        self.__f_dtype = f.dtype
+        self.__f_shape = f.shape
         self.__f_hat = f_hat
+        self.__f_hat_dtype = f_hat.dtype
+        self.__f_hat_shape = f_hat.shape
         self._d = d
         self._M = M
         self._m = m
         self._N = N
         self._n = n
-        self._dtype = dtype_complex
         self._flags = flags_used
 
         # connect Python arrays to plan internals
@@ -344,34 +354,33 @@ cdef class NFFT:
         :rtype: ndarray
         :raises: ValueError
         '''
-        if f is not None or f_hat is not None:
-            if f is None:
-                f = self.f
-            if f_hat is None:
-                f_hat = self.f_hat
-
+        if f_hat is not None:
             if not isinstance(f_hat, np.ndarray):
                 copy_needed = True
-            elif (not f_hat.dtype == self._dtype):
+
+            elif (not f_hat.dtype == self.__f_hat_dtype):
                 copy_needed = True 
+
             elif (not f_hat.flags.c_contiguous):
                 copy_needed = True
+
             else:
                 copy_needed = False
 
             if copy_needed:
-                f_hat = np.asanyarray(f_hat, dtype=self._dtype,
+                f_hat = np.asanyarray(f_hat, dtype=self.__f_hat_dtype,
                                       order='C')
+        else:
+            f_hat = self.__f_hat
 
-            f = f.reshape([self.M,])
-            f_hat = f_hat.reshape(self.N)
-
-            self.update_arrays(new_f=f, new_f_hat=f_hat)
-
+        f = f if f is not None else self.__f                
+        
+        self.update_arrays(new_f=f, new_f_hat=f_hat)
         if use_dft:
             self.execute_trafo_direct()
         else:
             self.execute_trafo()
+
         return self.__f
     
     def adjoint(self, f=None, f_hat=None, use_dft=False):
@@ -388,41 +397,66 @@ cdef class NFFT:
         :rtype: ndarray
         :raises: ValueError
         '''
-        if f is not None or f_hat is not None:
-            if f is None:
-                f = self.f
-            if f_hat is None:
-                f_hat = self.f_hat
-
+        if f is not None:
             if not isinstance(f, np.ndarray):
                 copy_needed = True
-            elif (not f.dtype == self.dtype):
+
+            elif (not f.dtype == self.__f_dtype):
                 copy_needed = True 
+
             elif (not f.flags.c_contiguous):
                 copy_needed = True
+
             else:
                 copy_needed = False
 
             if copy_needed:
-                f = np.asanyarray(f, dtype=self.dtype, order='C')
+                f = np.asanyarray(f, dtype=self.__f_dtype, order='C')
+        else:
+            f = self.__f
 
-            f = f.reshape([self.M,])
-            f_hat = f_hat.reshape(self.N)
-
-            self.update_arrays(new_f=f, new_f_hat=f_hat)
-
+        f_hat = f_hat if f_hat is not None else self.__f_hat                
+        
+        self.update_arrays(new_f=f, new_f_hat=f_hat)
         if use_dft:
             self.execute_adjoint_direct()
         else:
             self.execute_adjoint()
+
         return self.__f_hat
 
-    cpdef precompute(self):
+    def precompute(self, x=None):
         '''
         Precomputes the NFFT plan internals.
+        
+        :param x: array override.
+        :type x: ndarray
+        :raises: ValueError        
+        '''
+        if x is not None:
+            if not isinstance(x, np.ndarray):
+                copy_needed = True
 
-        .. note::
-           Precomputation is only done once, subsequent calls do nothing.
+            elif (not x.dtype == self.__x_dtype):
+                copy_needed = True 
+
+            elif (not x.flags.c_contiguous):
+                copy_needed = True
+
+            else:
+                copy_needed = False
+
+            if copy_needed:
+                x = np.asanyarray(x, dtype=self.__x_dtype, order='C')
+        else:
+            x = self.__x
+        
+        self.update_nodes(new_x=x)
+        self.execute_precomputation()
+
+    cpdef execute_precomputation(self):
+        '''
+        Precomputes the NFFT plan internals.
         '''
         with nogil:
             nfft_precompute_one_psi(&self._plan)
@@ -477,44 +511,85 @@ cdef class NFFT:
             raise ValueError('Invalid f: '
                     'The new array must be an instance '
                     'of numpy.ndarray')            
+
         if not new_f.flags.c_contiguous:
             raise ValueError('Invalid f: '
                     'The new array must be C-contiguous')
-        if new_f.dtype != self._dtype:
+
+        if new_f.dtype != self.__f_dtype:
             raise ValueError('Invalid f: '
-                    'The new array must be of type %s'%(self._dtype))
-        if new_f.shape != tuple([self._M,]):
+                    'The new array must be of type %s'%(self.__f_dtype))
+
+        if new_f.shape != self.__f_shape:
             raise ValueError('Invalid f: '
-                    'The new array must be of shape %s'%(tuple([self._M,])))        
+                    'The new array must be of shape %s'%(self.__f_shape))
         
         if not isinstance(new_f_hat, np.ndarray):
             raise ValueError('Invalid f_hat: '
                     'The new array nust be an instance '
                     'of numpy.ndarray')        
+
         if not new_f_hat.flags.c_contiguous:
             raise ValueError('Invalid f_hat: '
                     'The new array must be C-contiguous')
-        if new_f_hat.dtype != self._dtype:
+
+        if new_f_hat.dtype != self.__f_hat_dtype:
             raise ValueError('Invalid f_hat: '
-                    'The new array must be of type %s'%(self._dtype))
-        if new_f_hat.shape != self._N:
+                    'The new array must be of type %s'%(self.__f_hat_dtype))
+
+        if new_f_hat.shape != self.__f_hat_shape:
             raise ValueError('Invalid f_hat: '
-                    'The new array must be of shape %s'%(self._N))
+                    'The new array must be of shape %s'%(self.__f_hat_shape))
 
         self._update_arrays(new_f, new_f_hat)        
 
-    cdef _update_arrays(self, np.ndarray f, np.ndarray f_hat):
+    cdef _update_arrays(self, np.ndarray new_f, np.ndarray new_f_hat):
         '''
         A C-interface to update_arrays, which does not perform any checks and
         refreshes the plan's internal vectors
         '''        
-        self.__f = f
-        self._plan.f = (
-            <fftw_complex *>np.PyArray_DATA(self.__f))
+        self.__f = new_f
+        self._plan.f = <fftw_complex *>np.PyArray_DATA(self.__f)
         
-        self.__f_hat = f_hat
-        self._plan.f_hat = (
-            <fftw_complex *>np.PyArray_DATA(self.__f_hat))
+        self.__f_hat = new_f_hat
+        self._plan.f_hat = <fftw_complex *>np.PyArray_DATA(self.__f_hat)
+
+    cpdef update_nodes(self, new_x):
+        '''
+        Update internal node array.
+                
+        :param new_x: new array.
+        :type new_x: ndarray
+        :raises: ValueError
+        '''
+        if not isinstance(new_x, np.ndarray):
+            raise ValueError('Invalid x: '
+                    'The new array nust be an instance '
+                    'of numpy.ndarray')                    
+
+        if not new_x.flags.c_contiguous:
+            raise ValueError('Invalid x: '
+                    'The new array must be C-contiguous')
+
+        if new_x.dtype != self.__x_dtype:
+            raise ValueError('Invalid x: '
+                    'The new array must be of type %s'%(self.__x_dtype))
+
+        try:
+            new_x = new_x.reshape(self.__x_shape)
+        except ValueError:
+            raise ValueError('Invalid x: '
+                    'The new array must be of shape %s'%(self.__x_shape))
+
+        self._update_nodes(new_x)  
+
+    cdef _update_nodes(self, np.ndarray new_x):
+        '''
+        A C-interface to update_nodes, which does not perform any checks and
+        refreshes the plan's internal vectors
+        '''        
+        self.__x = new_x
+        self._plan.x = <double *>np.PyArray_DATA(self.__x)
 
     def __get_f(self):
         '''
@@ -587,14 +662,6 @@ cdef class NFFT:
         return self._n
 
     n = property(__get_n)
-
-    def __get_dtype(self):
-        '''
-        The complex precision.
-        '''
-        return self._dtype
-
-    dtype = property(__get_dtype)
 
     def __get_flags(self):
         '''

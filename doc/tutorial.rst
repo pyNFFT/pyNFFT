@@ -3,16 +3,16 @@ Using the NFFT
 
 In this tutorial, we assume that you are already familiar with the 
 `non-uniform discrete Fourier transform 
-<http://en.wikipedia.org/wiki/Non-uniform_discrete_Fourier_transform>` 
-and the `NFFT library <http://www-user.tu-chemnitz.de/~potts/nfft/>` 
+<http://en.wikipedia.org/wiki/Non-uniform_discrete_Fourier_transform>`_ 
+and the `NFFT library <http://www-user.tu-chemnitz.de/~potts/nfft/>`_ 
 used for fast computation of NDFTs. 
 
-Like the `FFTW library <http://www.fftw.org/>`, the NFFT library relies 
+Like the `FFTW library <http://www.fftw.org/>`_, the NFFT library relies 
 on a specific data structure, called a plan, which stores all the data 
 required for efficient computation and re-use of the NDFT. Each plan is 
 tailored for a specific transform, depending on the geometry, level of 
 precomputation and design parameters. The `NFFT manual 
-<http://www-user.tu-chemnitz.de/~potts/nfft/guide3/html/index.html>` 
+<http://www-user.tu-chemnitz.de/~potts/nfft/guide3/html/index.html>`_ 
 contains comprehensive explanation on the NFFT implementation.
 
 The pyNFFT package provides a set of Pythonic wrappers around the main 
@@ -23,7 +23,7 @@ library supports many more applications, only the NFFT and iterative
 solver components have been wrapped so far. 
 
 This tutorial is split into three main sections. In the first one, the 
-general :ref:`workflow <workflow>` for using the core of the 
+general workflow for using the core of the 
 :class:`pynfft.NFFT` class will be explained. Then, the 
 :class:`pynfft.NFFT` class API will be detailed and illustrated with 
 examples for the univariate and multivariate cases. Finally, the 
@@ -56,7 +56,7 @@ setting the input data in either `f_hat` (forward) or `f` (adjoint),
 calling the corresponding function, and reading the output in `f` 
 (forward) or `f_hat` (adjoint).
 
-.. _using_nfft
+.. _using_nfft:
 
 Using the NFFT
 --------------
@@ -70,10 +70,10 @@ complementary numpy arrays: the `f` and `f_hat` arrays, which can both
 act as input or output depending on the chosen transform, forward or 
 adjoint.
 
-These arrays must be C-contiguous and of numpy.complex128 type. Support 
-for other floating precision could be coming later, when the NFFT 
-library starts supporting multiple floating precision builds, like the 
-FFTW does.
+These arrays must be C-contiguous and of `numpy.complex128` type. 
+Support for other floating precision could be coming later, when the 
+NFFT library starts supporting multiple floating precision builds, 
+like the FFTW does.
 
 **instantiation**
 
@@ -89,12 +89,12 @@ non-uniform nodes, and `N`, the shape of the uniform data.
     >>> print this_nfft.M
     96
     >>> print this_nfft.N
-	(16, 16)
+    (16, 16)
 
 More control over the precision, storage and speed of the NFFT can be 
 gained by overriding the default design parameters `m`, `n` and 
 `flags`. For more information, please consult the `NFFT manual 
-<http://www-user.tu-chemnitz.de/~potts/nfft/guide3/html/index.html>`.
+<http://www-user.tu-chemnitz.de/~potts/nfft/guide3/html/index.html>`_.
 
 **precomputation**
 
@@ -121,15 +121,17 @@ The actual forward and adjoint NFFT are performed by calling the
 	>>> ret = this_nfft.adjoint()
 
 It is possible to replace the internal data arrays used by the NFFT 
-class using the optional `f` and `f_hat` arguments. These new arrays 
-must be compatible with the geometry provided at construct time, 
-otherwise an exception will be raised. If these arrays do not satisfy 
-the complex dtype and C-contiguousness requirements, a copy is made.
+class using the optional `f` and `f_hat` arguments:
 
     >>> ret = this_nfft.forward(f_hat=some_f_hat) 
-	>>> ret = this_nfft.adjoint(f=some_f)
+    >>> ret = this_nfft.adjoint(f=some_f)
+	
+These new arrays must be compatible with the geometry provided at 
+construct time, otherwise an exception will be raised. If these arrays 
+do not satisfy the complex dtype and C-contiguousness requirements, a 
+copy is made.
 
-.. _using_solver
+.. _using_solver:
 
 Using the iterative solver
 --------------------------
@@ -210,7 +212,7 @@ the residuals. The residuals can be read in the
 
     >>> niter = 10  # set number of iterations to 10
     >>> for iiter in range(niter):
-    >>>	    this_solv.loop_one_step()
+    >>>	    this_solver.loop_one_step()
 
     - with a threshold value:
 

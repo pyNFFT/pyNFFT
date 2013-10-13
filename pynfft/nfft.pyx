@@ -119,8 +119,8 @@ cdef class NFFT:
     cdef bint _precomputed
 
     # where the C-related content of the class is being initialized
-    def __cinit__(self, x, f, f_hat, M=None, N=None, n=None, m=12, flags=None,
-                  precompute=False, *args, **kwargs):
+    def __cinit__(self, f, f_hat, x=None, M=None, N=None, n=None, m=12,
+                  flags=None, precompute=False, *args, **kwargs):
 
         # guess geometry from input array if missing from optional inputs
         M = M if M is not None else f.size
@@ -161,14 +161,17 @@ cdef class NFFT:
         dtype_complex = np.dtype('complex128')
 
         # sanity checks on mandatory inputs
-        if not isinstance(x, np.ndarray):
-            raise ValueError('x must be an instance of numpy.ndarray')
-
-        if not x.flags.c_contiguous:
-            raise ValueError('x must be C-contiguous')        
-
-        if x.dtype != dtype_real:
-            raise ValueError('x must be of type %s'%(dtype_real)) 
+        if x is not None:
+            if not isinstance(x, np.ndarray):
+                raise ValueError('x must be an instance of numpy.ndarray')
+    
+            if not x.flags.c_contiguous:
+                raise ValueError('x must be C-contiguous')        
+    
+            if x.dtype != dtype_real:
+                raise ValueError('x must be of type %s'%(dtype_real))
+        else:
+            x = np.empty([M, d], dtype=dtype_real)
 
         if not isinstance(f, np.ndarray):
             raise ValueError('f must be an instance of numpy.ndarray')
@@ -303,7 +306,7 @@ cdef class NFFT:
             
 
     # here, just holds the documentation of the class constructor
-    def __init__(self, x, f, f_hat, M=None, N=None, n=None, m=12, flags=None,
+    def __init__(self, f, f_hat, x=None, M=None, N=None, n=None, m=12, flags=None,
                   precompute=False, *args, **kwargs):
         '''
         :param x: external array holding the nodes.

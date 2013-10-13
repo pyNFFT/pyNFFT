@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Changes in version 1.1
+
+    - PEP 440 compliant version string (closes #3)
+    - more pythonic API, breaks compatibility with 1.0.x (closes #4, #7)
+    - documentation update (closes #5, #6)
+
+
 Changes in version 1.0.1
 ------------------------
 

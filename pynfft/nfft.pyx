@@ -116,16 +116,41 @@ cdef class NFFT:
     cdef object _n
     cdef object _dtype
     cdef object _flags
-    cdef bint _precomputed
 
     # where the C-related content of the class is being initialized
-    def __cinit__(self, f, f_hat, x=None, M=None, N=None, n=None, m=12,
-                  flags=None, precompute=False, *args, **kwargs):
+    def __cinit__(self, f, f_hat, x=None, n=None, m=12, flags=None,
+                  *args, **kwargs):
+
+        # support only double / double complex NFFT
+        # TODO: if support for multiple floating precision lands in the
+        # NFFT library, adapt this section to dynamically figure the
+        # real and complex dtypes
+        dtype_real = np.dtype('float64')
+        dtype_complex = np.dtype('complex128')
+
+        # sanity checks on input arrays
+        if not isinstance(f, np.ndarray):
+            raise ValueError('f must be an instance of numpy.ndarray')
+
+        if not f.flags.c_contiguous:
+            raise ValueError('f must be C-contiguous')        
+
+        if f.dtype != dtype_complex:
+            raise ValueError('f must be of type %s'%(dtype_complex))                     
+
+        if not isinstance(f_hat, np.ndarray):
+            raise ValueError('f_hat: must be an instance of numpy.ndarray')                    
+
+        if not f_hat.flags.c_contiguous:
+            raise ValueError('f_hat must be C-contiguous')        
+
+        if f_hat.dtype != dtype_complex:
+            raise ValueError('f_hat must be of type %s'%(dtype_complex))
 
         # guess geometry from input array if missing from optional inputs
-        M = M if M is not None else f.size
-        N = N if N is not None else f_hat.shape
-        d = len(N) if N is not None else f_hat.ndim
+        M = f.size
+        N = f_hat.shape
+        d = f_hat.ndim
         n = n if n is not None else [2 * Nt for Nt in N]
         if len(n) != d:
             raise ValueError('n should be of same length as N')       
@@ -153,14 +178,7 @@ cdef class NFFT:
         if not m > 0:
             raise ValueError('m must be strictly positive')
 
-        # support only double / double complex NFFT
-        # TODO: if support for multiple floating precision lands in the
-        # NFFT library, adapt this section to dynamically figure the
-        # real and complex dtypes
-        dtype_real = np.dtype('float64')
-        dtype_complex = np.dtype('complex128')
-
-        # sanity checks on mandatory inputs
+        # sanity check on optional x array
         if x is not None:
             if not isinstance(x, np.ndarray):
                 raise ValueError('x must be an instance of numpy.ndarray')
@@ -170,42 +188,13 @@ cdef class NFFT:
     
             if x.dtype != dtype_real:
                 raise ValueError('x must be of type %s'%(dtype_real))
+            
+            try:
+                x = x.reshape([M, d])
+            except ValueError:
+                raise ValueError('x is incompatible with geometry')
         else:
             x = np.empty([M, d], dtype=dtype_real)
-
-        if not isinstance(f, np.ndarray):
-            raise ValueError('f must be an instance of numpy.ndarray')
-
-        if not f.flags.c_contiguous:
-            raise ValueError('f must be C-contiguous')        
-
-        if f.dtype != dtype_complex:
-            raise ValueError('f must be of type %s'%(dtype_complex))                     
-
-        if not isinstance(f_hat, np.ndarray):
-            raise ValueError('f_hat: must be an instance of numpy.ndarray')                    
-
-        if not f_hat.flags.c_contiguous:
-            raise ValueError('f_hat must be C-contiguous')        
-
-        if f_hat.dtype != dtype_complex:
-            raise ValueError('f_hat must be of type %s'%(dtype_complex)) 
-        
-        # check arrays are compatible with geometry
-        try:
-            x = x.reshape([M, d])
-        except ValueError:
-            raise ValueError('x is incompatible with geometry')          
-        
-        try:
-            f = f.reshape(M)
-        except ValueError:
-            raise ValueError('f is incompatible with geometry') 
-
-        try:
-            f_hat = f_hat.reshape(N)
-        except ValueError:
-            raise ValueError('f_hat is incompatible with geometry') 
 
         # convert tuple of litteral precomputation flags to its expected
         # C-compatible value. Each flag is a power of 2, which allows to compute
@@ -297,37 +286,24 @@ cdef class NFFT:
         
         self._plan.x = (
             <double *>np.PyArray_DATA(self.__x))
-        
-        # optional precomputation
-        if precompute:
-            with nogil:
-                nfft_precompute_one_psi(&self._plan)
-            self._precomputed = True
-            
 
     # here, just holds the documentation of the class constructor
-    def __init__(self, f, f_hat, x=None, M=None, N=None, n=None, m=12, flags=None,
-                  precompute=False, *args, **kwargs):
+    def __init__(self, f, f_hat, x=None, n=None, m=12, flags=None,
+                 *args, **kwargs):
         '''
-        :param x: external array holding the nodes.
-        :type x: ndarray
         :param f: external array holding the non-uniform samples.
         :type f: ndarray
         :param f_hat: external array holding the Fourier coefficients.
         :type f_hat: ndarray
-        :param M: number of non-uniform samples.
-        :type M: int        
-        :param N: multi-bandwith size.
-        :type N: tuple of int
+        :param x: external array holding the nodes.
+        :type x: ndarray
         :param n: oversampled multi-bandwith, default to 2 * N.
         :type n: tuple of int
         :param m: Cut-off parameter of the window function.
         :type m: int
         :param flags: list of precomputation flags, see note below.
         :type flags: tuple
-        :param precompute: whether to precompute right after instantiation.
-        :type precompute: boolean
-
+        
         **Precomputation flags**
 
         This table lists the supported precomputation flags for the NFFT.

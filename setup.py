@@ -39,6 +39,13 @@ finally:
 
 version = _version.version
 
+use_cython = True
+try:
+    from Cython.Distutils import build_ext as build_ext
+except ImportError as e:
+    # assuming you'using the cythonized sources
+    from distutils.command.build_ext import build_ext
+    use_cython = False
 
 # Set system-dependent dependencies
 include_dirs = [numpy.get_include()]
@@ -50,13 +57,19 @@ if get_platform() in ('win32', 'win-amd64'):
 else:
     libraries = ['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm']
 
-
-# Set list of extension modules, assuming the source files has been cythonized 
-# using the cython_setup script
+if use_cython:
+    src_nfft = [os.path.join(os.getcwd(), package_name, 'nfft.pyx')]
+    src_util = [os.path.join(os.getcwd(), package_name, 'util.pyx')]
+else:
+    src_nfft = [os.path.join(os.getcwd(), package_name, 'nfft.c')]
+    src_util = [os.path.join(os.getcwd(), package_name, 'util.c')]
+    if not (os.path.exists(src_nfft[0]) and os.path.exists(src_util[0])):
+        raise ImportError('cythonized sources not found')        
+    
 ext_modules = [
     Extension(
         name=package_name+'.nfft',
-        sources=[os.path.join(os.getcwd(), package_name, 'nfft.c')],
+        sources=src_nfft,
         libraries=libraries,
         library_dirs=library_dirs,
         include_dirs=include_dirs,
@@ -65,7 +78,7 @@ ext_modules = [
     ),
     Extension(
         name=package_name+'.util',
-        sources=[os.path.join(os.getcwd(), package_name, 'util.c')],
+        sources=src_util,
         libraries=libraries,
         library_dirs=library_dirs,
         include_dirs=include_dirs,
@@ -95,6 +108,22 @@ class clean(Command):
         os.system("rm -rf doc/_build/")
 
 
+class TestCommand(Command):
+    user_options = []
+
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import sys, subprocess
+        errno = subprocess.call([sys.executable, '-m', 'unittest',
+            'discover'])
+        raise SystemExit(errno)
+
+
 long_description = '''"The NFFT is a C subroutine library for computing the
 nonequispaced discrete Fourier transform (NDFT) in one or more dimensions, of
 arbitrary input size, and of complex data."
@@ -114,7 +143,7 @@ information.'''
 classifiers = [
     'Programming Language :: Python',
     'Programming Language :: Python :: 3',
-    'Development Status :: 4 - Beta',
+    'Development Status :: 5 - Production/Stable',
     'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
     'Operating System :: POSIX :: Linux',
     'Intended Audience :: Developers',
@@ -137,7 +166,9 @@ setup_args = {
     'ext_modules': ext_modules,
     'include_dirs': include_dirs,
     'package_data': package_data,
-    'cmdclass': {'clean': clean},
+    'cmdclass': {'build_ext': build_ext,
+                 'clean': clean,
+                 'test': TestCommand,},
 }
 
 if __name__ == '__main__':

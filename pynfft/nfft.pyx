@@ -275,7 +275,6 @@ cdef class NFFT:
         self._n = n
         self._dtype = dtype_complex
         self._flags = flags_used
-        self._precomputed = False
 
         # connect Python arrays to plan internals
         self._plan.f = (
@@ -425,10 +424,8 @@ cdef class NFFT:
         .. note::
            Precomputation is only done once, subsequent calls do nothing.
         '''
-        if not self._precomputed:
-            with nogil:
-                nfft_precompute_one_psi(&self._plan)
-            self._precomputed = True
+        with nogil:
+            nfft_precompute_one_psi(&self._plan)
 
     cpdef execute_trafo(self):
         '''
@@ -436,8 +433,6 @@ cdef class NFFT:
 
         :raises: RuntimeError
         '''
-        if not self._precomputed:
-            raise RuntimeError("NFFT plan is not initialized")
         with nogil:
             nfft_trafo(&self._plan)
 
@@ -447,8 +442,6 @@ cdef class NFFT:
 
         :raises: RuntimeError
         '''
-        if not self._precomputed:
-            raise RuntimeError("NFFT plan is not initialized")
         with nogil:
             nfft_trafo_direct(&self._plan)
 
@@ -458,8 +451,6 @@ cdef class NFFT:
 
         :raises: RuntimeError
         '''
-        if not self._precomputed:
-            raise RuntimeError("NFFT plan is not initialized")
         with nogil:
             nfft_adjoint(&self._plan)
 
@@ -469,8 +460,6 @@ cdef class NFFT:
 
         :raises: RuntimeError
         '''
-        if not self._precomputed:
-            raise RuntimeError("NFFT plan is not initialized")
         with nogil:
             nfft_adjoint_direct(&self._plan)
 
@@ -614,14 +603,6 @@ cdef class NFFT:
         return self._flags
 
     flags = property(__get_flags)
-
-    def __is_precomputed(self):
-        '''
-        Whether the plan is initialized.
-        '''
-        return self._precomputed
-
-    precomputed = property(__is_precomputed)
 
 
 ##########

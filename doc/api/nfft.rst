@@ -6,7 +6,15 @@
 NFFT Class
 ----------
 
-.. autoclass:: pynfft.NFFT(N, M, n=None, m=12, x=None, f=None, f_hat=None, flags=None)
+.. autoclass:: pynfft.NFFT(f, f_hat, x=None, n=None, m=12, flags=None, *args, **kwargs)
+
+   .. autoattribute:: pynfft.NFFT.f
+
+   .. autoattribute:: pynfft.NFFT.f_hat
+
+   .. autoattribute:: pynfft.NFFT.x
+
+   .. autoattribute:: pynfft.NFFT.M
 
    .. autoattribute:: pynfft.NFFT.d
 
@@ -14,31 +22,32 @@ NFFT Class
 
    .. autoattribute:: pynfft.NFFT.N_total
    
-   .. autoattribute:: pynfft.NFFT.M_total
+   .. autoattribute:: pynfft.NFFT.n
    
    .. autoattribute:: pynfft.NFFT.m
-
-   .. autoattribute:: pynfft.NFFT.n
-
-   .. autoattribute:: pynfft.NFFT.x
-
-   .. autoattribute:: pynfft.NFFT.f
-
-   .. autoattribute:: pynfft.NFFT.f_hat
-
-   .. autoattribute:: pynfft.NFFT.dtype
 
    .. autoattribute:: pynfft.NFFT.flags
 
    .. automethod:: pynfft.NFFT.precompute
 
-   .. automethod:: pynfft.NFFT.trafo
-
-   .. automethod:: pynfft.NFFT.trafo_direct
+   .. automethod:: pynfft.NFFT.forward
 
    .. automethod:: pynfft.NFFT.adjoint
 
-   .. automethod:: pynfft.NFFT.adjoint_direct
+   .. automethod:: pynfft.NFFT.execute_trafo
+
+   .. automethod:: pynfft.NFFT.execute_trafo_direct
+
+   .. automethod:: pynfft.NFFT.execute_adjoint
+
+   .. automethod:: pynfft.NFFT.execute_adjoint_direct
+   
+   .. automethod:: pynfft.NFFT.execute_precomputation
+   
+   .. automethod:: pynfft.NFFT.update_arrays
+   
+   .. automethod:: pynfft.NFFT.update_nodes
+
 
 Solver Class
 ------------
@@ -54,8 +63,6 @@ Solver Class
    .. autoattribute:: pynfft.Solver.f_hat_iter
 
    .. autoattribute:: pynfft.Solver.r_iter
-
-   .. autoattribute:: pynfft.Solver.dtype
 
    .. autoattribute:: pynfft.Solver.flags
 

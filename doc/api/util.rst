@@ -6,13 +6,11 @@
 Functions used for initialization of :class:`pynfft.NFFT` attributes in test
 scripts. For instance::
 
-   >>> from pynfft import NFFT
    >>> from pynfft.util import vrand_unit_complex, vrand_shifted_unit_double
-   >>> Nfft.NFFT(N=(16, 16), M=92)
-   >>> vrand_shifted_unit_double(Nfft.x)
-   >>> Nfft.precompute()
-   >>> vrand_unit_complex(Nfft.f_hat)
-   >>> Nfft.trafo()
+   >>> x = np.empty(20, dtype=np.float64)
+   >>> vrand_shifted_unit_double(x)
+   >>> f_hat = np.empty(16, dtype=np.complex128)
+   >>> vrand_unit_complex(f_hat)
 
 .. autofunction:: pynfft.util.vrand_unit_complex(x)
 

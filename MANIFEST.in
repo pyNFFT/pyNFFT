@@ -1,11 +1,11 @@
 include COPYING.txt
-include CONTRIBUTING.rst
 include README.rst
-include pynfft/*.c
-include tests/*.py
-include doc/*.rst
-include doc/api/*.rst
-include doc/Makefile
-include doc/make.bat
-include doc/conf.py
-prune build/
+include pynfft/cnfft3.pxd
+include pynfft/nfft.pyx
+include pynfft/cnfft3util.pxd
+include pynfft/nfft.c
+include pynfft/util.pyx
+include pynfft/util.c
+include tests/test_*.py
+include tests/__init__.py
+recursive-include doc *.html *.css *.png *.js

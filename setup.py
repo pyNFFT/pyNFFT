@@ -105,7 +105,7 @@ class clean(Command):
         os.system("rm -rf build/")
         os.system("rm -rf dist/")
         os.system("rm -rf pynfft/*.so")
-        os.system("rm -rf doc/_build/")
+        os.system("rm -rf doc/build/")
 
 
 class TestCommand(Command):

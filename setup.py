@@ -104,6 +104,7 @@ class clean(Command):
         os.system("rm -f MANIFEST")
         os.system("rm -rf build/")
         os.system("rm -rf dist/")
+        os.system("rm -rf pynfft/*.c")
         os.system("rm -rf pynfft/*.so")
         os.system("rm -rf doc/build/")
 

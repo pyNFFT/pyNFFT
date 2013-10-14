@@ -273,7 +273,7 @@ cdef class NFFT:
         self.__x = x
         self.__x_dtype = x.dtype
         self.__x_shape = x.shape
-        self.__f = f
+        self.__f = f.ravel()
         self.__f_dtype = f.dtype
         self.__f_shape = f.shape
         self.__f_hat = f_hat

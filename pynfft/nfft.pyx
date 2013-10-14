@@ -274,11 +274,11 @@ cdef class NFFT:
         self.__x_dtype = x.dtype
         self.__x_shape = x.shape
         self.__f = f.ravel()
-        self.__f_dtype = f.dtype
-        self.__f_shape = f.shape
+        self.__f_dtype = self.__f.dtype
+        self.__f_shape = self.__f.shape
         self.__f_hat = f_hat
-        self.__f_hat_dtype = f_hat.dtype
-        self.__f_hat_shape = f_hat.shape
+        self.__f_hat_dtype = self.__f_hat.dtype
+        self.__f_hat_shape = self.__f_hat.shape
         self._d = d
         self._M = M
         self._m = m
@@ -375,7 +375,7 @@ cdef class NFFT:
 
         f = f if f is not None else self.__f                
         
-        self.update_arrays(new_f=f, new_f_hat=f_hat)
+        self.update_arrays(f, f_hat)
         if use_dft:
             self.execute_trafo_direct()
         else:
@@ -417,7 +417,7 @@ cdef class NFFT:
 
         f_hat = f_hat if f_hat is not None else self.__f_hat                
         
-        self.update_arrays(new_f=f, new_f_hat=f_hat)
+        self.update_arrays(f, f_hat)
         if use_dft:
             self.execute_adjoint_direct()
         else:
@@ -451,7 +451,7 @@ cdef class NFFT:
         else:
             x = self.__x
         
-        self.update_nodes(new_x=x)
+        self.update_nodes(x)
         self.execute_precomputation()
 
     cpdef execute_precomputation(self):
@@ -508,38 +508,32 @@ cdef class NFFT:
         :raises: ValueError
         '''
         if not isinstance(new_f, np.ndarray):
-            raise ValueError('Invalid f: '
-                    'The new array must be an instance '
-                    'of numpy.ndarray')            
+            raise ValueError('array is not an instance of numpy.ndarray')     
 
         if not new_f.flags.c_contiguous:
-            raise ValueError('Invalid f: '
-                    'The new array must be C-contiguous')
+            raise ValueError('array must be C-contiguous')
 
         if new_f.dtype != self.__f_dtype:
-            raise ValueError('Invalid f: '
-                    'The new array must be of type %s'%(self.__f_dtype))
-
-        if new_f.shape != self.__f_shape:
-            raise ValueError('Invalid f: '
-                    'The new array must be of shape %s'%(self.__f_shape))
+            raise ValueError('array dtype is not complex128')
+        
+        try:
+            new_f = new_f.reshape(self.__f_shape)
+        except ValueError:
+            raise ValueError('array is not compatible with geometry')
         
         if not isinstance(new_f_hat, np.ndarray):
-            raise ValueError('Invalid f_hat: '
-                    'The new array nust be an instance '
-                    'of numpy.ndarray')        
+            raise ValueError('array is not an instance of numpy.ndarray')  
 
         if not new_f_hat.flags.c_contiguous:
-            raise ValueError('Invalid f_hat: '
-                    'The new array must be C-contiguous')
+            raise ValueError('array must be C-contiguous')
 
         if new_f_hat.dtype != self.__f_hat_dtype:
-            raise ValueError('Invalid f_hat: '
-                    'The new array must be of type %s'%(self.__f_hat_dtype))
+            raise ValueError('array dtype is not complex128')
 
-        if new_f_hat.shape != self.__f_hat_shape:
-            raise ValueError('Invalid f_hat: '
-                    'The new array must be of shape %s'%(self.__f_hat_shape))
+        try:
+            new_f_hat = new_f_hat.reshape(self.__f_hat_shape)
+        except ValueError:
+            raise ValueError('array is not compatible with geometry')
 
         self._update_arrays(new_f, new_f_hat)        
 
@@ -563,23 +557,18 @@ cdef class NFFT:
         :raises: ValueError
         '''
         if not isinstance(new_x, np.ndarray):
-            raise ValueError('Invalid x: '
-                    'The new array nust be an instance '
-                    'of numpy.ndarray')                    
+            raise ValueError('array is not an instance of numpy.ndarray')                    
 
         if not new_x.flags.c_contiguous:
-            raise ValueError('Invalid x: '
-                    'The new array must be C-contiguous')
+            raise ValueError('array must be C-contiguous')
 
         if new_x.dtype != self.__x_dtype:
-            raise ValueError('Invalid x: '
-                    'The new array must be of type %s'%(self.__x_dtype))
+            raise ValueError('array dtype is not float64')
 
         try:
             new_x = new_x.reshape(self.__x_shape)
         except ValueError:
-            raise ValueError('Invalid x: '
-                    'The new array must be of shape %s'%(self.__x_shape))
+            raise ValueError('array is not compatible with geometry')
 
         self._update_nodes(new_x)  
 

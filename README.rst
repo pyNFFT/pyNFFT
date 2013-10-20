@@ -21,8 +21,8 @@ Python package index page is
 Usage
 -----
 
-See the `tutorial <http://ghisvail.github.io/pyNFFT/tutorial.html>`_ 
-section of the `documentation <http://ghisvail.github.io/pyNFFT>`_.
+See the `tutorial <http://pythonhosted.org/pyNFFT/tutorial.html>`_ 
+section of the documentation.
 
 Installation
 ------------

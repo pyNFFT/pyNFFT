@@ -95,12 +95,11 @@ cdef class NFFT:
     provided, otherwise it will be created internally.
 .
     Precomputation initializes the internals of the transform prior to 
-    execution, and is called with the :meth:`pynfft.NFFT.precompute` method.
+    execution, and is called with the :meth:`precompute` method.
 
-    The forward and adjoint NFFT can be called with 
-    :meth:`pynfft.NFFT.forward` and :meth:`pynfft.NFFT.adjoint` respectively. 
-    Each of these methods support internal array update and coercion to the 
-    right internal dtype.
+    The forward and adjoint NFFT can be called with :meth:`forward` and 
+    :meth:`adjoint` respectively. Each of these methods support internal array 
+    update and coercion to the right internal dtype.
     '''
     cdef nfft_plan _plan
     cdef int _d
@@ -784,7 +783,7 @@ cdef class Solver:
     def __init__(self, nfft_plan, flags=None):
         '''
         :param plan: instance of NFFT.
-        :type plan: :class:`pynfft.NFFT`
+        :type plan: :class:`NFFT`
         :param flags: list of instantiation flags, see below.
         :type flags: tuple
 

@@ -5,15 +5,15 @@ pyNFFT - a Pythonic wrapper around the NFFT library
 Fourier transform (NDFT) in one or more dimensions, of arbitrary input size,
 and of complex data."
 
-The NFFT library is licensed under GPLv2 and available at:
-http://www-user.tu-chemnitz.de/~potts/nfft/index.php
+The `NFFT library <http://www-user.tu-chemnitz.de/~potts/nfft/index.php>`_ 
+is licensed under GPLv2.
 
 This wrapper provides a somewhat Pythonic access to some of the core NFFT 
 library functionalities and is largely inspired from the pyFFTW project 
 developped by Henry Gomersall (http://hgomersall.github.io/pyFFTW/).
 
 The documentation is hosted on 
-`github pages <http://ghisvail.github.io/pyNFFT>`_, the source code is 
+`pythonhosted <http://pythonhosted.org/pyNFFT/>`_, the source code is 
 available on `github <https://github.com/ghisvail/pyNFFT>`_ and the 
 Python package index page is 
 `here <https://pypi.python.org/pypi/pyNFFT>`_.

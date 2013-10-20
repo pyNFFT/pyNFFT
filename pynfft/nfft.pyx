@@ -831,41 +831,25 @@ cdef class Solver:
         '''Weighting factors.'''
         return self._w
 
-    def __set_w(self, new_w):
-        if self._w is not None:
-            self._w.ravel()[:] = new_w.ravel()[:]
-
-    w = property(__get_w, __set_w)
+    w = property(__get_w)
 
     def __get_w_hat(self):
         '''Damping factors.'''
         return self._w_hat
 
-    def __set_w_hat(self, new_w_hat):
-        if self._w_hat is not None:
-            self._w_hat.ravel()[:] = new_w_hat.ravel()[:]
-
-    w_hat = property(__get_w_hat, __set_w_hat)
+    w_hat = property(__get_w_hat)
 
     def __get_y(self):
         '''Right hand side, samples.'''
         return self._y
 
-    def __set_y(self, new_y):
-        if self._y is not None:
-            self._y.ravel()[:] = new_y.ravel()[:]
-
-    y = property(__get_y, __set_y)
+    y = property(__get_y)
 
     def __get_f_hat_iter(self):
         '''Iterative solution.'''
         return self._f_hat_iter
 
-    def __set_f_hat_iter(self, new_f_hat_iter):
-        if self._f_hat_iter is not None:
-            self._f_hat_iter.ravel()[:] = new_f_hat_iter.ravel()[:]
-
-    f_hat_iter = property(__get_f_hat_iter, __set_f_hat_iter)
+    f_hat_iter = property(__get_f_hat_iter)
 
     def __get_r_iter(self):
         '''Residual vector.'''

@@ -693,7 +693,6 @@ cdef class Solver:
     cdef object _y
     cdef object _f_hat_iter
     cdef object _r_iter
-    cdef object _dtype
     cdef object _flags
 
     def __cinit__(self, NFFT nfft_plan, flags=None):
@@ -779,7 +778,6 @@ cdef class Solver:
 
         free(shape_N)
 
-        self._dtype = dtype_complex
         self._flags = flags_used
 
 
@@ -856,12 +854,6 @@ cdef class Solver:
         return self._r_iter
 
     r_iter = property(__get_r_iter)
-
-    def __get_dtype(self):
-        '''The complex precision.'''
-        return self._dtype
-
-    dtype = property(__get_dtype)
 
     def __get_flags(self):
         '''The precomputation flags.'''

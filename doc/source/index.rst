@@ -13,7 +13,7 @@ Introduction
 <http://www-user.tu-chemnitz.de/~potts/nfft/>`_. The aim is to provide access 
 to the core functionalities of the library using a more straightforward 
 instantiation through Python classes, while keeping similar naming 
-conventions as in the C structures and routines.
+conventions to the C-library structures and routines.
 
 Right now, only the NFFT and solver components of the library are supported.
 Support for other components `may` come in the future, but is conditionned 

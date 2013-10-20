@@ -1,5 +1,6 @@
 *~
 *.a
+*.c
 *.o
 *.pyc
 *.swp
@@ -7,5 +8,5 @@
 build/
 dist/
 *.egg-info/
-doc/_build
+doc/build
 MANIFEST

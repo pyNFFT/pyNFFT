@@ -18,20 +18,58 @@
 
 from distutils.core import setup, Command
 from distutils.extension import Extension
+from distutils.util import get_platform
 
 import os
 import numpy
 
+package_name = 'pynfft'
+
+# Get the version string in rather a roundabout way.
+# We can't import it directly as the module may not yet be
+# built in pyfftw.
+import imp
+ver_file, ver_pathname, ver_description = imp.find_module(
+            '_version', [package_name])
+try:
+    _version = imp.load_module('version', ver_file, ver_pathname,
+            ver_description)
+finally:
+    ver_file.close()
+
+version = _version.version
+
+use_cython = True
+try:
+    from Cython.Distutils import build_ext as build_ext
+except ImportError as e:
+    # assuming you'using the cythonized sources
+    from distutils.command.build_ext import build_ext
+    use_cython = False
+
+# Set system-dependent dependencies
 include_dirs = [numpy.get_include()]
 library_dirs = []
 package_data = {}
 
-libraries = ['nfft3_threads', 'fftw3_threads', 'fftw3', 'm']
+if get_platform() in ('win32', 'win-amd64'):
+    raise RuntimeError("Windows is not supported yet")
+else:
+    libraries = ['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm']
 
+if use_cython:
+    src_nfft = [os.path.join(os.getcwd(), package_name, 'nfft.pyx')]
+    src_util = [os.path.join(os.getcwd(), package_name, 'util.pyx')]
+else:
+    src_nfft = [os.path.join(os.getcwd(), package_name, 'nfft.c')]
+    src_util = [os.path.join(os.getcwd(), package_name, 'util.c')]
+    if not (os.path.exists(src_nfft[0]) and os.path.exists(src_util[0])):
+        raise ImportError('cythonized sources not found')        
+    
 ext_modules = [
     Extension(
-        name='pynfft.nfft',
-        sources=[os.path.join('pynfft', 'nfft.c')],
+        name=package_name+'.nfft',
+        sources=src_nfft,
         libraries=libraries,
         library_dirs=library_dirs,
         include_dirs=include_dirs,
@@ -39,8 +77,8 @@ ext_modules = [
                            '-fstrict-aliasing -ffast-math'.split(),
     ),
     Extension(
-        name='pynfft.util',
-        sources=[os.path.join('pynfft', 'util.c')],
+        name=package_name+'.util',
+        sources=src_util,
         libraries=libraries,
         library_dirs=library_dirs,
         include_dirs=include_dirs,
@@ -66,19 +104,26 @@ class clean(Command):
         os.system("rm -f MANIFEST")
         os.system("rm -rf build/")
         os.system("rm -rf dist/")
+        os.system("rm -rf pynfft/*.c")
         os.system("rm -rf pynfft/*.so")
-        os.system("rm -rf doc/_build/")
+        os.system("rm -rf doc/build/")
 
 
-def get_version():
-    basedir = os.path.dirname(__file__)
-    with open(os.path.join(basedir, 'pynfft/_version.py')) as f:
-        variables = {}
-        exec(f.read(), variables)
-        return variables.get('VERSION')
-    raise RuntimeError('No version info found.')
+class TestCommand(Command):
+    user_options = []
 
-version = get_version()
+    def initialize_options(self):
+        pass
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        import sys, subprocess
+        errno = subprocess.call([sys.executable, '-m', 'unittest',
+            'discover'])
+        raise SystemExit(errno)
+
 
 long_description = '''"The NFFT is a C subroutine library for computing the
 nonequispaced discrete Fourier transform (NDFT) in one or more dimensions, of
@@ -99,7 +144,7 @@ information.'''
 classifiers = [
     'Programming Language :: Python',
     'Programming Language :: Python :: 3',
-    'Development Status :: 4 - Beta',
+    'Development Status :: 5 - Production/Stable',
     'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
     'Operating System :: POSIX :: Linux',
     'Intended Audience :: Developers',
@@ -118,11 +163,13 @@ setup_args = {
     'long_description': long_description,
     'url': 'https://github.com/ghisvail/pyNFFT.git',
     'classifiers': classifiers,
-    'packages': ['pynfft'],
+    'packages': [package_name],
     'ext_modules': ext_modules,
     'include_dirs': include_dirs,
     'package_data': package_data,
-    'cmdclass': {'clean': clean},
+    'cmdclass': {'build_ext': build_ext,
+                 'clean': clean,
+                 'test': TestCommand,},
 }
 
 if __name__ == '__main__':

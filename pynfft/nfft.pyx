@@ -86,41 +86,41 @@ cdef class NFFT:
     '''
     NFFT is a class for computing the multivariate Non-uniform Discrete
     Fourier (NDFT) transform using the NFFT library. The interface is
-    designed to be somewhat pythonic, while retaining the features and
-    naming of the C code internals. The computation of the NFFT is achieved
-    in 3 steps: instantiation, precomputation and execution.
+    designed to be somewhat pythonic, whilst preserving the workflow of the 
+    original C-library. Computation of the NFFT is achieved in 3 steps: 
+    instantiation, precomputation and execution.
 
-    On instantiation, sanity checks on the size parameters and computation
-    flags are performed prior to initialization of the internal plan.
-    External data arrays may be provided, otherwise internal Numpy arrays
-    will be used. Any incompatibilities detected in the parameters will raise
-    a ``ValueError`` exception.
+    On instantiation, the geometry of the transform is guessed from the shape 
+    of the input arrays `f` and `f_hat`. The node array `x` can be optionally 
+    provided, otherwise it will be created internally.
+.
+    Precomputation initializes the internals of the transform prior to 
+    execution, and is called with the :meth:`precompute` method.
 
-    The nodes must be initialized prior to precomputing the operator with the
-    :meth:`pynfft.NFFT.precompute` method.
-
-    The forward and adjoint NFFT operation may be performed by calling the
-    :meth:`pynfft.NFFT.trafo` or :meth:`pynfft.NFFT.adjoint`
-    methods. The NDFT may also be computed by calling the
-    :meth:`pynfft.NFFT.trafo_direct` or
-    :meth:`pynfft.NFFT.adjoint_direct`.
+    The forward and adjoint NFFT can be called with :meth:`forward` and 
+    :meth:`adjoint` respectively. Each of these methods support internal array 
+    update and coercion to the right internal dtype.
     '''
     cdef nfft_plan _plan
     cdef int _d
+    cdef int _M
     cdef int _m
-    cdef int _M_total
-    cdef int _N_total
-    cdef object _f
-    cdef object _f_hat
-    cdef object _x
+    cdef object __f
+    cdef object __f_dtype
+    cdef object __f_shape    
+    cdef object __f_hat
+    cdef object __f_hat_dtype
+    cdef object __f_hat_shape
+    cdef object __x
+    cdef object __x_dtype
+    cdef object __x_shape
     cdef object _N
     cdef object _n
-    cdef object _dtype
     cdef object _flags
 
     # where the C-related content of the class is being initialized
-    def __cinit__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
-                  flags=None, *args, **kwargs):
+    def __cinit__(self, f, f_hat, x=None, n=None, m=12, flags=None,
+                  *args, **kwargs):
 
         # support only double / double complex NFFT
         # TODO: if support for multiple floating precision lands in the
@@ -129,77 +129,73 @@ cdef class NFFT:
         dtype_real = np.dtype('float64')
         dtype_complex = np.dtype('complex128')
 
-        # NOTE: use of reshape([-1, 1]) to avoid working with 0-d arrays which
-        # cannot be indexed explictly
-        N = np.asarray(N).reshape([-1, 1])
-        M_total = np.asarray(M).reshape([-1, 1])
-        n = np.asarray(n).reshape([-1, 1]) if n is not None else 2 * N
-        m = np.asarray(m).reshape([-1, 1])
-        N_total = np.asarray(np.prod(N)).reshape([-1, 1])
-        d = N.size
+        # sanity checks on input arrays
+        if not isinstance(f, np.ndarray):
+            raise ValueError('f must be an instance of numpy.ndarray')
 
-        # make sure N and n lengths are compatible
-        if n.size != d:
-            raise ValueError("N and n must be of same size")
+        if not f.flags.c_contiguous:
+            raise ValueError('f must be C-contiguous')        
 
-        # make sure all size parameters fit with int32 storage dtype of
-        # nfft_plan, otherwise high risks of malloc errors
-        cdef int t
-        for t in range(0, d):
-            if not N[t, 0] > 0:
-                raise ValueError('N must be strictly positive')
-            if N[t, 0] >= <Py_ssize_t>limits.INT_MAX:
-                raise ValueError('N must be less than ', str(limits.INT_MAX))
-            if not n[t, 0] > 0:
-                raise ValueError('n must be strictly positive')
-            if n[t, 0] >= <Py_ssize_t>limits.INT_MAX:
-                raise ValueError('n must be less than ', str(limits.INT_MAX))
-        if not M_total[0, 0] > 0:
-            raise ValueError("M must be a strictly positive scalar")
-        if M_total[0, 0] >= <Py_ssize_t>limits.INT_MAX:
-            raise ValueError('M must be less than ', str(limits.INT_MAX))
-        if not m[0, 0] > 0:
-            raise ValueError("m must be a strictly positive scalar")
-        if m[0, 0] >= <Py_ssize_t>limits.INT_MAX:
-            raise ValueError('m must be less than ', str(limits.INT_MAX))
-        if not N_total[0, 0] > 0:
-            raise ValueError("M must be a strictly positive scalar")
-        if N_total[0, 0] >= <Py_ssize_t>limits.INT_MAX:
-            raise ValueError('M must be less than ', str(limits.INT_MAX))
+        if f.dtype != dtype_complex:
+            raise ValueError('f must be of type %s'%(dtype_complex))                     
 
-        # if external arrays are provided, checks whether they are compatible
+        if not isinstance(f_hat, np.ndarray):
+            raise ValueError('f_hat: must be an instance of numpy.ndarray')                    
+
+        if not f_hat.flags.c_contiguous:
+            raise ValueError('f_hat must be C-contiguous')        
+
+        if f_hat.dtype != dtype_complex:
+            raise ValueError('f_hat must be of type %s'%(dtype_complex))
+
+        # guess geometry from input array if missing from optional inputs
+        M = f.size
+        N = f_hat.shape
+        d = f_hat.ndim
+        n = n if n is not None else [2 * Nt for Nt in N]
+        if len(n) != d:
+            raise ValueError('n should be of same length as N')       
+        N_total = np.prod(N)
+        n_total = np.prod(n)
+
+        # check geometry is compatible with C-class internals
+        int_max = <Py_ssize_t>limits.INT_MAX
+        if not all([Nt > 0 for Nt in N]):
+            raise ValueError('N must be strictly positive')
+        if not all([Nt < int_max for Nt in N]):
+            raise ValueError('N exceeds integer limit value')
+        if not N_total < int_max:
+            raise ValueError('product of N exceeds integer limit value')
+        if not all([nt > 0 for nt in n]):
+            raise ValueError('n must be strictly positive')
+        if not all([nt < int_max for nt in n]):
+            raise ValueError('n exceeds integer limit value')        
+        if not n_total < int_max:
+            raise ValueError('product of n exceeds integer limit value')
+        if not M > 0:
+            raise ValueError('M must be strictly positive')
+        if not M < int_max:
+            raise ValueError('M exceeds integer limit value')
+        if not m > 0:
+            raise ValueError('m must be strictly positive')
+
+        # sanity check on optional x array
         if x is not None:
+            if not isinstance(x, np.ndarray):
+                raise ValueError('x must be an instance of numpy.ndarray')
+    
             if not x.flags.c_contiguous:
-                raise ValueError('x array must be contiguous')
+                raise ValueError('x must be C-contiguous')        
+    
             if x.dtype != dtype_real:
-                raise ValueError('x must be of type float64')
-            if x.size != M_total * d:
-                raise ValueError('x must be of size %d'%(M_total * d))
-            self._x = x
+                raise ValueError('x must be of type %s'%(dtype_real))
+            
+            try:
+                x = x.reshape([M, d])
+            except ValueError:
+                raise ValueError('x is incompatible with geometry')
         else:
-            self._x = np.empty(M_total*d, dtype=dtype_real)
-
-        if f is not None:
-            if not f.flags.c_contiguous:
-                raise ValueError('f array must be contiguous')
-            if f.dtype != dtype_complex:
-                raise ValueError('f must be of type float64')
-            if f.size != M_total:
-                raise ValueError('f must be of size %d'%(M_total))
-            self._f = f
-        else:
-            self._f = np.empty(M_total, dtype=dtype_complex)
-
-        if f_hat is not None:
-            if not f_hat.flags.c_contiguous:
-                raise ValueError('f_hat array must be contiguous')
-            if f_hat.dtype != dtype_complex:
-                raise ValueError('f_hat must be of type float64')
-            if f_hat.size != N_total:
-                raise ValueError('f_hat must be of size %d'%(N_total))
-            self._f_hat = f_hat
-        else:
-            self._f_hat = np.empty(N_total, dtype=dtype_complex)
+            x = np.empty([M, d], dtype=dtype_real)
 
         # convert tuple of litteral precomputation flags to its expected
         # C-compatible value. Each flag is a power of 2, which allows to compute
@@ -249,68 +245,70 @@ cdef class NFFT:
                         each_flag + '\' is not a valid flag.')
 
         # initialize plan
-        cdef int _d = d
-        cdef int _m = m[0, 0]
-        cdef int _M_total = M_total[0, 0]
-        cdef int _N_total = N_total[0, 0]
-
-        cdef int *_N = <int *>malloc(sizeof(int) * _d)
-        if _N == NULL:
+        cdef int *p_N = <int *>malloc(sizeof(int) * d)
+        if p_N == NULL:
             raise MemoryError
-        for t in range(0, d):
-            _N[t] = N[t, 0]
+        for t in range(d):
+            p_N[t] = N[t]
 
-        cdef int *_n = <int *>malloc(sizeof(int) * _d)
-        if _n == NULL:
+        cdef int *p_n = <int *>malloc(sizeof(int) * d)
+        if p_n == NULL:
             raise MemoryError
-        for t in range(0, d):
-            _n[t] = n[t, 0]
+        for t in range(d):
+            p_n[t] = n[t]
 
         try:
-            nfft_init_guru(&self._plan, _d, _N, _M_total, _n, _m,
+            nfft_init_guru(&self._plan, d, p_N, M, p_n, m,
                     _nfft_flags, _fftw_flags)
         except:
             raise MemoryError
         finally:
-            free(_N)
-            free(_n)
+            free(p_N)
+            free(p_n)
 
-        self._plan.x = (
-            <double *>np.PyArray_DATA(self._x))
-        self._plan.f = (
-            <fftw_complex *>np.PyArray_DATA(self._f))
-        self._plan.f_hat = (
-            <fftw_complex *>np.PyArray_DATA(self._f_hat))
+        self.__x = x
+        self.__x_dtype = x.dtype
+        self.__x_shape = x.shape
+        self.__f = f.ravel()
+        self.__f_dtype = self.__f.dtype
+        self.__f_shape = self.__f.shape
+        self.__f_hat = f_hat
+        self.__f_hat_dtype = self.__f_hat.dtype
+        self.__f_hat_shape = self.__f_hat.shape
         self._d = d
-        self._m = m[0, 0]
-        self._M_total = M_total
-        self._N_total = N_total
-        self._N = tuple([N[t, 0] for t in range(d)])
-        self._n = tuple([n[t, 0] for t in range(d)])
-        self._dtype = dtype_real
+        self._M = M
+        self._m = m
+        self._N = N
+        self._n = n
         self._flags = flags_used
 
+        # connect Python arrays to plan internals
+        self._plan.f = (
+            <fftw_complex *>np.PyArray_DATA(self.__f))
+        
+        self._plan.f_hat = (
+            <fftw_complex *>np.PyArray_DATA(self.__f_hat))
+        
+        self._plan.x = (
+            <double *>np.PyArray_DATA(self.__x))
+
     # here, just holds the documentation of the class constructor
-    def __init__(self, N, M, n=None, m=12, x=None, f=None, f_hat=None,
-                 flags=None, *args, **kwargs):
+    def __init__(self, f, f_hat, x=None, n=None, m=12, flags=None,
+                 *args, **kwargs):
         '''
-        :param N: multi-bandwith size.
-        :type N: int, tuple of int
-        :param M: number of non-uniform samples.
-        :type M: int
-        :param n: oversampled multi-bandwith, default to 2 * N.
-        :type n: int, tuple of int
-        :param m: Cut-off parameter of the window function.
-        :type m: int
-        :param x: external array holding the nodes.
-        :type x: ndarray
         :param f: external array holding the non-uniform samples.
         :type f: ndarray
         :param f_hat: external array holding the Fourier coefficients.
         :type f_hat: ndarray
+        :param x: optional array holding the nodes.
+        :type x: ndarray
+        :param n: oversampled multi-bandwith, default to 2 * N.
+        :type n: tuple of int
+        :param m: Cut-off parameter of the window function.
+        :type m: int
         :param flags: list of precomputation flags, see note below.
         :type flags: tuple
-
+        
         **Precomputation flags**
 
         This table lists the supported precomputation flags for the NFFT.
@@ -335,154 +333,320 @@ cdef class NFFT:
         '''
         pass
 
-    # where the C-related content of the class needs to be cleaned
     def __dealloc__(self):
         nfft_finalize(&self._plan)
 
-    cpdef precompute(self):
+    def forward(self, f=None, f_hat=None, use_dft=False):
         '''
-        Precomputes the NFFT plan internals.
+        Performs the forward NFFT. Supports optional update of the data 
+        arrays. 
 
-        .. warning::
-            The nodes :attr:`pynfft.NFFT.x` must be initialized before
-            precomputing.
+        :param f: array override.
+        :type f: ndarray
+        :param f_hat: array override.
+        :type f_hat: ndarray
+        :param use_dft: whether to use the DFT instead of the fast algorithm.
+        :type use_dft: boolean
+        :returns: the updated f array.
+        :rtype: ndarray
+        :raises: ValueError
+        '''
+        if f_hat is not None:
+            if not isinstance(f_hat, np.ndarray):
+                copy_needed = True
+
+            elif (not f_hat.dtype == self.__f_hat_dtype):
+                copy_needed = True 
+
+            elif (not f_hat.flags.c_contiguous):
+                copy_needed = True
+
+            else:
+                copy_needed = False
+
+            if copy_needed:
+                f_hat = np.asanyarray(f_hat, dtype=self.__f_hat_dtype,
+                                      order='C')
+        else:
+            f_hat = self.__f_hat
+
+        f = f if f is not None else self.__f                
+        
+        self.update_arrays(f, f_hat)
+        if use_dft:
+            self.execute_trafo_direct()
+        else:
+            self.execute_trafo()
+
+        return self.__f
+    
+    def adjoint(self, f=None, f_hat=None, use_dft=False):
+        '''
+        Performs the adjoint NFFT. Supports optional update of the data 
+        arrays.
+
+        :param f: array override.
+        :type f: ndarray
+        :param f_hat: array override.
+        :type f_hat: ndarray
+        :param use_dft: whether to use the DFT instead of the fast algorithm.
+        :type use_dft: boolean
+        :returns: the updated f_hat array.
+        :rtype: ndarray
+        :raises: ValueError
+        '''
+        if f is not None:
+            if not isinstance(f, np.ndarray):
+                copy_needed = True
+
+            elif (not f.dtype == self.__f_dtype):
+                copy_needed = True 
+
+            elif (not f.flags.c_contiguous):
+                copy_needed = True
+
+            else:
+                copy_needed = False
+
+            if copy_needed:
+                f = np.asanyarray(f, dtype=self.__f_dtype, order='C')
+        else:
+            f = self.__f
+
+        f_hat = f_hat if f_hat is not None else self.__f_hat                
+        
+        self.update_arrays(f, f_hat)
+        if use_dft:
+            self.execute_adjoint_direct()
+        else:
+            self.execute_adjoint()
+
+        return self.__f_hat
+
+    def precompute(self, x=None):
+        '''precompute(x=None)
+        
+        Precomputes the NFFT plan internals. Supports optional update of the 
+        node array.
+        
+        :param x: array override.
+        :type x: ndarray
+        :raises: ValueError        
+        '''
+        if x is not None:
+            if not isinstance(x, np.ndarray):
+                copy_needed = True
+
+            elif (not x.dtype == self.__x_dtype):
+                copy_needed = True 
+
+            elif (not x.flags.c_contiguous):
+                copy_needed = True
+
+            else:
+                copy_needed = False
+
+            if copy_needed:
+                x = np.asanyarray(x, dtype=self.__x_dtype, order='C')
+        else:
+            x = self.__x
+        
+        self.update_nodes(x)
+        self.execute_precomputation()
+
+    cpdef execute_precomputation(self):
+        '''execute_precomputation()
+        
+        Precomputes the NFFT plan internals.
         '''
         with nogil:
             nfft_precompute_one_psi(&self._plan)
 
-    cpdef trafo(self):
-        '''
-        Performs the forward NFFT.
+    cpdef execute_trafo(self):
+        '''execute_trafo()
 
-        Reads :attr:`pynfft.NFFT.f_hat` and stores the result in
-        :attr:`pynfft.NFFT.f`.
+        Execute the forward NFFT operation. Input data are read from 
+        :attr:`f_hat` and results written in :attr:`f`. 
+
+        Uses the fast implementation of the NFFT.
         '''
         with nogil:
             nfft_trafo(&self._plan)
 
-    cpdef trafo_direct(self):
-        '''
-        Performs the forward NDFT.
+    cpdef execute_trafo_direct(self):
+        '''execute_trafo_direct()
 
-        Reads :attr:`pynfft.NFFT.f_hat` and stores the result in
-        :attr:`pynfft.NFFT.f`.
+        Execute the forward NFFT operation. Input data are read from 
+        :attr:`f_hat` and results written in :attr:`f`. 
+
+        Uses the slower discrete Fourier transform.
         '''
         with nogil:
-             nfft_trafo_direct(&self._plan)
+            nfft_trafo_direct(&self._plan)
 
-    cpdef adjoint(self):
-        '''
-        Performs the adjoint NFFT.
+    cpdef execute_adjoint(self):
+        '''execute_adjoint()
 
-        Reads :attr:`pynfft.NFFT.f` and stores the result in
-        :attr:`pynfft.NFFT.f_hat`.
+        Execute the adjoint NFFT operation. Input data are read from 
+        :attr:`f` and results written in :attr:`f_hat`. 
+
+        Uses the fast implementation of the NFFT.
         '''
         with nogil:
             nfft_adjoint(&self._plan)
 
-    cpdef adjoint_direct(self):
-        '''
-        Performs the adjoint NDFT.
+    cpdef execute_adjoint_direct(self):
+        '''execute_adjoint_direct()
 
-        Reads :attr:`pynfft.NFFT.f` and stores the result in
-        :attr:`pynfft.NFFT.f_hat`.
+        Execute the adjoint NFFT operation. Input data are read from 
+        :attr:`f` and results written in :attr:`f_hat`. 
+
+        Uses the slower discrete Fourier transform.
         '''
         with nogil:
-             nfft_adjoint_direct(&self._plan)
+            nfft_adjoint_direct(&self._plan)
+
+    cpdef update_arrays(self, new_f, new_f_hat):
+        '''update_nodes(new_f, new_f_hat)
+        
+        Update internal data array used for computing the NFFT. 
+                
+        :param new_f: new array.
+        :type new_f: ndarray
+        :param new_f_hat: new array.
+        :type new_f_hat: ndarray
+        :raises: ValueError
+        '''
+        if not isinstance(new_f, np.ndarray):
+            raise ValueError('array is not an instance of numpy.ndarray')     
+
+        if not new_f.flags.c_contiguous:
+            raise ValueError('array must be C-contiguous')
+
+        if new_f.dtype != self.__f_dtype:
+            raise ValueError('array dtype is not complex128')
+        
+        try:
+            new_f = new_f.reshape(self.__f_shape)
+        except ValueError:
+            raise ValueError('array is not compatible with geometry')
+        
+        if not isinstance(new_f_hat, np.ndarray):
+            raise ValueError('array is not an instance of numpy.ndarray')  
+
+        if not new_f_hat.flags.c_contiguous:
+            raise ValueError('array must be C-contiguous')
+
+        if new_f_hat.dtype != self.__f_hat_dtype:
+            raise ValueError('array dtype is not complex128')
+
+        try:
+            new_f_hat = new_f_hat.reshape(self.__f_hat_shape)
+        except ValueError:
+            raise ValueError('array is not compatible with geometry')
+
+        self._update_arrays(new_f, new_f_hat)        
+
+    cdef _update_arrays(self, np.ndarray new_f, np.ndarray new_f_hat):
+        '''
+        A C-interface to update_arrays, which does not perform any checks and
+        refreshes the plan's internal vectors
+        '''        
+        self.__f = new_f
+        self._plan.f = <fftw_complex *>np.PyArray_DATA(self.__f)
+        
+        self.__f_hat = new_f_hat
+        self._plan.f_hat = <fftw_complex *>np.PyArray_DATA(self.__f_hat)
+
+    cpdef update_nodes(self, new_x):
+        '''update_nodes(new_x)
+        
+        Update internal node array used for precomputing the NFFT plan. 
+                
+        :param new_x: new array.
+        :type new_x: ndarray
+        :raises: ValueError
+        '''
+        if not isinstance(new_x, np.ndarray):
+            raise ValueError('array is not an instance of numpy.ndarray')                    
+
+        if not new_x.flags.c_contiguous:
+            raise ValueError('array must be C-contiguous')
+
+        if new_x.dtype != self.__x_dtype:
+            raise ValueError('array dtype is not float64')
+
+        try:
+            new_x = new_x.reshape(self.__x_shape)
+        except ValueError:
+            raise ValueError('array is not compatible with geometry')
+
+        self._update_nodes(new_x)  
+
+    cdef _update_nodes(self, np.ndarray new_x):
+        '''
+        A C-interface to update_nodes, which does not perform any checks and
+        refreshes the plan's internal vectors
+        '''        
+        self.__x = new_x
+        self._plan.x = <double *>np.PyArray_DATA(self.__x)
 
     def __get_f(self):
-        '''
-        The vector of non-uniform samples.
-        '''
-        return self._f
+        '''The vector of non-uniform samples.'''
+        return self.__f
 
-    def __set_f(self, new_f):
-        self._f[:] = new_f.ravel()[:]
-
-    f = property(__get_f, __set_f)
+    f = property(__get_f)
 
     def __get_f_hat(self):
-        '''
-        The vector of Fourier coefficients.
-        '''
-        return self._f_hat
+        '''The vector of Fourier coefficients.'''
+        return self.__f_hat
 
-    def __set_f_hat(self, new_f_hat):
-        self._f_hat[:] = new_f_hat.ravel()[:]
-
-    f_hat = property(__get_f_hat, __set_f_hat)
+    f_hat = property(__get_f_hat)
 
     def __get_x(self):
-        '''
-        The nodes in time/spatial domain.
-        '''
-        return self._x
+        '''The nodes in time/spatial domain.'''
+        return self.__x
 
-    def __set_x(self, new_x):
-        self._x[:] = new_x.ravel()[:]
-
-    x = property(__get_x, __set_x)
+    x = property(__get_x)
 
     def __get_d(self):
-        '''
-        The dimensionality of the NFFT.
-        '''
+        '''The dimensionality of the NFFT.'''
         return self._d
 
     d = property(__get_d)
 
     def __get_m(self):
-        '''
-        The cut-off parameter of the window function.
-        '''
+        '''The cut-off parameter of the window function.'''
         return self._m
 
     m = property(__get_m)
 
-    def __get_M_total(self):
-        '''
-        The total number of samples.
-        '''
-        return self._M_total
+    def __get_M(self):
+        '''The total number of samples.'''
+        return self._M
 
-    M_total = property(__get_M_total)
+    M = property(__get_M)
 
     def __get_N_total(self):
-        '''
-        The total number of Fourier coefficients.
-        '''
-        return self._N_total
+        '''The total number of Fourier coefficients.'''
+        return np.prod(self._N)
 
     N_total = property(__get_N_total)
 
     def __get_N(self):
-        '''
-        The multi-bandwith size.
-        '''
+        '''The multi-bandwith size.'''
         return self._N
 
     N = property(__get_N)
 
     def __get_n(self):
-        '''
-        The oversampled multi-bandwith size.
-        '''
+        '''The oversampled multi-bandwith size.'''
         return self._n
 
     n = property(__get_n)
 
-    def __get_dtype(self):
-        '''
-        The floating precision.
-        '''
-        return self._dtype
-
-    dtype = property(__get_dtype)
-
     def __get_flags(self):
-        '''
-        The precomputation flags.
-        '''
+        '''The precomputation flags.'''
         return self._flags
 
     flags = property(__get_flags)
@@ -506,10 +670,7 @@ solver_flags = solver_flags_dict.copy()
 
 cdef class Solver:
     '''
-    Solver is a class for computing the adjoint NFFT iteratively. Using the
-    solver should theoretically lead to more accurate results, even with just
-    one iteration, than using :meth:`pynfft.NFFT.adjoint` or
-    :meth:`pynfft.NFFT.adjoint_direct`.
+    Solver is a class for computing the adjoint NFFT iteratively..
 
     The instantiation requires a NFFT object used internally for the multiple
     forward and adjoint NFFT performed. The class uses conjugate-gradient as
@@ -517,12 +678,12 @@ cdef class Solver:
 
     Because the stopping conidition of the iterative computation may change
     from one application to another, the implementation only let you carry
-    one iteration at a time with a call to
-    :meth:`pynfft.Solver.loop_one_step`. Initialization of the solver
-    is done by calling the :meth:`pynfft.Solver.before_loop` method.
+    one iteration at a time with a call to :meth:`loop_one_step`. 
+    Initialization of the solver is done by calling the :meth:`before_loop` 
+    method.
 
     The class exposes the internals of the solver through call to their
-    respective properties. They should be treated as read-only values.
+    respective properties.
     '''
     cdef solver_plan_complex _plan
     cdef NFFT _nfft_plan
@@ -531,7 +692,6 @@ cdef class Solver:
     cdef object _y
     cdef object _f_hat_iter
     cdef object _r_iter
-    cdef object _dtype
     cdef object _flags
 
     def __cinit__(self, NFFT nfft_plan, flags=None):
@@ -576,48 +736,54 @@ cdef class Solver:
             raise MemoryError
 
         self._nfft_plan = nfft_plan
+        d = nfft_plan.d
+        M = nfft_plan.M
+        N = nfft_plan.N
 
-        cdef np.npy_intp shape[1]
-        cdef int M_total = nfft_plan._M_total
-        cdef int N_total = nfft_plan._N_total
+        cdef np.npy_intp shape_M[1]
+        shape_M[0] = M
+
+        self._r_iter = np.PyArray_SimpleNewFromData(1, shape_M,
+            np.NPY_COMPLEX128, <void *>(self._plan.r_iter))
+
+        self._y = np.PyArray_SimpleNewFromData(1, shape_M,
+            np.NPY_COMPLEX128, <void *>(self._plan.y))
 
         if 'PRECOMPUTE_WEIGHT' in flags_used:
-            shape[0] = M_total
-            self._w = np.PyArray_SimpleNewFromData(1, shape,
+            self._w = np.PyArray_SimpleNewFromData(1, shape_M,
                 np.NPY_FLOAT64, <void *>(self._plan.w))
             self._w[:] = 1  # make sure weights are initialized
         else:
             self._w = None
 
+        cdef np.npy_intp *shape_N
+        try:
+            shape_N = <np.npy_intp*>malloc(d*sizeof(np.npy_intp))
+        except:
+            raise MemoryError
+        for dt in range(d):
+            shape_N[dt] = N[dt]
+
+        self._f_hat_iter = np.PyArray_SimpleNewFromData(d, shape_N,
+            np.NPY_COMPLEX128, <void *>(self._plan.f_hat_iter))
+        self._f_hat_iter[:] = 0  # default initial guess
+
         if 'PRECOMPUTE_DAMP' in flags_used:
-            shape[0] = N_total
-            self._w_hat = np.PyArray_SimpleNewFromData(1, shape,
+            self._w_hat = np.PyArray_SimpleNewFromData(d, shape_N,
                 np.NPY_FLOAT64, <void *>(self._plan.w_hat))
             self._w_hat[:] = 1  # make sure weights are initialized
         else:
             self._w_hat = None
 
-        shape[0] = M_total
-        self._y = np.PyArray_SimpleNewFromData(1, shape,
-            np.NPY_COMPLEX128, <void *>(self._plan.y))
+        free(shape_N)
 
-        shape[0] = N_total
-        self._f_hat_iter = np.PyArray_SimpleNewFromData(1, shape,
-            np.NPY_COMPLEX128, <void *>(self._plan.f_hat_iter))
-        self._f_hat_iter[:] = 0  # default initial guess
-
-        shape[0] = M_total
-        self._r_iter = np.PyArray_SimpleNewFromData(1, shape,
-            np.NPY_COMPLEX128, <void *>(self._plan.r_iter))
-
-        self._dtype = dtype_real
         self._flags = flags_used
 
 
     def __init__(self, nfft_plan, flags=None):
         '''
         :param plan: instance of NFFT.
-        :type plan: :class:`pynfft.NFFT`
+        :type plan: :class:`NFFT`
         :param flags: list of instantiation flags, see below.
         :type flags: tuple
 
@@ -649,87 +815,47 @@ cdef class Solver:
         solver_finalize_complex(&self._plan)
 
     cpdef before_loop(self):
-        '''
-        Initialize solver internals.
-        '''
+        '''Initialize solver internals.'''
         with nogil:
             solver_before_loop_complex(&self._plan)
 
     cpdef loop_one_step(self):
-        '''
-        Perform one iteration.
-        '''
+        '''Perform one iteration.'''
         with nogil:
             solver_loop_one_step_complex(&self._plan)
 
     def __get_w(self):
-        '''
-        Weighting factors.
-        '''
+        '''Weighting factors.'''
         return self._w
 
-    def __set_w(self, new_w):
-        if self._w is not None:
-            self._w.ravel()[:] = new_w.ravel()[:]
-
-    w = property(__get_w, __set_w)
+    w = property(__get_w)
 
     def __get_w_hat(self):
-        '''
-        Damping factors.
-        '''
+        '''Damping factors.'''
         return self._w_hat
 
-    def __set_w_hat(self, new_w_hat):
-        if self._w_hat is not None:
-            self._w_hat.ravel()[:] = new_w_hat.ravel()[:]
-
-    w_hat = property(__get_w_hat, __set_w_hat)
+    w_hat = property(__get_w_hat)
 
     def __get_y(self):
-        '''
-        Right hand side, samples.
-        '''
+        '''Right hand side, samples.'''
         return self._y
 
-    def __set_y(self, new_y):
-        if self._y is not None:
-            self._y.ravel()[:] = new_y.ravel()[:]
-
-    y = property(__get_y, __set_y)
+    y = property(__get_y)
 
     def __get_f_hat_iter(self):
-        '''
-        Iterative solution.
-        '''
+        '''Iterative solution.'''
         return self._f_hat_iter
 
-    def __set_f_hat_iter(self, new_f_hat_iter):
-        if self._f_hat_iter is not None:
-            self._f_hat_iter.ravel()[:] = new_f_hat_iter.ravel()[:]
-
-    f_hat_iter = property(__get_f_hat_iter, __set_f_hat_iter)
+    f_hat_iter = property(__get_f_hat_iter)
 
     def __get_r_iter(self):
-        '''
-        Residual vector.
-        '''
+        '''Residual vector.'''
         return self._r_iter
 
     r_iter = property(__get_r_iter)
 
-    def __get_dtype(self):
-        '''
-        The floating precision.
-        '''
-        return self._dtype
-
-    dtype = property(__get_dtype)
-
     def __get_flags(self):
-        '''
-        The precomputation flags.
-        '''
+        '''The precomputation flags.'''
         return self._flags
 
     flags = property(__get_flags)

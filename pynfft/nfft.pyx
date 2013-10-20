@@ -684,7 +684,7 @@ cdef class Solver:
     method.
 
     The class exposes the internals of the solver through call to their
-    respective properties. They should be treated as read-only values.
+    respective properties.
     '''
     cdef solver_plan_complex _plan
     cdef NFFT _nfft_plan

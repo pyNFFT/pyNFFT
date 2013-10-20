@@ -86,24 +86,21 @@ cdef class NFFT:
     '''
     NFFT is a class for computing the multivariate Non-uniform Discrete
     Fourier (NDFT) transform using the NFFT library. The interface is
-    designed to be somewhat pythonic, while retaining the features and
-    naming of the C code internals. The computation of the NFFT is achieved
-    in 3 steps: instantiation, precomputation and execution.
+    designed to be somewhat pythonic, whilst preserving the workflow of the 
+    original C-library. Computation of the NFFT is achieved in 3 steps: 
+    instantiation, precomputation and execution.
 
-    On instantiation, sanity checks on the size parameters and computation
-    flags are performed prior to initialization of the internal plan.
-    External data arrays may be provided, otherwise internal Numpy arrays
-    will be used. Any incompatibilities detected in the parameters will raise
-    a ``ValueError`` exception.
+    On instantiation, the geometry of the transform is guessed from the shape 
+    of the input arrays `f` and `f_hat`. The node array `x` can be optionally 
+    provided, otherwise it will be created internally.
+.
+    Precomputation initializes the internals of the transform prior to 
+    execution, and is called with the :meth:`pynfft.NFFT.precompute` method.
 
-    The nodes must be initialized prior to precomputing the operator with the
-    :meth:`pynfft.NFFT.precompute` method.
-
-    The forward and adjoint NFFT operation may be performed by calling the
-    :meth:`pynfft.NFFT.trafo` or :meth:`pynfft.NFFT.adjoint`
-    methods. The NDFT may also be computed by calling the
-    :meth:`pynfft.NFFT.trafo_direct` or
-    :meth:`pynfft.NFFT.adjoint_direct`.
+    The forward and adjoint NFFT can be called with 
+    :meth:`pynfft.NFFT.forward` and :meth:`pynfft.NFFT.adjoint` respectively. 
+    Each of these methods support internal array update and coercion to the 
+    right internal dtype.
     '''
     cdef nfft_plan _plan
     cdef int _d
@@ -304,7 +301,7 @@ cdef class NFFT:
         :type f: ndarray
         :param f_hat: external array holding the Fourier coefficients.
         :type f_hat: ndarray
-        :param x: external array holding the nodes.
+        :param x: optional array holding the nodes.
         :type x: ndarray
         :param n: oversampled multi-bandwith, default to 2 * N.
         :type n: tuple of int
@@ -342,7 +339,8 @@ cdef class NFFT:
 
     def forward(self, f=None, f_hat=None, use_dft=False):
         '''
-        Performs the forward NFFT.
+        Performs the forward NFFT. Supports optional update of the data 
+        arrays. 
 
         :param f: array override.
         :type f: ndarray
@@ -385,7 +383,8 @@ cdef class NFFT:
     
     def adjoint(self, f=None, f_hat=None, use_dft=False):
         '''
-        Performs the adjoint NFFT.
+        Performs the adjoint NFFT. Supports optional update of the data 
+        arrays.
 
         :param f: array override.
         :type f: ndarray
@@ -426,8 +425,10 @@ cdef class NFFT:
         return self.__f_hat
 
     def precompute(self, x=None):
-        '''
-        Precomputes the NFFT plan internals.
+        '''precompute(x=None)
+        
+        Precomputes the NFFT plan internals. Supports optional update of the 
+        node array.
         
         :param x: array override.
         :type x: ndarray
@@ -455,51 +456,61 @@ cdef class NFFT:
         self.execute_precomputation()
 
     cpdef execute_precomputation(self):
-        '''
+        '''execute_precomputation()
+        
         Precomputes the NFFT plan internals.
         '''
         with nogil:
             nfft_precompute_one_psi(&self._plan)
 
     cpdef execute_trafo(self):
-        '''
-        Performs the forward NFFT.
+        '''execute_trafo()
 
-        :raises: RuntimeError
+        Execute the forward NFFT operation. Input data are read from 
+        :attr:`f_hat` and results written in :attr:`f`. 
+
+        Uses the fast implementation of the NFFT.
         '''
         with nogil:
             nfft_trafo(&self._plan)
 
     cpdef execute_trafo_direct(self):
-        '''
-        Performs the forward NDFT.
+        '''execute_trafo_direct()
 
-        :raises: RuntimeError
+        Execute the forward NFFT operation. Input data are read from 
+        :attr:`f_hat` and results written in :attr:`f`. 
+
+        Uses the slower discrete Fourier transform.
         '''
         with nogil:
             nfft_trafo_direct(&self._plan)
 
     cpdef execute_adjoint(self):
-        '''
-        Performs the adjoint NFFT.
+        '''execute_adjoint()
 
-        :raises: RuntimeError
+        Execute the adjoint NFFT operation. Input data are read from 
+        :attr:`f` and results written in :attr:`f_hat`. 
+
+        Uses the fast implementation of the NFFT.
         '''
         with nogil:
             nfft_adjoint(&self._plan)
 
     cpdef execute_adjoint_direct(self):
-        '''
-        Performs the adjoint NDFT.
+        '''execute_adjoint_direct()
 
-        :raises: RuntimeError
+        Execute the adjoint NFFT operation. Input data are read from 
+        :attr:`f` and results written in :attr:`f_hat`. 
+
+        Uses the slower discrete Fourier transform.
         '''
         with nogil:
             nfft_adjoint_direct(&self._plan)
 
     cpdef update_arrays(self, new_f, new_f_hat):
-        '''
-        Update internal data arrays.
+        '''update_nodes(new_f, new_f_hat)
+        
+        Update internal data array used for computing the NFFT. 
                 
         :param new_f: new array.
         :type new_f: ndarray
@@ -549,8 +560,9 @@ cdef class NFFT:
         self._plan.f_hat = <fftw_complex *>np.PyArray_DATA(self.__f_hat)
 
     cpdef update_nodes(self, new_x):
-        '''
-        Update internal node array.
+        '''update_nodes(new_x)
+        
+        Update internal node array used for precomputing the NFFT plan. 
                 
         :param new_x: new array.
         :type new_x: ndarray
@@ -581,81 +593,61 @@ cdef class NFFT:
         self._plan.x = <double *>np.PyArray_DATA(self.__x)
 
     def __get_f(self):
-        '''
-        The vector of non-uniform samples.
-        '''
+        '''The vector of non-uniform samples.'''
         return self.__f
 
     f = property(__get_f)
 
     def __get_f_hat(self):
-        '''
-        The vector of Fourier coefficients.
-        '''
+        '''The vector of Fourier coefficients.'''
         return self.__f_hat
 
     f_hat = property(__get_f_hat)
 
     def __get_x(self):
-        '''
-        The nodes in time/spatial domain.
-        '''
+        '''The nodes in time/spatial domain.'''
         return self.__x
 
     x = property(__get_x)
 
     def __get_d(self):
-        '''
-        The dimensionality of the NFFT.
-        '''
+        '''The dimensionality of the NFFT.'''
         return self._d
 
     d = property(__get_d)
 
     def __get_m(self):
-        '''
-        The cut-off parameter of the window function.
-        '''
+        '''The cut-off parameter of the window function.'''
         return self._m
 
     m = property(__get_m)
 
     def __get_M(self):
-        '''
-        The total number of samples.
-        '''
+        '''The total number of samples.'''
         return self._M
 
     M = property(__get_M)
 
     def __get_N_total(self):
-        '''
-        The total number of Fourier coefficients.
-        '''
+        '''The total number of Fourier coefficients.'''
         return np.prod(self._N)
 
     N_total = property(__get_N_total)
 
     def __get_N(self):
-        '''
-        The multi-bandwith size.
-        '''
+        '''The multi-bandwith size.'''
         return self._N
 
     N = property(__get_N)
 
     def __get_n(self):
-        '''
-        The oversampled multi-bandwith size.
-        '''
+        '''The oversampled multi-bandwith size.'''
         return self._n
 
     n = property(__get_n)
 
     def __get_flags(self):
-        '''
-        The precomputation flags.
-        '''
+        '''The precomputation flags.'''
         return self._flags
 
     flags = property(__get_flags)
@@ -679,10 +671,7 @@ solver_flags = solver_flags_dict.copy()
 
 cdef class Solver:
     '''
-    Solver is a class for computing the adjoint NFFT iteratively. Using the
-    solver should theoretically lead to more accurate results, even with just
-    one iteration, than using :meth:`pynfft.NFFT.adjoint` or
-    :meth:`pynfft.NFFT.adjoint_direct`.
+    Solver is a class for computing the adjoint NFFT iteratively..
 
     The instantiation requires a NFFT object used internally for the multiple
     forward and adjoint NFFT performed. The class uses conjugate-gradient as
@@ -690,9 +679,9 @@ cdef class Solver:
 
     Because the stopping conidition of the iterative computation may change
     from one application to another, the implementation only let you carry
-    one iteration at a time with a call to
-    :meth:`pynfft.Solver.loop_one_step`. Initialization of the solver
-    is done by calling the :meth:`pynfft.Solver.before_loop` method.
+    one iteration at a time with a call to :meth:`loop_one_step`. 
+    Initialization of the solver is done by calling the :meth:`before_loop` 
+    method.
 
     The class exposes the internals of the solver through call to their
     respective properties. They should be treated as read-only values.
@@ -829,23 +818,17 @@ cdef class Solver:
         solver_finalize_complex(&self._plan)
 
     cpdef before_loop(self):
-        '''
-        Initialize solver internals.
-        '''
+        '''Initialize solver internals.'''
         with nogil:
             solver_before_loop_complex(&self._plan)
 
     cpdef loop_one_step(self):
-        '''
-        Perform one iteration.
-        '''
+        '''Perform one iteration.'''
         with nogil:
             solver_loop_one_step_complex(&self._plan)
 
     def __get_w(self):
-        '''
-        Weighting factors.
-        '''
+        '''Weighting factors.'''
         return self._w
 
     def __set_w(self, new_w):
@@ -855,9 +838,7 @@ cdef class Solver:
     w = property(__get_w, __set_w)
 
     def __get_w_hat(self):
-        '''
-        Damping factors.
-        '''
+        '''Damping factors.'''
         return self._w_hat
 
     def __set_w_hat(self, new_w_hat):
@@ -867,9 +848,7 @@ cdef class Solver:
     w_hat = property(__get_w_hat, __set_w_hat)
 
     def __get_y(self):
-        '''
-        Right hand side, samples.
-        '''
+        '''Right hand side, samples.'''
         return self._y
 
     def __set_y(self, new_y):
@@ -879,9 +858,7 @@ cdef class Solver:
     y = property(__get_y, __set_y)
 
     def __get_f_hat_iter(self):
-        '''
-        Iterative solution.
-        '''
+        '''Iterative solution.'''
         return self._f_hat_iter
 
     def __set_f_hat_iter(self, new_f_hat_iter):
@@ -891,25 +868,19 @@ cdef class Solver:
     f_hat_iter = property(__get_f_hat_iter, __set_f_hat_iter)
 
     def __get_r_iter(self):
-        '''
-        Residual vector.
-        '''
+        '''Residual vector.'''
         return self._r_iter
 
     r_iter = property(__get_r_iter)
 
     def __get_dtype(self):
-        '''
-        The complex precision.
-        '''
+        '''The complex precision.'''
         return self._dtype
 
     dtype = property(__get_dtype)
 
     def __get_flags(self):
-        '''
-        The precomputation flags.
-        '''
+        '''The precomputation flags.'''
         return self._flags
 
     flags = property(__get_flags)

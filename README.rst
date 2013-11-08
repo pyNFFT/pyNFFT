@@ -61,7 +61,7 @@ and then installed with::
 
     python setup.py install
 
-The build process uses Cython by default to generate the cythonized 
+The build process requires Cython in order to generate the cythonized 
 c-files and use them for creating the shared object.::
 
     python setup.py build_ext --inplace
@@ -86,7 +86,7 @@ Requirements
 - Python 2.7 or greater
 - Numpy 1.6 or greater
 - NFFT library 3.2 or greater, compiled with openMP support
-- Cython 0.15 or greater (optional if using pip)
+- Cython 0.12 or greater
 
 Contributing
 ------------

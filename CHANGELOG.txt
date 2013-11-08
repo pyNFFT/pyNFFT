@@ -1,6 +1,15 @@
 Changelog
 =========
 
+Changes in version 1.1.1
+------------------------
+
+    * simplify build system
+    * add support for pip dependencies
+    * simplify documentation tree
+    * add option for generating documentation in build system
+    * source distribution is now embedding the documentation
+
 Changes in version 1.1
 ----------------------
 

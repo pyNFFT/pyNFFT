@@ -77,7 +77,7 @@ class CleanCommand(Command):
 
     def run(self):
         for _dir in [os.path.join(setup_dir, d) 
-                for d in ('build', 'dist', 'doc/build')]:
+                for d in ('build', 'dist', 'doc/build', 'pyNFFT.egg-info')]:
             if os.path.exists(_dir):
                 shutil.rmtree(_dir)
         for root, _, files in os.walk(package_dir):

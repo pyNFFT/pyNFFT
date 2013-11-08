@@ -16,60 +16,36 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from distutils.core import setup, Command
-from distutils.extension import Extension
-from distutils.util import get_platform
+try:
+    from setuptools import setup, Command, Extension
+except ImportError:
+    from distutils.core import setup, Command, Extension
+from Cython.Distutils import build_ext as build_ext
 
 import os
+import os.path
 import numpy
+import shutil
 
+setup_dir = dir = os.path.dirname(os.path.abspath(__file__))
 package_name = 'pynfft'
+package_dir = os.path.join(setup_dir, package_name)
 
-# Get the version string in rather a roundabout way.
-# We can't import it directly as the module may not yet be
-# built in pyfftw.
-import imp
-ver_file, ver_pathname, ver_description = imp.find_module(
-            '_version', [package_name])
-try:
-    _version = imp.load_module('version', ver_file, ver_pathname,
-            ver_description)
-finally:
-    ver_file.close()
 
-version = _version.version
+# import version
+with open(os.path.join(package_dir, 'version.py')) as f:
+    exec(f.read())
+version = __version__
 
-use_cython = True
-try:
-    from Cython.Distutils import build_ext as build_ext
-except ImportError as e:
-    # assuming you'using the cythonized sources
-    from distutils.command.build_ext import build_ext
-    use_cython = False
-
-# Set system-dependent dependencies
 include_dirs = [numpy.get_include()]
 library_dirs = []
 package_data = {}
+libraries = ['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm']
 
-if get_platform() in ('win32', 'win-amd64'):
-    raise RuntimeError("Windows is not supported yet")
-else:
-    libraries = ['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm']
-
-if use_cython:
-    src_nfft = [os.path.join(os.getcwd(), package_name, 'nfft.pyx')]
-    src_util = [os.path.join(os.getcwd(), package_name, 'util.pyx')]
-else:
-    src_nfft = [os.path.join(os.getcwd(), package_name, 'nfft.c')]
-    src_util = [os.path.join(os.getcwd(), package_name, 'util.c')]
-    if not (os.path.exists(src_nfft[0]) and os.path.exists(src_util[0])):
-        raise ImportError('cythonized sources not found')        
-    
 ext_modules = [
     Extension(
         name=package_name+'.nfft',
-        sources=src_nfft,
+        sources=[os.path.join(package_dir, 'nfft.pyx')],
         libraries=libraries,
         library_dirs=library_dirs,
         include_dirs=include_dirs,
@@ -78,7 +54,7 @@ ext_modules = [
     ),
     Extension(
         name=package_name+'.util',
-        sources=src_util,
+        sources=[os.path.join(package_dir, 'util.pyx')],
         libraries=libraries,
         library_dirs=library_dirs,
         include_dirs=include_dirs,
@@ -88,7 +64,7 @@ ext_modules = [
 ]
 
 
-class clean(Command):
+class CleanCommand(Command):
 
     description = "Force clean of build files and directories."
     user_options = []
@@ -100,13 +76,14 @@ class clean(Command):
         pass
 
     def run(self):
-        import os
-        os.system("rm -f MANIFEST")
-        os.system("rm -rf build/")
-        os.system("rm -rf dist/")
-        os.system("rm -rf pynfft/*.c")
-        os.system("rm -rf pynfft/*.so")
-        os.system("rm -rf doc/build/")
+        for _dir in [os.path.join(setup_dir, d) 
+                for d in ('build', 'dist', 'doc/build', 'pyNFFT.egg-info')]:
+            if os.path.exists(_dir):
+                shutil.rmtree(_dir)
+        for root, _, files in os.walk(package_dir):
+            for _file in files:
+                if not _file.endswith(('.py', '.pyx', '.pxd', '.pxi')):
+                    os.remove(os.path.join(package_dir, _file))
 
 
 class TestCommand(Command):
@@ -119,9 +96,10 @@ class TestCommand(Command):
         pass
 
     def run(self):
-        import sys, subprocess
-        errno = subprocess.call([sys.executable, '-m', 'unittest',
-            'discover'])
+        import sys
+        import subprocess
+        errno = subprocess.call(
+                [sys.executable, '-m', 'unittest', 'discover'])
         raise SystemExit(errno)
 
 
@@ -168,8 +146,8 @@ setup_args = {
     'include_dirs': include_dirs,
     'package_data': package_data,
     'cmdclass': {'build_ext': build_ext,
-                 'clean': clean,
-                 'test': TestCommand,},
+                 'clean': CleanCommand,
+                 'test': TestCommand},
 }
 
 if __name__ == '__main__':

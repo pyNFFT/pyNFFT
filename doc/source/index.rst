@@ -36,8 +36,8 @@ Content
 .. toctree::
    :maxdepth: 2
 
-   tutorial
-   api
+   tutorial.rst
+   api.rst
 
 About this documentation
 ------------------------

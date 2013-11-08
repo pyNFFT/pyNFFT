@@ -1,5 +1,7 @@
+include CHANGELOG.txt
 include COPYING.txt
 include README.rst
+include requirements.txt
 include pynfft/cnfft3.pxd
 include pynfft/nfft.pyx
 include pynfft/cnfft3util.pxd
@@ -8,4 +10,5 @@ include pynfft/util.pyx
 include pynfft/util.c
 include tests/test_*.py
 include tests/__init__.py
-recursive-include doc *.html *.css *.png *.js
+recursive-include doc/build/html *.html *.css *.png *.js
+

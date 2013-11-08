@@ -5,15 +5,15 @@ pyNFFT - a Pythonic wrapper around the NFFT library
 Fourier transform (NDFT) in one or more dimensions, of arbitrary input size,
 and of complex data."
 
-The NFFT library is licensed under GPLv2 and available at:
-http://www-user.tu-chemnitz.de/~potts/nfft/index.php
+The `NFFT library <http://www-user.tu-chemnitz.de/~potts/nfft/index.php>`_ 
+is licensed under GPLv2.
 
 This wrapper provides a somewhat Pythonic access to some of the core NFFT 
 library functionalities and is largely inspired from the pyFFTW project 
 developped by Henry Gomersall (http://hgomersall.github.io/pyFFTW/).
 
 The documentation is hosted on 
-`github pages <http://ghisvail.github.io/pyNFFT>`_, the source code is 
+`pythonhosted <http://pythonhosted.org/pyNFFT/>`_, the source code is 
 available on `github <https://github.com/ghisvail/pyNFFT>`_ and the 
 Python package index page is 
 `here <https://pypi.python.org/pypi/pyNFFT>`_.
@@ -21,8 +21,8 @@ Python package index page is
 Usage
 -----
 
-See the `tutorial <http://ghisvail.github.io/pyNFFT/tutorial.html>`_ 
-section of the `documentation <http://ghisvail.github.io/pyNFFT>`_.
+See the `tutorial <http://pythonhosted.org/pyNFFT/tutorial.html>`_ 
+section of the documentation.
 
 Installation
 ------------
@@ -61,7 +61,7 @@ and then installed with::
 
     python setup.py install
 
-The build process uses Cython by default to generate the cythonized 
+The build process requires Cython in order to generate the cythonized 
 c-files and use them for creating the shared object.::
 
     python setup.py build_ext --inplace
@@ -86,7 +86,7 @@ Requirements
 - Python 2.7 or greater
 - Numpy 1.6 or greater
 - NFFT library 3.2 or greater, compiled with openMP support
-- Cython 0.15 or greater (optional if using pip)
+- Cython 0.12 or greater
 
 Contributing
 ------------

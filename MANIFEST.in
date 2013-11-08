@@ -8,4 +8,4 @@ include pynfft/util.pyx
 include pynfft/util.c
 include tests/test_*.py
 include tests/__init__.py
-recursive-include doc *.html *.css *.png *.js
+recursive-include doc/build/html *.html *.css *.png *.js

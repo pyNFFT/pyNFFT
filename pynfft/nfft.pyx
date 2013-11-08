@@ -87,16 +87,16 @@ cdef class NFFT:
     NFFT is a class for computing the multivariate Non-uniform Discrete
     Fourier (NDFT) transform using the NFFT library. The interface is
     designed to be somewhat pythonic, whilst preserving the workflow of the 
-    original C-library. Computation of the NFFT is achieved in 3 steps: 
+    original C-library. Computation of the NFFT is achieved in 3 steps : 
     instantiation, precomputation and execution.
-
+    
     On instantiation, the geometry of the transform is guessed from the shape 
-    of the input arrays `f` and `f_hat`. The node array `x` can be optionally 
-    provided, otherwise it will be created internally.
-.
+    of the input arrays :attr:`f` and :attr:`f_hat`. The node array :attr:`x` 
+    can be optionally provided, otherwise it will be created internally.
+    
     Precomputation initializes the internals of the transform prior to 
     execution, and is called with the :meth:`precompute` method.
-
+    
     The forward and adjoint NFFT can be called with :meth:`forward` and 
     :meth:`adjoint` respectively. Each of these methods support internal array 
     update and coercion to the right internal dtype.

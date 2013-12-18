@@ -88,8 +88,7 @@ class Test_NFFT_runtime(unittest.TestCase):
         return f, f_hat
 
     def generate_nfft_plan(self):
-        Nfft = NFFT(self.f, self.f_hat, self.x)
-        Nfft.precompute()
+        Nfft = NFFT(f=self.f, f_hat=self.f_hat, x=self.x, precompute=True)
         return Nfft
 
     def __init__(self, *args, **kwargs):

@@ -115,7 +115,7 @@ cdef class NFFT(object):
 
     # where the C-related content of the class is being initialized
     def __cinit__(self, f, f_hat, x=None, n=None, m=12, flags=None,
-                  *args, **kwargs):
+                  precompute=False, *args, **kwargs):
 
         # support only double / double complex NFFT
         # TODO: if support for multiple floating precision lands in the
@@ -123,6 +123,9 @@ cdef class NFFT(object):
         # real and complex dtypes
         dtype_real = np.dtype('float64')
         dtype_complex = np.dtype('complex128')
+
+        # precompute at construct time possible if x is provided
+        precompute =  precompute and (x is not None)
 
         # sanity checks on input arrays
         if not isinstance(f, np.ndarray):
@@ -278,6 +281,10 @@ cdef class NFFT(object):
         self._update_f()
         self._update_f_hat()
         self._update_x()
+
+        # optional precomputation
+        if precompute:
+            self.execute_precomputation()
 
     # here, just holds the documentation of the class constructor
     def __init__(self, f, f_hat, x=None, n=None, m=12, flags=None,

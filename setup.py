@@ -70,7 +70,7 @@ class CleanCommand(Command):
         pass
 
     def run(self):
-        for _dir in [os.path.join(setup_dir, d) 
+        for _dir in [os.path.join(setup_dir, d)
                 for d in ('build', 'dist', 'doc/build', 'pyNFFT.egg-info')]:
             if os.path.exists(_dir):
                 shutil.rmtree(_dir)
@@ -97,7 +97,7 @@ class TestCommand(Command):
         raise SystemExit(errno)
 
 
-version = '1.2'
+version = '1.3'
 release = False
 if not release:
     version += '-dev'
@@ -147,6 +147,7 @@ setup_args = {
     'cmdclass': {'build_ext': build_ext,
                  'clean': CleanCommand,
                  'test': TestCommand},
+    'install_requires': ['numpy', 'cython'],
 }
 
 if __name__ == '__main__':

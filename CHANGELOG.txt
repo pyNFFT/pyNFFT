@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Changes in version 1.2
+----------------------
+
+    * code refactoring, prepare for move to multi-precision version of NFFT
+    * break support for old 1.0.x API
+    * add option to precompute at construct time
+
 Changes in version 1.1.1
 ------------------------
 
@@ -13,15 +20,15 @@ Changes in version 1.1.1
 Changes in version 1.1
 ----------------------
 
-    * PEP 440 compliant version string (closes #3)
-    * more pythonic API, breaks compatibility with 1.0.x (closes #4, #7)
-    * documentation update (closes #5, #6)
+    * PEP 440 compliant version string
+    * more pythonic API, breaks compatibility with 1.0.x
+    * documentation update
 
 
 Changes in version 1.0.1
 ------------------------
 
-    * fix issue #2 by updating the installation instructions
+    * update installation instructions
     * change registration of cleanup routine to use Py_AtExit
 
 

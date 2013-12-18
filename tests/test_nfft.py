@@ -88,8 +88,8 @@ class Test_NFFT_runtime(unittest.TestCase):
         return f, f_hat
 
     def generate_nfft_plan(self):
-        Nfft = NFFT(self.f, self.f_hat)
-        Nfft.precompute(self.x)
+        Nfft = NFFT(self.f, self.f_hat, self.x)
+        Nfft.precompute()
         return Nfft
 
     def __init__(self, *args, **kwargs):
@@ -101,58 +101,26 @@ class Test_NFFT_runtime(unittest.TestCase):
     def test_trafo(self):
         Nfft = self.generate_nfft_plan()
         vrand_unit_complex(self.f_hat.ravel())
-        Nfft.execute_trafo()
-        assert_allclose(self.f, self.fdft(self.f_hat), rtol=1e-3)
-
-    def test_trafo_newapi(self):
-        Nfft = self.generate_nfft_plan()
-        new_f, new_f_hat = self.generate_new_arrays(init_f_hat=True)
-        Nfft.forward(f_hat=new_f_hat, use_dft=False)        
-        assert_allclose(self.f, self.fdft(new_f_hat), rtol=1e-3)
-        Nfft.forward(f=new_f, f_hat=new_f_hat, use_dft=False)     
-        assert_allclose(new_f, self.fdft(new_f_hat), rtol=1e-3)
+        f = Nfft.forward(use_dft=False)
+        assert_allclose(f, self.fdft(self.f_hat), rtol=1e-3)
 
     def test_trafo_direct(self):
         Nfft = self.generate_nfft_plan()
         vrand_unit_complex(self.f_hat.ravel())
-        Nfft.execute_trafo_direct()
-        assert_allclose(self.f, self.fdft(self.f_hat), rtol=1e-3)
-
-    def test_trafo_direct_newapi(self):
-        Nfft = self.generate_nfft_plan()
-        new_f, new_f_hat = self.generate_new_arrays(init_f_hat=True)
-        Nfft.forward(f_hat=new_f_hat, use_dft=True)        
-        assert_allclose(self.f, self.fdft(new_f_hat), rtol=1e-3)
-        Nfft.forward(f=new_f, f_hat=new_f_hat, use_dft=True)     
-        assert_allclose(new_f, self.fdft(new_f_hat), rtol=1e-3)
+        f = Nfft.forward(use_dft=True)
+        assert_allclose(f, self.fdft(self.f_hat), rtol=1e-3)
 
     def test_adjoint(self):
         Nfft = self.generate_nfft_plan()
         vrand_unit_complex(self.f)
-        Nfft.execute_adjoint()
-        assert_allclose(self.f_hat.ravel(), self.idft(self.f), rtol=1e-3)
-
-    def test_adjoint_newapi(self):
-        Nfft = self.generate_nfft_plan()
-        new_f, new_f_hat = self.generate_new_arrays(init_f=True)
-        Nfft.adjoint(f=new_f, use_dft=False)
-        assert_allclose(self.f_hat.ravel(), self.idft(new_f), rtol=1e-3)
-        Nfft.adjoint(f=new_f, f_hat=new_f_hat, use_dft=False)
-        assert_allclose(new_f_hat.ravel(), self.idft(new_f), rtol=1e-3)
+        f_hat = Nfft.adjoint(use_dft=False)
+        assert_allclose(f_hat.ravel(), self.idft(self.f), rtol=1e-3)
 
     def test_adjoint_direct(self):
         Nfft = self.generate_nfft_plan()
         vrand_unit_complex(self.f)
-        Nfft.execute_adjoint_direct()
-        assert_allclose(self.f_hat.ravel(), self.idft(self.f), rtol=1e-3)
-
-    def test_adjoint_direct_newapi(self):
-        Nfft = self.generate_nfft_plan()
-        new_f, new_f_hat = self.generate_new_arrays(init_f=True)
-        Nfft.adjoint(f=new_f, use_dft=True)
-        assert_allclose(self.f_hat.ravel(), self.idft(new_f), rtol=1e-3)
-        Nfft.adjoint(f=new_f, f_hat=new_f_hat, use_dft=True)
-        assert_allclose(new_f_hat.ravel(), self.idft(new_f), rtol=1e-3)
+        f_hat = Nfft.adjoint(use_dft=True)
+        assert_allclose(f_hat.ravel(), self.idft(self.f), rtol=1e-3)
 
 
 class Test_NFFT_errors(unittest.TestCase):
@@ -160,40 +128,26 @@ class Test_NFFT_errors(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super(Test_NFFT_errors, self).__init__(*args, **kwargs)
 
-    def test_for_invalid_N(self):
+    def test_for_invalid_m(self):
         M, N = 20, 32
-        x = numpy.empty(M, dtype=numpy.float64)
         f = numpy.empty(M, dtype=numpy.complex128)
         f_hat = numpy.empty(N, dtype=numpy.complex128)
         
-        failingN = (-1, 1+numpy.iinfo(numpy.int32).max,
-                    (4, numpy.iinfo(numpy.int32).max / 2))
-        for someN in failingN:
+        failing_m = (-1, 1+numpy.iinfo(numpy.int32).max)
+        for some_m in failing_m:
             self.assertRaises(ValueError,
-                              lambda: NFFT(x, f, f_hat, N=(someN,)))
-
-    def test_for_invalid_M(self):
-        M, N = 20, 32
-        x = numpy.empty(M, dtype=numpy.float64)
-        f = numpy.empty(M, dtype=numpy.complex128)
-        f_hat = numpy.empty(N, dtype=numpy.complex128)
-        
-        failingM = (-1, 1+numpy.iinfo(numpy.int32).max)
-        for someM in failingM:
-            self.assertRaises(ValueError,
-                              lambda: NFFT(x, f, f_hat, M=someM))
+                              lambda: NFFT(f=f, f_hat=f_hat, m=some_m))
 
     def test_for_invalid_n(self):
         M, N = 20, 32
-        x = numpy.empty(M, dtype=numpy.float64)
         f = numpy.empty(M, dtype=numpy.complex128)
         f_hat = numpy.empty(N, dtype=numpy.complex128)
         
-        failingn = (-1, 1+numpy.iinfo(numpy.int32).max,
+        failing_n = (-1, 1+numpy.iinfo(numpy.int32).max,
                     (4, numpy.iinfo(numpy.int32).max / 2))
-        for somen in failingn:
+        for some_n in failing_n:
             self.assertRaises(ValueError,
-                              lambda: NFFT(x, f, f_hat, n=(somen,)))
+                              lambda: NFFT(f=f, f_hat=f_hat, n=(some_n,)))
 
     def test_for_invalid_x(self):
         M, N = 20, 32
@@ -201,12 +155,15 @@ class Test_NFFT_errors(unittest.TestCase):
         f = numpy.empty(M, dtype=numpy.complex128)
         f_hat = numpy.empty(N, dtype=numpy.complex128)
         # array must be contigous
-        self.assertRaises(ValueError, lambda: NFFT(x[::2], f, f_hat, M, (N,)))
+        self.assertRaises(ValueError,
+                          lambda: NFFT(f=f, f_hat=f_hat, x=x[::2]))
         # array must be of the right size
-        self.assertRaises(ValueError, lambda: NFFT(x[:-2], f, f_hat, M, (N,)))
+        self.assertRaises(ValueError,
+                          lambda: NFFT(f=f, f_hat=f_hat, x=x[:-2]))
         # array must be of the right type
         self.assertRaises(ValueError,
-                lambda: NFFT(x.astype(numpy.float32), f, f_hat, M, (N,)))
+                          lambda: NFFT(f=f, f_hat=f_hat,
+                                       x=x.astype(numpy.float32)))
 
     def test_for_invalid_f(self):
         M, N = 20, 32
@@ -214,12 +171,11 @@ class Test_NFFT_errors(unittest.TestCase):
         f = numpy.empty(M, dtype=numpy.complex128)
         f_hat = numpy.empty(N, dtype=numpy.complex128)
         # array must be contigous
-        self.assertRaises(ValueError, lambda: NFFT(x, f[::2], f_hat, M, (N,)))  
-        # array must be of the right size
-        self.assertRaises(ValueError, lambda: NFFT(x, f[:-2], f_hat, M, (N,)))
+        self.assertRaises(ValueError,
+                          lambda: NFFT(f=f[::2], f_hat=f_hat))
         # array must be of the right type
         self.assertRaises(ValueError,
-                lambda: NFFT(x, f.astype(numpy.complex64), f_hat, M, (N,)))
+                          lambda: NFFT(f=f.astype(numpy.complex64), f_hat=f_hat))
 
     def test_for_invalid_f_hat(self):
         M, N = 20, 32
@@ -227,12 +183,11 @@ class Test_NFFT_errors(unittest.TestCase):
         f = numpy.empty(M, dtype=numpy.complex128)
         f_hat = numpy.empty(N, dtype=numpy.complex128)
         # array must be contigous
-        self.assertRaises(ValueError, lambda: NFFT(x, f, f_hat[::2], M, (N,)))
-        # array must be of the right size
-        self.assertRaises(ValueError, lambda: NFFT(x, f, f_hat[:-2], M, (N,)))
+        self.assertRaises(ValueError,
+                          lambda: NFFT(f=f, f_hat=f_hat[::2]))
         # array must be of the right type
         self.assertRaises(ValueError,
-                lambda: NFFT(x, f, f_hat.astype(numpy.complex64), M, (N,)))
+                          lambda: NFFT(f=f, f_hat=f_hat.astype(numpy.complex64)))
 
     def test_for_invalid_flags(self):
         M, N = 20, 32
@@ -243,7 +198,7 @@ class Test_NFFT_errors(unittest.TestCase):
         invalid_flags = ('PRE_PHI_HOT', 'PRE_FOOL_PSI', 'FG_RADIO_PSI')
         for flag in invalid_flags:
             self.assertRaises(ValueError,
-                              lambda: NFFT(x, f, f_hat, flags=(flag,)))
+                              lambda: NFFT(f=f, f_hat=f_hat, flags=(flag,)))
         # managed flags
         managed_flags = []
         managed_flags.append([flag for flag in nfft_flags.keys()
@@ -252,4 +207,4 @@ class Test_NFFT_errors(unittest.TestCase):
                               if flag not in nfft_supported_flags])
         for flag in managed_flags:
             self.assertRaises(ValueError,
-                              lambda: NFFT(x, f, f_hat, flags=(flag,)))
+                              lambda: NFFT(f=f, f_hat=f_hat, flags=(flag,)))

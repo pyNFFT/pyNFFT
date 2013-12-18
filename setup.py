@@ -98,7 +98,7 @@ class TestCommand(Command):
 
 
 version = '1.2'
-release = False
+release = True
 if not release:
     version += '-dev'
 

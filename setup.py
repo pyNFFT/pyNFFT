@@ -31,12 +31,6 @@ setup_dir = dir = os.path.dirname(os.path.abspath(__file__))
 package_name = 'pynfft'
 package_dir = os.path.join(setup_dir, package_name)
 
-
-# import version
-with open(os.path.join(package_dir, 'version.py')) as f:
-    exec(f.read())
-version = __version__
-
 include_dirs = [numpy.get_include()]
 library_dirs = []
 package_data = {}
@@ -102,6 +96,11 @@ class TestCommand(Command):
                 [sys.executable, '-m', 'unittest', 'discover'])
         raise SystemExit(errno)
 
+
+version = '1.2'
+release = False
+if not release:
+    version += '-dev'
 
 long_description = '''"The NFFT is a C subroutine library for computing the
 nonequispaced discrete Fourier transform (NDFT) in one or more dimensions, of

@@ -26,6 +26,8 @@ NFFT Class
    
    .. autoattribute:: pynfft.NFFT.m
 
+   .. autoattribute:: pynfft.NFFT.dtype
+
    .. autoattribute:: pynfft.NFFT.flags
 
    .. automethod:: pynfft.NFFT.precompute
@@ -33,20 +35,6 @@ NFFT Class
    .. automethod:: pynfft.NFFT.forward
 
    .. automethod:: pynfft.NFFT.adjoint
-
-   .. automethod:: pynfft.NFFT.execute_trafo
-
-   .. automethod:: pynfft.NFFT.execute_trafo_direct
-
-   .. automethod:: pynfft.NFFT.execute_adjoint
-
-   .. automethod:: pynfft.NFFT.execute_adjoint_direct
-   
-   .. automethod:: pynfft.NFFT.execute_precomputation
-   
-   .. automethod:: pynfft.NFFT.update_arrays
-   
-   .. automethod:: pynfft.NFFT.update_nodes
 
 
 Solver Class

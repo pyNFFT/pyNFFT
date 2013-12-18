@@ -78,7 +78,7 @@ like the FFTW does.
 **instantiation**
 
 The bare minimum to instantiate a new :class:`pynfft.NFFT` object is to 
-specify the data arrays `f` and `f_hat`. The constructor will try to 
+specify the data arrays `f` and `f_hat`. The constructor will attempt to 
 guess the geometry parameters from these arrays: `M`, the number of 
 non-uniform nodes, and `N`, the shape of the uniform data.
 
@@ -100,15 +100,16 @@ gained by overriding the default design parameters `m`, `n` and
 
 Precomputation *must* be performed before calling any of the 
 transforms. The user can manually set the nodes of the NFFT object 
-using the :meth:`pynfft.NFFT.x` property 
+using the :attr:`pynfft.NFFT.x` property before calling the 
+:meth:`pynfft.NFFT.precompute` method.
 
     >>> this_nfft = NFFT(f=f, f_hat=f_hat)
-    >>> this_nfft.x[...] = some_x[...]
+    >>> this_nfft.x = some_x
     >>> this_nfft.precompute()  
 
-or by overriding the array containing the nodes by:
+Alternatively, precomputation can be performed at construct time:
 
-	>>> this_nfft.precompute(x=some_x)
+	>>> this_nfft = NFFT(f=f, f_hat=f_hat, x=x, precompute=True)
 
 **execution**
 
@@ -119,17 +120,6 @@ The actual forward and adjoint NFFT are performed by calling the
 	>>> ret = this_nfft.forward()
 	>>> # adjoint transform
 	>>> ret = this_nfft.adjoint()
-
-It is possible to replace the internal data arrays used by the NFFT 
-class using the optional `f` and `f_hat` arguments:
-
-    >>> ret = this_nfft.forward(f_hat=some_f_hat) 
-    >>> ret = this_nfft.adjoint(f=some_f)
-	
-These new arrays must be compatible with the geometry provided at 
-construct time, otherwise an exception will be raised. If these arrays 
-do not satisfy the complex dtype and C-contiguousness requirements, a 
-copy is made.
 
 .. _using_solver:
 
@@ -143,7 +133,7 @@ instance of :class:`pynfft.NFFT`. The following code shows you a
 simple example:
 
     >>> from pynfft import NFFT, Solver
-    >>> this_nfft = NFFT(f=some_f, f_hat=some_F, x=some_x)
+    >>> this_nfft = NFFT(f=some_f, f_hat=some_F, x=some_x, precompute=True)
     >>> this_solver = Solver(this_nfft)
 
 It is strongly recommended to use an already *precomputed* 

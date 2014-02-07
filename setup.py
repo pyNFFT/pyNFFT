@@ -97,8 +97,8 @@ class TestCommand(Command):
         raise SystemExit(errno)
 
 
-version = '1.2.1'
-release = True
+version = '1.3'
+release = False
 if not release:
     version += '-dev'
 

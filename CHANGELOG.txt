@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Changes in version 1.2.1
+------------------------
+
+    * fix bug related to absolute import 
+    * fix test case not working with Python 3
+
 Changes in version 1.2
 ----------------------
 

@@ -142,8 +142,7 @@ class Test_NFFT_errors(unittest.TestCase):
         f = numpy.empty(M, dtype=numpy.complex128)
         f_hat = numpy.empty(N, dtype=numpy.complex128)
         
-        failing_n = (-1, 1+numpy.iinfo(numpy.int32).max,
-                    (4, numpy.iinfo(numpy.int32).max / 2))
+        failing_n = (-1, 1+numpy.iinfo(numpy.int32).max)
         for some_n in failing_n:
             self.assertRaises(ValueError,
                               lambda: NFFT(f=f, f_hat=f_hat, n=(some_n,)))

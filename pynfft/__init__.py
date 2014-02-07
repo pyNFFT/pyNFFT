@@ -16,5 +16,4 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from pynfft.nfft import NFFT, Solver
-import pynfft.util
+from .nfft import NFFT, Solver

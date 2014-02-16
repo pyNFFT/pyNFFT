@@ -1,6 +1,11 @@
 Changelog
 =========
 
+Changes in version 1.2.2
+------------------------
+
+    * fix bug on property setters in NFFT class 
+
 Changes in version 1.2.1
 ------------------------
 

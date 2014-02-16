@@ -384,74 +384,77 @@ cdef class NFFT(object):
         with nogil:
             nfft_adjoint_direct(&self._plan)
 
-    @property
-    def f(self):
+    property f:
+        
         '''The vector of non-uniform samples.'''
-        return self.__f
 
-    @f.setter
-    def f(self, new_f):
-        if not isinstance(new_f, np.ndarray):
-            raise ValueError('array is not an instance of numpy.ndarray')     
-        if not new_f.flags.c_contiguous:
-            raise ValueError('array is not C-contiguous')
-        if new_f.dtype != self.__f.dtype:
-            raise ValueError('array dtype is not compatible')
-        try:
-            new_f = new_f.reshape(self.M)
-        except ValueError:
-            raise ValueError('array shape is not compatible')
-        self.__f = new_f
-        self._update_f()
+        def __get__(self):
+            return self.__f
+
+        def __set__(self, f):
+            if not isinstance(f, np.ndarray):
+                raise ValueError('array is not an instance of numpy.ndarray')     
+            if not f.flags.c_contiguous:
+                raise ValueError('array is not C-contiguous')
+            if f.dtype != self.__f.dtype:
+                raise ValueError('array dtype is not compatible')
+            try:
+                f = f.reshape(self.M)
+            except ValueError:
+                raise ValueError('array shape is not compatible')
+            self.__f = f
+            self._update_f()
 
     cdef _update_f(self):
         '''C-level array updater.''' 
-        self._plan.f = <fftw_complex *>np.PyArray_DATA(self.__f)        
+        self._plan.f = <fftw_complex *>np.PyArray_DATA(self.__f) 
 
-    @property
-    def f_hat(self):
+    property f_hat:
+
         '''The vector of Fourier coefficients.'''
-        return self.__f_hat
+        
+        def __get__(self):
+            return self.__f_hat
 
-    @f_hat.setter
-    def f_hat(self, new_f_hat):
-        if not isinstance(new_f_hat, np.ndarray):
-            raise ValueError('array is not an instance of numpy.ndarray')  
-        if not new_f_hat.flags.c_contiguous:
-            raise ValueError('array is not C-contiguous')
-        if new_f_hat.dtype != self.__f_hat.dtype:
-            raise ValueError('array dtype is not compatible')
-        try:
-            new_f_hat = new_f_hat.reshape(self.N)
-        except ValueError:
-            raise ValueError('array shape is not compatible')
-        self.__f_hat = new_f_hat
-        self._update_f_hat()
+        def __set__(self, f_hat):
+            if not isinstance(f_hat, np.ndarray):
+                raise ValueError('array is not an instance of numpy.ndarray')  
+            if not f_hat.flags.c_contiguous:
+                raise ValueError('array is not C-contiguous')
+            if f_hat.dtype != self.__f_hat.dtype:
+                raise ValueError('array dtype is not compatible')
+            try:
+                f_hat = f_hat.reshape(self.N)
+            except ValueError:
+                raise ValueError('array shape is not compatible')
+            self.__f_hat = f_hat
+            self._update_f_hat()
 
     cdef _update_f_hat(self):
         '''C-level array updater.'''
-        self._plan.f_hat = <fftw_complex *>np.PyArray_DATA(self.__f_hat)       
+        self._plan.f_hat = <fftw_complex *>np.PyArray_DATA(self.__f_hat) 
 
-    @property
-    def x(self):
+    property x:
+    
         '''The nodes in time/spatial domain.'''
-        return self.__x
-
-    @x.setter
-    def x(self, new_x):
-        if not isinstance(new_x, np.ndarray):
-            raise ValueError('array is not an instance of numpy.ndarray')                    
-        if not new_x.flags.c_contiguous:
-            raise ValueError('array is not C-contiguous')
-        if new_x.dtype != self.__x.dtype:
-            raise ValueError('array dtype is not compatible')
-        try:
-            new_x = new_x.reshape([self.M, self.d])
-        except ValueError:
-            raise ValueError('array shape is not compatible')
-        self.__x = new_x
-        self._update_x()
         
+        def __get__(self):
+            return self.__x
+
+        def __set__(self, x):
+            if not isinstance(x, np.ndarray):
+                raise ValueError('array is not an instance of numpy.ndarray')                    
+            if not x.flags.c_contiguous:
+                raise ValueError('array is not C-contiguous')
+            if x.dtype != self.__x.dtype:
+                raise ValueError('array dtype is not compatible')
+            try:
+                x = x.reshape([self.M, self.d])
+            except ValueError:
+                raise ValueError('array shape is not compatible')
+            self.__x = x
+            self._update_x()
+
     cdef _update_x(self):
         '''C-level array updater.'''        
         self._plan.x = <double *>np.PyArray_DATA(self.__x)

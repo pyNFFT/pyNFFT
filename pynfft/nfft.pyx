@@ -278,9 +278,9 @@ cdef class NFFT(object):
         self._flags = flags_used
 
         # connect Python arrays to plan internals
-        self._update_f()
-        self._update_f_hat()
-        self._update_x()
+        self._plan.f = <fftw_complex *>np.PyArray_DATA(self.__f)
+        self._plan.f_hat = <fftw_complex *>np.PyArray_DATA(self.__f_hat)
+        self._plan.x = <double *>np.PyArray_DATA(self.__x)
 
         # optional precomputation
         if precompute:
@@ -391,23 +391,8 @@ cdef class NFFT(object):
         def __get__(self):
             return self.__f
 
-        def __set__(self, f):
-            if not isinstance(f, np.ndarray):
-                raise ValueError('array is not an instance of numpy.ndarray')     
-            if not f.flags.c_contiguous:
-                raise ValueError('array is not C-contiguous')
-            if f.dtype != self.__f.dtype:
-                raise ValueError('array dtype is not compatible')
-            try:
-                f = f.reshape(self.M)
-            except ValueError:
-                raise ValueError('array shape is not compatible')
-            self.__f = f
-            self._update_f()
-
-    cdef _update_f(self):
-        '''C-level array updater.''' 
-        self._plan.f = <fftw_complex *>np.PyArray_DATA(self.__f) 
+        def __set__(self, array):
+            self.__f.ravel()[:] = array.ravel()
 
     property f_hat:
 
@@ -416,23 +401,8 @@ cdef class NFFT(object):
         def __get__(self):
             return self.__f_hat
 
-        def __set__(self, f_hat):
-            if not isinstance(f_hat, np.ndarray):
-                raise ValueError('array is not an instance of numpy.ndarray')  
-            if not f_hat.flags.c_contiguous:
-                raise ValueError('array is not C-contiguous')
-            if f_hat.dtype != self.__f_hat.dtype:
-                raise ValueError('array dtype is not compatible')
-            try:
-                f_hat = f_hat.reshape(self.N)
-            except ValueError:
-                raise ValueError('array shape is not compatible')
-            self.__f_hat = f_hat
-            self._update_f_hat()
-
-    cdef _update_f_hat(self):
-        '''C-level array updater.'''
-        self._plan.f_hat = <fftw_complex *>np.PyArray_DATA(self.__f_hat) 
+        def __set__(self, array):
+            self.__f_hat.ravel()[:] = array.ravel()
 
     property x:
     
@@ -441,24 +411,9 @@ cdef class NFFT(object):
         def __get__(self):
             return self.__x
 
-        def __set__(self, x):
-            if not isinstance(x, np.ndarray):
-                raise ValueError('array is not an instance of numpy.ndarray')                    
-            if not x.flags.c_contiguous:
-                raise ValueError('array is not C-contiguous')
-            if x.dtype != self.__x.dtype:
-                raise ValueError('array dtype is not compatible')
-            try:
-                x = x.reshape([self.M, self.d])
-            except ValueError:
-                raise ValueError('array shape is not compatible')
-            self.__x = x
-            self._update_x()
-
-    cdef _update_x(self):
-        '''C-level array updater.'''        
-        self._plan.x = <double *>np.PyArray_DATA(self.__x)
-
+        def __set__(self, array):
+            self.__x.ravel()[:] = array.ravel()
+   
     @property
     def d(self):
         '''The dimensionality of the NFFT.'''

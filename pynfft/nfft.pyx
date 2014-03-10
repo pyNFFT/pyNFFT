@@ -100,8 +100,7 @@ cdef class NFFT(object):
     '''
 
     # where the C-related content of the class is being initialized
-    def __cinit__(self, f, f_hat, x=None, n=None, m=12, flags=None,
-                  precompute=False, *args, **kwargs):
+    def __cinit__(self, N, M, n=None, m=12, flags=None, *args, **kwargs):
 
         # support only double / double complex NFFT
         # TODO: if support for multiple floating precision lands in the
@@ -110,32 +109,8 @@ cdef class NFFT(object):
         dtype_real = np.dtype('float64')
         dtype_complex = np.dtype('complex128')
 
-        # precompute at construct time possible if x is provided
-        precompute =  precompute and (x is not None)
-
-        # sanity checks on input arrays
-        if not isinstance(f, np.ndarray):
-            raise ValueError('f must be an instance of numpy.ndarray')
-
-        if not f.flags.c_contiguous:
-            raise ValueError('f must be C-contiguous')        
-
-        if f.dtype != dtype_complex:
-            raise ValueError('f must be of type %s'%(dtype_complex))                     
-
-        if not isinstance(f_hat, np.ndarray):
-            raise ValueError('f_hat: must be an instance of numpy.ndarray')                    
-
-        if not f_hat.flags.c_contiguous:
-            raise ValueError('f_hat must be C-contiguous')        
-
-        if f_hat.dtype != dtype_complex:
-            raise ValueError('f_hat must be of type %s'%(dtype_complex))
-
         # guess geometry from input array if missing from optional inputs
-        M = f.size
-        N = f_hat.shape
-        d = f_hat.ndim
+        d = len(N)
         n = n if n is not None else [2 * Nt for Nt in N]
         if len(n) != d:
             raise ValueError('n should be of same length as N')       
@@ -165,24 +140,6 @@ cdef class NFFT(object):
         if not m < int_max:
             raise ValueError('m exceeds integer limit value')
 
-        # sanity check on optional x array
-        if x is not None:
-            if not isinstance(x, np.ndarray):
-                raise ValueError('x must be an instance of numpy.ndarray')
-    
-            if not x.flags.c_contiguous:
-                raise ValueError('x must be C-contiguous')        
-    
-            if x.dtype != dtype_real:
-                raise ValueError('x must be of type %s'%(dtype_real))
-            
-            try:
-                x = x.reshape([M, d])
-            except ValueError:
-                raise ValueError('x is incompatible with geometry')
-        else:
-            x = np.empty([M, d], dtype=dtype_real)
-
         # convert tuple of litteral precomputation flags to its expected
         # C-compatible value. Each flag is a power of 2, which allows to compute
         # this value using BITOR operations.
@@ -210,6 +167,9 @@ cdef class NFFT(object):
         # FFTW specific flags
         flags_used += ('FFTW_INIT', 'FFT_OUT_OF_PLACE', 'FFTW_ESTIMATE',
                 'FFTW_DESTROY_INPUT',)
+
+        # memory allocation flags
+        flags_used += ('MALLOC_F', 'MALLOC_F_HAT', 'MALLOC_X')
 
         # Parallel computation flag
         flags_used += ('NFFT_SORT_NODES',)
@@ -252,9 +212,32 @@ cdef class NFFT(object):
             free(p_N)
             free(p_n)
 
-        self._x = x
-        self._f = f
-        self._f_hat = f_hat
+        cdef np.npy_intp *shape_f_hat
+        try:
+            shape_f_hat = <np.npy_intp *> malloc(d * sizeof(np.npy_intp))
+        except:
+            raise MemoryError
+        for dt in range(d):
+            shape_f_hat[dt] = N[dt]
+
+        self._f_hat = np.PyArray_SimpleNewFromData(d, shape_f_hat,
+            np.NPY_COMPLEX128, <void *>(self._plan.f_hat))
+
+        free(shape_f_hat)
+
+        cdef np.npy_intp shape_f[1]
+        shape_f[0] = M
+
+        self._f = np.PyArray_SimpleNewFromData(1, shape_f,
+            np.NPY_COMPLEX128, <void *>(self._plan.f))
+
+        cdef np.npy_intp shape_x[2]
+        shape_x[0] = M
+        shape_x[1] = d
+
+        self._x = np.PyArray_SimpleNewFromData(2, shape_x,
+            np.NPY_FLOAT64, <void *>(self._plan.x))
+
         self._d = d
         self._M = M
         self._m = m
@@ -263,22 +246,14 @@ cdef class NFFT(object):
         self._dtype = dtype_complex
         self._flags = flags_used
 
-        # connect Python arrays to plan internals
-        self._plan.f = <fftw_complex *>np.PyArray_DATA(self._f)
-        self._plan.f_hat = <fftw_complex *>np.PyArray_DATA(self._f_hat)
-        self._plan.x = <double *>np.PyArray_DATA(self._x)
-
 
     # here, just holds the documentation of the class constructor
-    def __init__(self, f, f_hat, x=None, n=None, m=12, flags=None,
-                 *args, **kwargs):
+    def __init__(self, N, M, n=None, m=12, flags=None, *args, **kwargs):
         '''
-        :param f: external array holding the non-uniform samples.
-        :type f: ndarray
-        :param f_hat: external array holding the Fourier coefficients.
-        :type f_hat: ndarray
-        :param x: optional array holding the nodes.
-        :type x: ndarray
+        :param N: multi-bandwith.
+        :type N: tuple of int
+        :param M: total number of samples.
+        :type n: int
         :param n: oversampled multi-bandwith, default to 2 * N.
         :type n: tuple of int
         :param m: Cut-off parameter of the window function.

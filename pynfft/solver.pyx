@@ -15,13 +15,15 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import copy
 import numpy as np
 cimport numpy as np
+from libc.stdlib cimport malloc, free
 from cnfft3 cimport *
-from nfft cimport NFFT
+from .nfft cimport NFFT
+from .nfft import NFFT
 
 
-cdef object solver_flags_dict
 solver_flags_dict = {
     'LANDWEBER':LANDWEBER,
     'STEEPEST_DESCENT':STEEPEST_DESCENT,
@@ -32,10 +34,10 @@ solver_flags_dict = {
     'PRECOMPUTE_DAMP':PRECOMPUTE_DAMP,
     }
 
-solver_flags = solver_flags_dict.copy()
+solver_flags = copy.copy(solver_flags_dict)
 
 
-cdef class Solver:
+cdef class Solver(object):
     '''
     Solver is a class for computing the adjoint NFFT iteratively..
 
@@ -52,15 +54,6 @@ cdef class Solver:
     The class exposes the internals of the solver through call to their
     respective properties.
     '''
-    cdef solver_plan_complex _plan
-    cdef NFFT _nfft_plan
-    cdef object _w
-    cdef object _w_hat
-    cdef object _y
-    cdef object _f_hat_iter
-    cdef object _r_iter
-    cdef object _dtype
-    cdef object _flags
 
     def __cinit__(self, NFFT nfft_plan, flags=None):
 
@@ -98,7 +91,7 @@ cdef class Solver:
 
         # initialize plan
         try:
-            solver_init_advanced_complex(&self._plan,
+            solver_init_advanced_complex(&self._solver_plan,
                 <nfft_mv_plan_complex*>&(nfft_plan._plan), _flags)
         except:
             raise MemoryError
@@ -112,14 +105,14 @@ cdef class Solver:
         shape_M[0] = M
 
         self._r_iter = np.PyArray_SimpleNewFromData(1, shape_M,
-            np.NPY_COMPLEX128, <void *>(self._plan.r_iter))
+            np.NPY_COMPLEX128, <void *>(self._solver_plan.r_iter))
 
         self._y = np.PyArray_SimpleNewFromData(1, shape_M,
-            np.NPY_COMPLEX128, <void *>(self._plan.y))
+            np.NPY_COMPLEX128, <void *>(self._solver_plan.y))
 
         if 'PRECOMPUTE_WEIGHT' in flags_used:
             self._w = np.PyArray_SimpleNewFromData(1, shape_M,
-                np.NPY_FLOAT64, <void *>(self._plan.w))
+                np.NPY_FLOAT64, <void *>(self._solver_plan.w))
             self._w[:] = 1  # make sure weights are initialized
         else:
             self._w = None
@@ -133,12 +126,12 @@ cdef class Solver:
             shape_N[dt] = N[dt]
 
         self._f_hat_iter = np.PyArray_SimpleNewFromData(d, shape_N,
-            np.NPY_COMPLEX128, <void *>(self._plan.f_hat_iter))
+            np.NPY_COMPLEX128, <void *>(self._solver_plan.f_hat_iter))
         self._f_hat_iter[:] = 0  # default initial guess
 
         if 'PRECOMPUTE_DAMP' in flags_used:
             self._w_hat = np.PyArray_SimpleNewFromData(d, shape_N,
-                np.NPY_FLOAT64, <void *>(self._plan.w_hat))
+                np.NPY_FLOAT64, <void *>(self._solver_plan.w_hat))
             self._w_hat[:] = 1  # make sure weights are initialized
         else:
             self._w_hat = None
@@ -181,17 +174,23 @@ cdef class Solver:
         pass
 
     def __dealloc__(self):
-        solver_finalize_complex(&self._plan)
+        solver_finalize_complex(&self._solver_plan)
 
-    cpdef before_loop(self):
-        '''Initialize solver internals.'''
-        with nogil:
-            solver_before_loop_complex(&self._plan)
+    def before_loop(self):
+        '''Initialize the solver internals.'''
+        self.solver_before_loop()
 
-    cpdef loop_one_step(self):
-        '''Perform one iteration.'''
+    def loop_one_step(self):
+        '''Perform one iteration of the solver.'''
+        self.solver_loop_one_step()
+
+    cdef void solver_before_loop(self):
         with nogil:
-            solver_loop_one_step_complex(&self._plan)
+            solver_before_loop_complex(&self._solver_plan)
+
+    cdef void solver_loop_one_step(self):
+        with nogil:
+            solver_loop_one_step_complex(&self._solver_plan)
 
     @property
     def w(self):

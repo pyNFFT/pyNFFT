@@ -47,6 +47,15 @@ ext_modules = [
                            '-fstrict-aliasing -ffast-math'.split(),
     ),
     Extension(
+        name=package_name+'.solver',
+        sources=[os.path.join(package_dir, 'solver.pyx')],
+        libraries=libraries,
+        library_dirs=library_dirs,
+        include_dirs=include_dirs,
+        extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
+                           '-fstrict-aliasing -ffast-math'.split(),
+    ),
+    Extension(
         name=package_name+'.util',
         sources=[os.path.join(package_dir, 'util.pyx')],
         libraries=libraries,

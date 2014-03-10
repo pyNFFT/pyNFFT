@@ -15,6 +15,7 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+import copy
 import numpy as np
 cimport numpy as np
 from libc.stdlib cimport malloc, free
@@ -39,18 +40,7 @@ cdef void _cleanup():
 
 Py_AtExit(_cleanup)
 
-cdef object nfft_supported_flags_tuple
-nfft_supported_flags_tuple = (
-    'PRE_PHI_HUT',
-    'FG_PSI',
-    'PRE_LIN_PSI',
-    'PRE_FG_PSI',
-    'PRE_PSI',
-    'PRE_FULL_PSI',
-    )
-nfft_supported_flags = nfft_supported_flags_tuple
 
-cdef object nfft_flags_dict
 nfft_flags_dict = {
     'PRE_PHI_HUT':PRE_PHI_HUT,
     'FG_PSI':FG_PSI,
@@ -67,14 +57,26 @@ nfft_flags_dict = {
     'NFFT_OMP_BLOCKWISE_ADJOINT':NFFT_OMP_BLOCKWISE_ADJOINT,
     'PRE_ONE_PSI':PRE_ONE_PSI,
     }
-nfft_flags = nfft_flags_dict.copy()
 
-cdef object fftw_flags_dict
+nfft_flags = copy.copy(nfft_flags_dict)
+
 fftw_flags_dict = {
     'FFTW_ESTIMATE':FFTW_ESTIMATE,
     'FFTW_DESTROY_INPUT':FFTW_DESTROY_INPUT,
     }
-fftw_flags = fftw_flags_dict.copy()
+
+fftw_flags = copy.copy(fftw_flags_dict)
+
+nfft_supported_flags_tuple = (
+    'PRE_PHI_HUT',
+    'FG_PSI',
+    'PRE_LIN_PSI',
+    'PRE_FG_PSI',
+    'PRE_PSI',
+    'PRE_FULL_PSI',
+    )
+
+nfft_supported_flags = copy.copy(nfft_supported_flags_tuple)
 
 
 cdef class NFFT(object):
@@ -96,17 +98,6 @@ cdef class NFFT(object):
     :meth:`adjoint` respectively. Each of these methods support internal array 
     update and coercion to the right internal dtype.
     '''
-    cdef nfft_plan _plan
-    cdef int _d
-    cdef int _M
-    cdef int _m
-    cdef object _N
-    cdef object _n
-    cdef object _dtype
-    cdef object _flags
-    cdef object __f   
-    cdef object __f_hat
-    cdef object __x
 
     # where the C-related content of the class is being initialized
     def __cinit__(self, f, f_hat, x=None, n=None, m=12, flags=None,
@@ -261,9 +252,9 @@ cdef class NFFT(object):
             free(p_N)
             free(p_n)
 
-        self.__x = x
-        self.__f = f
-        self.__f_hat = f_hat
+        self._x = x
+        self._f = f
+        self._f_hat = f_hat
         self._d = d
         self._M = M
         self._m = m
@@ -273,9 +264,9 @@ cdef class NFFT(object):
         self._flags = flags_used
 
         # connect Python arrays to plan internals
-        self._plan.f = <fftw_complex *>np.PyArray_DATA(self.__f)
-        self._plan.f_hat = <fftw_complex *>np.PyArray_DATA(self.__f_hat)
-        self._plan.x = <double *>np.PyArray_DATA(self.__x)
+        self._plan.f = <fftw_complex *>np.PyArray_DATA(self._f)
+        self._plan.f_hat = <fftw_complex *>np.PyArray_DATA(self._f_hat)
+        self._plan.x = <double *>np.PyArray_DATA(self._x)
 
         # optional precomputation
         if precompute:
@@ -359,23 +350,23 @@ cdef class NFFT(object):
         '''Precomputes the NFFT plan internals.'''
         self.execute_precomputation()
 
-    cdef execute_precomputation(self):
+    cdef void execute_precomputation(self):
         with nogil:
             nfft_precompute_one_psi(&self._plan)
 
-    cdef execute_trafo(self):
+    cdef void execute_trafo(self):
         with nogil:
             nfft_trafo(&self._plan)
 
-    cdef execute_trafo_direct(self):
+    cdef void execute_trafo_direct(self):
         with nogil:
             nfft_trafo_direct(&self._plan)
 
-    cpdef execute_adjoint(self):
+    cdef void execute_adjoint(self):
         with nogil:
             nfft_adjoint(&self._plan)
 
-    cpdef execute_adjoint_direct(self):
+    cdef void execute_adjoint_direct(self):
         with nogil:
             nfft_adjoint_direct(&self._plan)
 
@@ -384,30 +375,30 @@ cdef class NFFT(object):
         '''The vector of non-uniform samples.'''
 
         def __get__(self):
-            return self.__f
+            return self._f
 
         def __set__(self, array):
-            self.__f.ravel()[:] = array.ravel()
+            self._f.ravel()[:] = array.ravel()
 
     property f_hat:
 
         '''The vector of Fourier coefficients.'''
         
         def __get__(self):
-            return self.__f_hat
+            return self._f_hat
 
         def __set__(self, array):
-            self.__f_hat.ravel()[:] = array.ravel()
+            self._f_hat.ravel()[:] = array.ravel()
 
     property x:
     
         '''The nodes in time/spatial domain.'''
         
         def __get__(self):
-            return self.__x
+            return self._x
 
         def __set__(self, array):
-            self.__x.ravel()[:] = array.ravel()
+            self._x.ravel()[:] = array.ravel()
    
     @property
     def d(self):

@@ -268,9 +268,6 @@ cdef class NFFT(object):
         self._plan.f_hat = <fftw_complex *>np.PyArray_DATA(self._f_hat)
         self._plan.x = <double *>np.PyArray_DATA(self._x)
 
-        # optional precomputation
-        if precompute:
-            self.execute_precomputation()
 
     # here, just holds the documentation of the class constructor
     def __init__(self, f, f_hat, x=None, n=None, m=12, flags=None,
@@ -326,9 +323,9 @@ cdef class NFFT(object):
 
         '''
         if use_dft:
-            self.execute_trafo_direct()
+            self.nfft_trafo_direct()
         else:
-            self.execute_trafo()
+            self.nfft_trafo()
         return self.f
     
     def adjoint(self, use_dft=False):
@@ -341,32 +338,32 @@ cdef class NFFT(object):
 
         '''
         if use_dft:
-            self.execute_adjoint_direct()
+            self.nfft_adjoint_direct()
         else:
-            self.execute_adjoint()
+            self.nfft_adjoint()
         return self.f_hat
 
     def precompute(self):
         '''Precomputes the NFFT plan internals.'''
-        self.execute_precomputation()
+        self.nfft_precompute()
 
-    cdef void execute_precomputation(self):
+    cdef void nfft_precompute(self):
         with nogil:
             nfft_precompute_one_psi(&self._plan)
 
-    cdef void execute_trafo(self):
+    cdef void nfft_trafo(self):
         with nogil:
             nfft_trafo(&self._plan)
 
-    cdef void execute_trafo_direct(self):
+    cdef void nfft_trafo_direct(self):
         with nogil:
             nfft_trafo_direct(&self._plan)
 
-    cdef void execute_adjoint(self):
+    cdef void nfft_adjoint(self):
         with nogil:
             nfft_adjoint(&self._plan)
 
-    cdef void execute_adjoint_direct(self):
+    cdef void nfft_adjoint_direct(self):
         with nogil:
             nfft_adjoint_direct(&self._plan)
 

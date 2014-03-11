@@ -139,7 +139,7 @@ class TestCommand(Command):
         raise SystemExit(errno)
 
 
-version = '1.2.3'
+version = '1.3.0'
 release = True
 if not release:
     version += '-dev'

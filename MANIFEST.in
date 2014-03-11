@@ -1,7 +1,6 @@
 include *.txt *.rst
 exclude CONTRIBUTING.txt
-recursive-include pynfft *.pyx *.pxd *.py
-recursive-exclude pynfft *.c
+recursive-include pynfft *.pyx *.pxd *.py *.c
 recursive-include tests *.py
 recursive-include doc *
 recursive-exclude doc/build *

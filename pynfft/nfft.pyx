@@ -209,6 +209,7 @@ cdef class NFFT(object):
         free(p_N)
         free(p_n)
 
+        # create array views
         cdef np.npy_intp *shape_f_hat
         shape_f_hat = <np.npy_intp *> malloc(d * sizeof(np.npy_intp))
         if shape_f_hat == NULL:
@@ -234,6 +235,7 @@ cdef class NFFT(object):
         self._x = np.PyArray_SimpleNewFromData(2, shape_x,
             np.NPY_FLOAT64, <void *>(self._plan.x))
 
+        # initialize class members
         self._d = d
         self._M = M
         self._m = m

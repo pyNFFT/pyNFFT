@@ -39,20 +39,23 @@ solver_flags = copy.copy(solver_flags_dict)
 
 cdef class Solver(object):
     '''
-    Solver is a class for computing the adjoint NFFT iteratively..
+    Solver is a class for computing the inverse NFFT iteratively.
 
-    The instantiation requires a NFFT object used internally for the multiple
-    forward and adjoint NFFT performed. The class uses conjugate-gradient as
-    the default solver but alternative solvers can be specified.
+    The solver's instantiation requires an initialized NFFT object used 
+    internally for the multiple forward and adjoint NFFT performed. The class 
+    uses conjugate-gradient as the default solver but alternative solvers may 
+    be specified at construct-time.
 
-    Because the stopping conidition of the iterative computation may change
-    from one application to another, the implementation only let you carry
-    one iteration at a time with a call to :meth:`loop_one_step`. 
-    Initialization of the solver is done by calling the :meth:`before_loop` 
+    The solver must be first initialized by calling the :meth:`before_loop` 
     method.
 
-    The class exposes the internals of the solver through call to their
-    respective properties.
+    The solver's implementation let you carry one iteration at a time with a 
+    call to :meth:`loop_one_step`. It is left to the user to chose whichever
+    stopping condition to apply.
+    
+    The class exposes the internals of the solver through its respective 
+    properties. For instance, the residuals for the current iteration can be
+    accessed via the :attr:r_iter attribute.
     '''
 
     def __cinit__(self, NFFT nfft_plan, flags=None):

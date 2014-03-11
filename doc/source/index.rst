@@ -24,8 +24,8 @@ The design of the pyNFFT package assumes that the NFFT has been **compiled with
 OpenMP support**.
 
 The core interface of the NFFT is provided by the unified class, 
-:class:`pynfft.NFFT`. The solver interface is in 
-:class:`pynfft.Solver`.
+:class:`pynfft.nfft.NFFT`. The solver interface is in 
+:class:`pynfft.solver.Solver`.
 
 A comprehensive unittest suite is included with the source on the repository.
 The suite will be updated as more functionalities get introducted.

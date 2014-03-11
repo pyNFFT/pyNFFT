@@ -87,16 +87,18 @@ cdef class NFFT(object):
     original C-library. Computation of the NFFT is achieved in 3 steps : 
     instantiation, precomputation and execution.
     
-    On instantiation, the geometry of the transform is guessed from the shape 
-    of the input arrays :attr:`f` and :attr:`f_hat`. The node array :attr:`x` 
-    can be optionally provided, otherwise it will be created internally.
+    On instantiation, the geometry of the transform is provided. Optional
+    computation parameters may also be defined.
     
     Precomputation initializes the internals of the transform prior to 
-    execution, and is called with the :meth:`precompute` method.
+    execution. First the non-uniform locations must be given to the plan 
+    via its :attr:`x` attribute. Computation can then be called with the 
+    :meth:`precompute` method.
     
-    The forward and adjoint NFFT can be called with :meth:`forward` and 
-    :meth:`adjoint` respectively. Each of these methods support internal array 
-    update and coercion to the right internal dtype.
+    The forward and adjoint NFFT can be eventually performed by calling the 
+    :meth:`forward` and :meth:`adjoint` methods respectively. The input/output 
+    of the transform can be read/written by access to the :attr:`f` and 
+    :attr:`f_hat` attributes.
     '''
 
     # where the C-related content of the class is being initialized

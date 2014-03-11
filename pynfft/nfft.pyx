@@ -109,13 +109,26 @@ cdef class NFFT(object):
         dtype_real = np.dtype('float64')
         dtype_complex = np.dtype('complex128')
 
-        # guess geometry from input array if missing from optional inputs
+        # sanity checks on geometry parameters
+        try:
+            N = tuple(N)
+        except TypeError:
+            N = (N,)
+
+        if n is None:
+            n = [2 * Nt for Nt in N]
+        
+        try:
+            n = tuple(n)
+        except TypeError:
+            n = (n,)
+        
         d = len(N)
-        n = n if n is not None else [2 * Nt for Nt in N]
-        if len(n) != d:
-            raise ValueError('n should be of same length as N')       
         N_total = np.prod(N)
         n_total = np.prod(n)
+ 
+        if len(n) != d:
+            raise ValueError('n should be of same length as N')       
 
         # check geometry is compatible with C-class internals
         int_max = <Py_ssize_t>limits.INT_MAX

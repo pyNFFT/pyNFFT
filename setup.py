@@ -20,7 +20,6 @@ try:
     from setuptools import setup, Command, Extension
 except ImportError:
     from distutils.core import setup, Command, Extension
-from Cython.Distutils import build_ext as build_ext
 
 import os
 import os.path
@@ -36,35 +35,69 @@ library_dirs = []
 package_data = {}
 libraries = ['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm']
 
-ext_modules = [
-    Extension(
-        name=package_name+'.nfft',
-        sources=[os.path.join(package_dir, 'nfft.pyx')],
-        libraries=libraries,
-        library_dirs=library_dirs,
-        include_dirs=include_dirs,
-        extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-                           '-fstrict-aliasing -ffast-math'.split(),
-    ),
-    Extension(
-        name=package_name+'.solver',
-        sources=[os.path.join(package_dir, 'solver.pyx')],
-        libraries=libraries,
-        library_dirs=library_dirs,
-        include_dirs=include_dirs,
-        extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-                           '-fstrict-aliasing -ffast-math'.split(),
-    ),
-    Extension(
-        name=package_name+'.util',
-        sources=[os.path.join(package_dir, 'util.pyx')],
-        libraries=libraries,
-        library_dirs=library_dirs,
-        include_dirs=include_dirs,
-        extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-                           '-fstrict-aliasing -ffast-math'.split(),
-    ),
-]
+
+try:
+    from Cython.Distutils import build_ext as build_ext
+    ext_modules = [
+        Extension(
+            name=package_name+'.nfft',
+            sources=[os.path.join(package_dir, 'nfft.pyx')],
+            libraries=libraries,
+            library_dirs=library_dirs,
+            include_dirs=include_dirs,
+            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
+            '-fstrict-aliasing -ffast-math'.split(),
+        ),
+        Extension(
+            name=package_name+'.solver',
+            sources=[os.path.join(package_dir, 'solver.pyx')],
+            libraries=libraries,
+            library_dirs=library_dirs,
+            include_dirs=include_dirs,
+            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
+            '-fstrict-aliasing -ffast-math'.split(),
+        ),
+        Extension(
+            name=package_name+'.util',
+            sources=[os.path.join(package_dir, 'util.pyx')],
+            libraries=libraries,
+            library_dirs=library_dirs,
+            include_dirs=include_dirs,
+            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
+            '-fstrict-aliasing -ffast-math'.split(),
+        ),
+    ]
+
+except ImportError as e:
+    ext_modules = [
+        Extension(
+            name=package_name+'.nfft',
+            sources=[os.path.join(package_dir, 'nfft.c')],
+            libraries=libraries,
+            library_dirs=library_dirs,
+            include_dirs=include_dirs,
+            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
+            '-fstrict-aliasing -ffast-math'.split(),
+        ),
+        Extension(
+            name=package_name+'.solver',
+            sources=[os.path.join(package_dir, 'solver.c')],
+            libraries=libraries,
+            library_dirs=library_dirs,
+            include_dirs=include_dirs,
+            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
+            '-fstrict-aliasing -ffast-math'.split(),
+        ),
+        Extension(
+            name=package_name+'.util',
+            sources=[os.path.join(package_dir, 'util.c')],
+            libraries=libraries,
+            library_dirs=library_dirs,
+            include_dirs=include_dirs,
+            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
+            '-fstrict-aliasing -ffast-math'.split(),
+        ),
+    ]
 
 
 class CleanCommand(Command):
@@ -102,7 +135,7 @@ class TestCommand(Command):
         import sys
         import subprocess
         errno = subprocess.call(
-                [sys.executable, '-m', 'unittest', 'discover'])
+            [sys.executable, '-m', 'unittest', 'discover'])
         raise SystemExit(errno)
 
 

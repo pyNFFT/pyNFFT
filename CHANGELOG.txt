@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Changes in version 1.3
+----------------------
+
+    * major API change of the NFFT class
+    * revamp of the test suite
+
 Changes in version 1.2.2
 ------------------------
 

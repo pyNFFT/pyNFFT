@@ -17,10 +17,9 @@
 
 from __future__ import division
 import numpy
-#import unittest
 from numpy import pi
 from numpy.testing import assert_allclose
-from pynfft.nfft import NFFT, nfft_supported_flags
+from pynfft.nfft import NFFT
 from pynfft.util import vrand_unit_complex, vrand_shifted_unit_double
 
 
@@ -44,50 +43,63 @@ def rdft(x, f, N):
     f_hat = f_hat_dft.reshape(N)        
     return f_hat
 
-def test_forward_nfft_1d():
-    N, M = 32, 20
-    Nfft = NFFT(N, M, m=6)
-    vrand_shifted_unit_double(Nfft.x.ravel())
-    vrand_unit_complex(Nfft.f_hat.ravel())
-    Nfft.precompute()
-    assert_allclose(Nfft.forward(), fdft(Nfft.x, Nfft.f_hat))
+def check_forward_nfft(plan):
+    vrand_unit_complex(plan.f_hat.ravel())
+    assert_allclose(plan.forward(), fdft(plan.x, plan.f_hat))
 
-def test_adjoint_nfft_1d():
-    N, M = 32, 20
-    Nfft = NFFT(N, M)
-    vrand_shifted_unit_double(Nfft.x.ravel())
-    vrand_unit_complex(Nfft.f.ravel())
-    Nfft.precompute()
-    assert_allclose(Nfft.adjoint(), rdft(Nfft.x, Nfft.f, Nfft.N))
+def check_forward_ndft(plan):
+    vrand_unit_complex(plan.f_hat.ravel())
+    assert_allclose(plan.forward(use_dft=True), fdft(plan.x, plan.f_hat))
 
-def test_forward_nfft_2d():
-    N, M = (16, 16), 92
-    Nfft = NFFT(N, M)
-    vrand_shifted_unit_double(Nfft.x.ravel())
-    vrand_unit_complex(Nfft.f_hat.ravel())
-    Nfft.precompute()
-    assert_allclose(Nfft.forward(), fdft(Nfft.x, Nfft.f_hat))
+def check_adjoint_nfft(plan):
+    vrand_unit_complex(plan.f.ravel())
+    assert_allclose(plan.adjoint(), rdft(plan.x, plan.f, plan.N))
 
-def test_adjoint_nfft_2d():
-    N, M = (16, 16), 92
-    Nfft = NFFT(N, M)
-    vrand_shifted_unit_double(Nfft.x.ravel())
-    vrand_unit_complex(Nfft.f.ravel())
-    Nfft.precompute()
-    assert_allclose(Nfft.adjoint(), rdft(Nfft.x, Nfft.f, Nfft.N))
+def check_adjoint_ndft(plan):
+    vrand_unit_complex(plan.f.ravel())
+    assert_allclose(plan.adjoint(use_dft=True), rdft(plan.x, plan.f, plan.N))
 
-def test_forward_nfft_3d():
-    N, M = (16, 16, 16), 160
-    Nfft = NFFT(N, M)
-    vrand_shifted_unit_double(Nfft.x.ravel())
-    vrand_unit_complex(Nfft.f_hat.ravel())
-    Nfft.precompute()
-    assert_allclose(Nfft.forward(), fdft(Nfft.x, Nfft.f_hat))
+tested_nfft_args = (
+    (8, 8, dict(m=6)),
+    (16, 16, dict()),
+    (24, 24, dict()),
+    (32, 32, dict()),
+    (64, 64, dict()),
+    ((8, 8), 8*8, dict(m=6)),
+    ((16, 16), 16*16, dict()),
+    ((24, 24), 24*24, dict()),
+    ((32, 32), 32*32, dict()),
+    ((64, 64), 64*64, dict()),
+    ((8, 8, 8), 8*8*8, dict(m=6)),
+    ((16, 16, 8), 8*8*8, dict(m=6)),
+    ((16, 16, 16), 16*16*16, dict()),
+)
 
-def test_adjoint_nfft_3d():
-    N, M = (16, 16, 16), 160
-    Nfft = NFFT(N, M)
-    vrand_shifted_unit_double(Nfft.x.ravel())
-    vrand_unit_complex(Nfft.f.ravel())
-    Nfft.precompute()
-    assert_allclose(Nfft.adjoint(), rdft(Nfft.x, Nfft.f, Nfft.N))
+def test_forward_nfft():
+    for N, M, nfft_kwargs in tested_nfft_args:
+        plan = NFFT(N, M, **nfft_kwargs)
+        vrand_shifted_unit_double(plan.x.ravel())
+        plan.precompute()
+        yield check_forward_nfft, plan
+
+def test_forward_ndft():
+    for N, M, nfft_kwargs in tested_nfft_args:
+        plan = NFFT(N, M, **nfft_kwargs)
+        vrand_shifted_unit_double(plan.x.ravel())
+        plan.precompute()
+        yield check_forward_ndft, plan
+
+def test_adjoint_nfft():
+    for N, M, nfft_kwargs in tested_nfft_args:
+        plan = NFFT(N, M, **nfft_kwargs)
+        vrand_shifted_unit_double(plan.x.ravel())
+        plan.precompute()
+        yield check_adjoint_nfft, plan
+
+def test_adjoint_ndft():
+    for N, M, nfft_kwargs in tested_nfft_args:
+        plan = NFFT(N, M, **nfft_kwargs)
+        vrand_shifted_unit_double(plan.x.ravel())
+        plan.precompute()
+        yield check_adjoint_ndft, plan
+

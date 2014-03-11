@@ -189,7 +189,7 @@ setup_args = {
     'cmdclass': {'build_ext': build_ext,
                  'clean': CleanCommand,
                  'test': TestCommand},
-    'install_requires': ['numpy', 'cython'],
+    'install_requires': ['numpy'],
 }
 
 if __name__ == '__main__':

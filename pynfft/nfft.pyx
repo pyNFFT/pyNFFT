@@ -203,19 +203,15 @@ cdef class NFFT(object):
         for t in range(d):
             p_n[t] = n[t]
 
-        try:
-            nfft_init_guru(&self._plan, d, p_N, M, p_n, m,
-                    _nfft_flags, _fftw_flags)
-        except:
-            raise MemoryError
-        finally:
-            free(p_N)
-            free(p_n)
+        nfft_init_guru(&self._plan, d, p_N, M, p_n, m,
+            _nfft_flags, _fftw_flags)
+        
+        free(p_N)
+        free(p_n)
 
         cdef np.npy_intp *shape_f_hat
-        try:
-            shape_f_hat = <np.npy_intp *> malloc(d * sizeof(np.npy_intp))
-        except:
+        shape_f_hat = <np.npy_intp *> malloc(d * sizeof(np.npy_intp))
+        if shape_f_hat == NULL:
             raise MemoryError
         for dt in range(d):
             shape_f_hat[dt] = N[dt]

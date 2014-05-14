@@ -195,20 +195,35 @@ cdef class Solver(object):
         with nogil:
             solver_loop_one_step_complex(&self._solver_plan)
 
-    @property
-    def w(self):
+    property w:
+        
         '''Weighting factors.'''
-        return self._w
+        
+        def __get__(self):
+            return self._w
+        
+        def __set__(self, array)
+            self._w.ravel()[:] = array.ravel()
 
-    @property
-    def w_hat(self):
+    property w_hat:
+        
         '''Damping factors.'''
-        return self._w_hat
+        
+        def __get__(self):
+            return self._w_hat
+        
+        def __set__(self, array)
+            self._w_hat.ravel()[:] = array.ravel()
 
-    @property
-    def y(self):
+    property y:
+        
         '''Right hand side, samples.'''
-        return self._y
+        
+        def __get__(self):
+            return self._y
+        
+        def __set__(self, array)
+            self._y.ravel()[:] = array.ravel()
 
     @property
     def f_hat_iter(self):

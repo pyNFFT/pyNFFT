@@ -194,7 +194,7 @@ cdef class Solver(object):
         def __get__(self):
             return self._w
         
-        def __set__(self, array)
+        def __set__(self, array):
             self._w.ravel()[:] = array.ravel()
 
     property w_hat:
@@ -204,7 +204,7 @@ cdef class Solver(object):
         def __get__(self):
             return self._w_hat
         
-        def __set__(self, array)
+        def __set__(self, array):
             self._w_hat.ravel()[:] = array.ravel()
 
     property y:
@@ -214,7 +214,7 @@ cdef class Solver(object):
         def __get__(self):
             return self._y
         
-        def __set__(self, array)
+        def __set__(self, array):
             self._y.ravel()[:] = array.ravel()
 
     @property

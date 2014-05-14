@@ -30,8 +30,6 @@ solver_flags_dict = {
     'CGNR':CGNR,
     'CGNE':CGNE,
     'NORMS_FOR_LANDWEBER':NORMS_FOR_LANDWEBER,
-    'PRECOMPUTE_WEIGHT':PRECOMPUTE_WEIGHT,
-    'PRECOMPUTE_DAMP':PRECOMPUTE_DAMP,
     }
 
 solver_flags = copy.copy(solver_flags_dict)
@@ -71,7 +69,7 @@ cdef class Solver(object):
         # C-compatible value. Each flag is a power of 2, which allows to compute
         # this value using BITOR operations.
         cdef unsigned int _flags = 0
-        flags_used = ()
+        flags_used = ('PRECOMPUTE_WEIGHT', 'PRECOMPUTE_DAMP')
 
         # sanity checks on user specified flags if any,
         # else use default ones:
@@ -113,12 +111,9 @@ cdef class Solver(object):
         self._y = np.PyArray_SimpleNewFromData(1, shape_M,
             np.NPY_COMPLEX128, <void *>(self._solver_plan.y))
 
-        if 'PRECOMPUTE_WEIGHT' in flags_used:
-            self._w = np.PyArray_SimpleNewFromData(1, shape_M,
-                np.NPY_FLOAT64, <void *>(self._solver_plan.w))
-            self._w[:] = 1  # make sure weights are initialized
-        else:
-            self._w = None
+        self._w = np.PyArray_SimpleNewFromData(1, shape_M,
+            np.NPY_FLOAT64, <void *>(self._solver_plan.w))
+        self._w[:] = 1  # make sure weights are initialized
 
         cdef np.npy_intp *shape_N
         try:
@@ -132,12 +127,9 @@ cdef class Solver(object):
             np.NPY_COMPLEX128, <void *>(self._solver_plan.f_hat_iter))
         self._f_hat_iter[:] = 0  # default initial guess
 
-        if 'PRECOMPUTE_DAMP' in flags_used:
-            self._w_hat = np.PyArray_SimpleNewFromData(d, shape_N,
-                np.NPY_FLOAT64, <void *>(self._solver_plan.w_hat))
-            self._w_hat[:] = 1  # make sure weights are initialized
-        else:
-            self._w_hat = None
+        self._w_hat = np.PyArray_SimpleNewFromData(d, shape_N,
+            np.NPY_FLOAT64, <void *>(self._solver_plan.w_hat))
+        self._w_hat[:] = 1  # make sure weights are initialized
 
         free(shape_N)
 

@@ -23,18 +23,57 @@ except ImportError:
 
 import os
 import os.path
+import sys
 import numpy
 import shutil
+
+if sys.version_info[0] < 3:
+    import ConfigParser as configparser
+else:
+    import configparser
 
 setup_dir = dir = os.path.dirname(os.path.abspath(__file__))
 package_name = 'pynfft'
 package_dir = os.path.join(setup_dir, package_name)
 
+fftw_threaded = True  # Default as implemented before
+nfft_threaded = True
+
+setup_cfg = 'setup.cfg'
+ncconfig = None
+if os.path.exists(setup_cfg):
+    sys.stdout.write('Reading from setup.cfg...\n')
+    config = configparser.SafeConfigParser()
+    config.read(setup_cfg)
+    try: fftw_threaded = config.getboolean("options", "fftw-threaded")
+    except: pass
+    try: nfft_threaded = config.getboolean("options", "nfft-threaded")
+    except: pass
+
+use_fftw_threaded = os.environ.get('USE_FFTW_THREADED')
+if use_fftw_threaded is not None:
+    fftw_threaded = use_fftw_threaded.lower() in ('yes', 'y', 'true', 't', '1')
+
+use_nfft_threaded = os.environ.get('USE_NFFT_THREADED')
+if use_nfft_threaded is not None:
+    nfft_threaded = use_nfft_threaded.lower() in ('yes', 'y', 'true', 't', '1')
+
+print "fftw_threaded:", fftw_threaded, use_fftw_threaded
+print "nfft_threaded:", nfft_threaded, use_nfft_threaded
+
 include_dirs = [numpy.get_include()]
 library_dirs = []
 package_data = {}
-libraries = ['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm']
 
+if fftw_threaded:
+    libraries = ['fftw3_threads', 'fftw3', 'm']
+else:
+    libraries = ['fftw3', 'm']
+
+if nfft_threaded:
+    libraries = ['nfft3_threads'] + libraries
+else:
+    libraries = ['nfft3'] + libraries
 
 try:
     from Cython.Distutils import build_ext as build_ext

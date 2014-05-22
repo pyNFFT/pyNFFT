@@ -30,6 +30,8 @@ solver_flags_dict = {
     'CGNR':CGNR,
     'CGNE':CGNE,
     'NORMS_FOR_LANDWEBER':NORMS_FOR_LANDWEBER,
+    'PRECOMPUTE_WEIGHT':PRECOMPUTE_WEIGHT,
+    'PRECOMPUTE_DAMP':PRECOMPUTE_DAMP,
     }
 
 solver_flags = copy.copy(solver_flags_dict)

@@ -117,11 +117,11 @@ cdef class Solver(object):
 
         self._w = np.PyArray_SimpleNewFromData(1, shape_M,
             np.NPY_FLOAT64, <void *>(self._solver_plan.w))
-        self._w[:] = 1  # make sure weights are initialized
+        self._w.ravel()[:] = 1  # make sure weights are initialized
 
         self._w_hat = np.PyArray_SimpleNewFromData(d, shape_N,
             np.NPY_FLOAT64, <void *>(self._solver_plan.w_hat))
-        self._w_hat[:] = 1  # make sure weights are initialized
+        self._w_hat.ravel()[:] = 1  # make sure weights are initialized
 
         self._y = np.PyArray_SimpleNewFromData(1, shape_M,
             np.NPY_COMPLEX128, <void *>(self._solver_plan.y))

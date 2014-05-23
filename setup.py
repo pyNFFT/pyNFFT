@@ -122,23 +122,6 @@ class CleanCommand(Command):
                     os.remove(os.path.join(package_dir, _file))
 
 
-class TestCommand(Command):
-    user_options = []
-
-    def initialize_options(self):
-        pass
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        import sys
-        import subprocess
-        errno = subprocess.call(
-            [sys.executable, '-m', 'unittest', 'discover'])
-        raise SystemExit(errno)
-
-
 version = '1.3.0'
 release = False
 if not release:
@@ -187,8 +170,7 @@ setup_args = {
     'include_dirs': include_dirs,
     'package_data': package_data,
     'cmdclass': {'build_ext': build_ext,
-                 'clean': CleanCommand,
-                 'test': TestCommand},
+                 'clean': CleanCommand,},
     'install_requires': ['numpy'],
 }
 

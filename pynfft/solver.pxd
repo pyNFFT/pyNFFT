@@ -31,6 +31,9 @@ cdef class Solver(object):
     cdef object _y
     cdef object _f_hat_iter
     cdef object _r_iter
+    cdef object _z_hat_iter
+    cdef object _p_hat_iter
+    cdef object _v_iter
     cdef object _dtype
     cdef object _flags
     cdef void solver_before_loop(self)

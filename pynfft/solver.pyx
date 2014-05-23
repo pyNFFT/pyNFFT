@@ -132,7 +132,7 @@ cdef class Solver(object):
 
         self._f_hat_iter = np.PyArray_SimpleNewFromData(d, shape_N,
             np.NPY_COMPLEX128, <void *>(self._solver_plan.f_hat_iter))
-        self._f_hat_iter[:] = 0  # default initial guess
+        self._f_hat_iter.ravel()[:] = 0  # default initial guess
 
         self._r_iter = np.PyArray_SimpleNewFromData(1, shape_M,
             np.NPY_COMPLEX128, <void *>(self._solver_plan.r_iter))

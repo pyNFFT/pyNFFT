@@ -70,8 +70,6 @@ except ImportError as e:
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
         ),
         Extension(
             name=package_name+'.solver',
@@ -79,8 +77,6 @@ except ImportError as e:
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
         ),
         Extension(
             name=package_name+'.util',
@@ -88,8 +84,6 @@ except ImportError as e:
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
         ),
     ]
 

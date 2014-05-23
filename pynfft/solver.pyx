@@ -23,6 +23,10 @@ from cnfft3 cimport *
 from .nfft cimport NFFT
 from .nfft import NFFT
 
+# Initialize module
+# Numpy must be initialized. When using numpy from C or Cython you must
+# _always_ do that, or you will have segfaults
+np.import_array()
 
 solver_flags_dict = {
     'LANDWEBER':LANDWEBER,

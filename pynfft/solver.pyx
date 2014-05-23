@@ -23,6 +23,10 @@ from cnfft3 cimport *
 from .nfft cimport NFFT
 from .nfft import NFFT
 
+# Initialize module
+# Numpy must be initialized. When using numpy from C or Cython you must
+# _always_ do that, or you will have segfaults
+np.import_array()
 
 solver_flags_dict = {
     'LANDWEBER':LANDWEBER,
@@ -71,7 +75,7 @@ cdef class Solver(object):
         # C-compatible value. Each flag is a power of 2, which allows to compute
         # this value using BITOR operations.
         cdef unsigned int _flags = 0
-        flags_used = ()
+        flags_used = ('PRECOMPUTE_WEIGHT', 'PRECOMPUTE_DAMP')
 
         # sanity checks on user specified flags if any,
         # else use default ones:
@@ -107,19 +111,6 @@ cdef class Solver(object):
         cdef np.npy_intp shape_M[1]
         shape_M[0] = M
 
-        self._r_iter = np.PyArray_SimpleNewFromData(1, shape_M,
-            np.NPY_COMPLEX128, <void *>(self._solver_plan.r_iter))
-
-        self._y = np.PyArray_SimpleNewFromData(1, shape_M,
-            np.NPY_COMPLEX128, <void *>(self._solver_plan.y))
-
-        if 'PRECOMPUTE_WEIGHT' in flags_used:
-            self._w = np.PyArray_SimpleNewFromData(1, shape_M,
-                np.NPY_FLOAT64, <void *>(self._solver_plan.w))
-            self._w[:] = 1  # make sure weights are initialized
-        else:
-            self._w = None
-
         cdef np.npy_intp *shape_N
         try:
             shape_N = <np.npy_intp*>malloc(d*sizeof(np.npy_intp))
@@ -128,16 +119,32 @@ cdef class Solver(object):
         for dt in range(d):
             shape_N[dt] = N[dt]
 
+        self._w = np.PyArray_SimpleNewFromData(1, shape_M,
+            np.NPY_FLOAT64, <void *>(self._solver_plan.w))
+        self._w.ravel()[:] = 1  # make sure weights are initialized
+
+        self._w_hat = np.PyArray_SimpleNewFromData(d, shape_N,
+            np.NPY_FLOAT64, <void *>(self._solver_plan.w_hat))
+        self._w_hat.ravel()[:] = 1  # make sure weights are initialized
+
+        self._y = np.PyArray_SimpleNewFromData(1, shape_M,
+            np.NPY_COMPLEX128, <void *>(self._solver_plan.y))
+
         self._f_hat_iter = np.PyArray_SimpleNewFromData(d, shape_N,
             np.NPY_COMPLEX128, <void *>(self._solver_plan.f_hat_iter))
         self._f_hat_iter[:] = 0  # default initial guess
 
-        if 'PRECOMPUTE_DAMP' in flags_used:
-            self._w_hat = np.PyArray_SimpleNewFromData(d, shape_N,
-                np.NPY_FLOAT64, <void *>(self._solver_plan.w_hat))
-            self._w_hat[:] = 1  # make sure weights are initialized
-        else:
-            self._w_hat = None
+        self._r_iter = np.PyArray_SimpleNewFromData(1, shape_M,
+            np.NPY_COMPLEX128, <void *>(self._solver_plan.r_iter))
+
+        self._z_hat_iter = np.PyArray_SimpleNewFromData(d, shape_N,
+            np.NPY_COMPLEX128, <void *>(self._solver_plan.z_hat_iter))
+
+        self._p_hat_iter = np.PyArray_SimpleNewFromData(d, shape_N,
+            np.NPY_COMPLEX128, <void *>(self._solver_plan.p_hat_iter))
+
+        self._v_iter = np.PyArray_SimpleNewFromData(1, shape_M,
+            np.NPY_COMPLEX128, <void *>(self._solver_plan.v_iter))
 
         free(shape_N)
 
@@ -195,20 +202,35 @@ cdef class Solver(object):
         with nogil:
             solver_loop_one_step_complex(&self._solver_plan)
 
-    @property
-    def w(self):
+    property w:
+        
         '''Weighting factors.'''
-        return self._w
+        
+        def __get__(self):
+            return self._w
+        
+        def __set__(self, array):
+            self._w.ravel()[:] = array.ravel()
 
-    @property
-    def w_hat(self):
+    property w_hat:
+        
         '''Damping factors.'''
-        return self._w_hat
+        
+        def __get__(self):
+            return self._w_hat
+        
+        def __set__(self, array):
+            self._w_hat.ravel()[:] = array.ravel()
 
-    @property
-    def y(self):
+    property y:
+        
         '''Right hand side, samples.'''
-        return self._y
+        
+        def __get__(self):
+            return self._y
+        
+        def __set__(self, array):
+            self._y.ravel()[:] = array.ravel()
 
     @property
     def f_hat_iter(self):
@@ -219,6 +241,61 @@ cdef class Solver(object):
     def r_iter(self):
         '''Residual vector.'''
         return self._r_iter
+
+    @property
+    def z_hat_iter(self):
+        '''Residual of normal equation of the first kind.'''
+        return self._z_hat_iter
+
+    @property
+    def p_hat_iter(self):
+        '''Search direction.'''
+        return self._p_hat_iter
+
+    @property
+    def v_iter(self):
+        '''Residual vector update.'''
+        return self._v_iter
+
+    @property
+    def alpha_iter(self):
+        '''Step size for search direction.'''
+        return self._solver_plan.alpha_iter
+
+    @property
+    def beta_iter(self):
+        '''Step size for search direction.'''
+        return self._solver_plan.beta_iter
+
+    @property
+    def dot_r_iter(self):
+        '''Weighted dotproduct of r_iter.'''
+        return self._solver_plan.dot_r_iter
+
+    @property
+    def dot_r_iter_old(self):
+        '''Previous dot_r_iter.'''
+        return self._solver_plan.dot_r_iter_old
+
+    @property
+    def dot_z_hat_iter(self):
+        '''Weighted dotproduct of z_hat_iter.'''
+        return self._solver_plan.dot_z_hat_iter
+
+    @property
+    def dot_z_hat_iter_old(self):
+        '''Previous dot_z_hat_iter.'''
+        return self._solver_plan.dot_z_hat_iter_old
+
+    @property
+    def dot_p_hat_iter(self):
+        '''Weighted dotproduct of p_hat_iter.'''
+        return self._solver_plan.dot_p_hat_iter
+
+    @property
+    def dot_v_iter(self):
+        '''Weighted dotproduct of v_iter.'''
+        return self._solver_plan.dot_v_iter
 
     @property
     def dtype(self):

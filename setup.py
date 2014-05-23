@@ -45,8 +45,6 @@ try:
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
         ),
         Extension(
             name=package_name+'.solver',
@@ -54,8 +52,6 @@ try:
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
         ),
         Extension(
             name=package_name+'.util',
@@ -63,8 +59,6 @@ try:
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
         ),
     ]
 

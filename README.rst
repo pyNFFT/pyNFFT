@@ -64,9 +64,23 @@ c-files::
 Build info
 ----------
 
-The NFFT library has to be compiled with the --enable-openmp flag to allow for
-the generation of the threaded version of the library.  Without it, any attempt
-to building the project will fail.
+By default, pyNFFT expects that the NFFT library has been compiled with the 
+--enable-openmp flag to allow for the generation of the threaded version of 
+the library. If the threaded version of the NFFT library is not available, 
+pyNFFT can be build and linked against the unthreaded version of the library
+with::
+
+    USE_NFFT_THREADED=0 pip install pynfft
+    
+or::
+
+    USE_NFFT_THREADED=0 python setup.py install
+    
+Similarly, the use of a threaded version of the FFTW library can be disabled
+with USE_FFTW_THREADED=0.
+
+If pyNFFT is build with python setup.py, equivalent settings can also be made
+in the setup.cfg file. For details, see the description in setup.cfg.template.
 
 Requirements
 ------------

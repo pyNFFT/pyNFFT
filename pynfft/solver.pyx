@@ -232,10 +232,15 @@ cdef class Solver(object):
         def __set__(self, array):
             self._y.ravel()[:] = array.ravel()
 
-    @property
-    def f_hat_iter(self):
+    property f_hat_iter:
+
         '''Iterative solution.'''
-        return self._f_hat_iter
+
+        def __get__(self):
+            return self._f_hat_iter
+
+        def __set__(self, array):
+            self._f_hat_iter.ravel()[:] = array.ravel()
 
     @property
     def r_iter(self):

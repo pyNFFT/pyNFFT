@@ -17,3 +17,4 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from pynfft.nfft import NFFT
+from pynfft.solver import Solver

@@ -71,7 +71,7 @@ else:
     libraries = ['fftw3', 'm']
 
 if nfft_threaded:
-    libraries = ['nfft3_threads'] + libraries
+    libraries = ['nfft3_threads', 'nfft3'] + libraries
 else:
     libraries = ['nfft3'] + libraries
 

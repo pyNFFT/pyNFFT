@@ -188,17 +188,17 @@ cdef class Solver(object):
 
     def before_loop(self):
         '''Initialize the solver internals.'''
-        self.solver_before_loop()
+        self._before_loop()
 
     def loop_one_step(self):
         '''Perform one iteration of the solver.'''
-        self.solver_loop_one_step()
+        self._loop_one_step()
 
-    cdef void solver_before_loop(self):
+    cdef void _before_loop(self):
         with nogil:
             solver_before_loop_complex(&self._solver_plan)
 
-    cdef void solver_loop_one_step(self):
+    cdef void _loop_one_step(self):
         with nogil:
             solver_loop_one_step_complex(&self._solver_plan)
 

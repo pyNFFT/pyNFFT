@@ -33,9 +33,9 @@ cdef class NFFT(object):
     cdef object _f   
     cdef object _f_hat
     cdef object _x
-    cdef void nfft_adjoint(self)
-    cdef void nfft_adjoint_direct(self)
-    cdef void nfft_precompute(self)
-    cdef void nfft_trafo(self)
-    cdef void nfft_trafo_direct(self)
+    cdef void _precompute(self)
+    cdef void _trafo(self)
+    cdef void _trafo_direct(self)    
+    cdef void _adjoint(self)
+    cdef void _adjoint_direct(self)
 

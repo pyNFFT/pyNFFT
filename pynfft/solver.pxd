@@ -36,6 +36,6 @@ cdef class Solver(object):
     cdef object _v_iter
     cdef object _dtype
     cdef object _flags
-    cdef void solver_before_loop(self)
-    cdef void solver_loop_one_step(self)
+    cdef void _before_loop(self)
+    cdef void _loop_one_step(self)
 

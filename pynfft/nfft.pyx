@@ -301,7 +301,11 @@ cdef class NFFT(object):
     def __dealloc__(self):
         nfft_finalize(&self._plan)
 
-    def forward(self, use_dft=False):
+    def precompute(self):
+        '''Precomputes the NFFT plan internals.'''
+        self._precompute()
+
+    def trafo(self, use_dft=False):
         '''Performs the forward NFFT.
 
         :param use_dft: whether to use the DFT instead of the fast algorithm.
@@ -311,9 +315,9 @@ cdef class NFFT(object):
 
         '''
         if use_dft:
-            self.nfft_trafo_direct()
+            self._trafo_direct()
         else:
-            self.nfft_trafo()
+            self._trafo()
         return self.f
     
     def adjoint(self, use_dft=False):
@@ -326,32 +330,28 @@ cdef class NFFT(object):
 
         '''
         if use_dft:
-            self.nfft_adjoint_direct()
+            self._adjoint_direct()
         else:
-            self.nfft_adjoint()
+            self._adjoint()
         return self.f_hat
 
-    def precompute(self):
-        '''Precomputes the NFFT plan internals.'''
-        self.nfft_precompute()
-
-    cdef void nfft_precompute(self):
+    cdef void _precompute(self):
         with nogil:
             nfft_precompute_one_psi(&self._plan)
 
-    cdef void nfft_trafo(self):
+    cdef void _trafo(self):
         with nogil:
             nfft_trafo(&self._plan)
 
-    cdef void nfft_trafo_direct(self):
+    cdef void _trafo_direct(self):
         with nogil:
             nfft_trafo_direct(&self._plan)
 
-    cdef void nfft_adjoint(self):
+    cdef void _adjoint(self):
         with nogil:
             nfft_adjoint(&self._plan)
 
-    cdef void nfft_adjoint_direct(self):
+    cdef void _adjoint_direct(self):
         with nogil:
             nfft_adjoint_direct(&self._plan)
 

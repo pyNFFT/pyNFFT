@@ -45,11 +45,11 @@ def rdft(x, f, N):
 
 def check_forward_nfft(plan):
     vrand_unit_complex(plan.f_hat.ravel())
-    assert_allclose(plan.forward(), fdft(plan.x, plan.f_hat))
+    assert_allclose(plan.trafo(), fdft(plan.x, plan.f_hat))
 
 def check_forward_ndft(plan):
     vrand_unit_complex(plan.f_hat.ravel())
-    assert_allclose(plan.forward(use_dft=True), fdft(plan.x, plan.f_hat))
+    assert_allclose(plan.trafo(use_dft=True), fdft(plan.x, plan.f_hat))
 
 def check_adjoint_nfft(plan):
     vrand_unit_complex(plan.f.ravel())

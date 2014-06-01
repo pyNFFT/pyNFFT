@@ -123,7 +123,7 @@ class CleanCommand(Command):
 
 
 version = '1.3.0'
-release = False
+release = True
 if not release:
     version += '-dev'
 

@@ -155,6 +155,10 @@ cdef class NFFT(object):
         if not m < int_max:
             raise ValueError('m exceeds integer limit value')
 
+        # safeguard against oversampled gridsize too small for kernel size
+        if not all([nt > m for nt in n]):
+            raise ValueError('n must be higher than m')
+
         # convert tuple of litteral precomputation flags to its expected
         # C-compatible value. Each flag is a power of 2, which allows to compute
         # this value using BITOR operations.

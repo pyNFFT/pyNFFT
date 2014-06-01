@@ -93,11 +93,11 @@ user can manually set the nodes of the NFFT object using the
 **execution**
 
 The actual forward and adjoint NFFT are performed by calling the
-:meth:`pynfft.nfft.NFFT.forward` and :meth:`pynfft.nfft.NFFT.adjoint` methods.
+:meth:`pynfft.nfft.NFFT.trafo` and :meth:`pynfft.nfft.NFFT.adjoint` methods.
 
     >>> # forward transform
     >>> plan.f_hat = f_hat
-    >>> f = plan.forward()
+    >>> f = plan.trafo()
     >>> # adjoint transform
     >>> plan.f = f
     >>> f_hat = plan.adjoint()
@@ -133,12 +133,11 @@ of the first kind method (CGNR flag). This may be overriden in the constructor:
     >>> infft = Solver(plan, flags='CGNE')
 
 Convergence to a stable solution can be significantly speed-up using the right
-pre-conditioning weights. These can be specified by the flags
-'PRECOMPUTE_WEIGHT' and 'PRECOMPUTE_DAMP' and accessed by the
+pre-conditioning weights. These can accessed by the 
 :attr:`pynfft.solver.Solver.w` and :attr:`pynfft.solver.Solver.w_hat`
 attributes. By default, these weights are set to 1.
 
-    >>> infft = Solver(plan, flags=('PRECOMPUTE_WEIGHT'))
+    >>> infft = Solver(plan)
     >>> infft.w = w
 
 **using the solver**

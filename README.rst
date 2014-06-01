@@ -17,6 +17,15 @@ The documentation is hosted on `pythonhosted
 <https://github.com/ghisvail/pyNFFT>`_ and the Python package index page is
 `here <https://pypi.python.org/pypi/pyNFFT>`_.
 
+Important
+---------
+
+There has been a major API change from version 1.2.x to 1.3 in prevision of 
+version 2.0. Please check the documentation for more information.
+
+The only officially supported platform for version 1.3 is Linux. Support for 
+more platforms is scheduled for the 2.x development tree.
+
 Usage
 -----
 

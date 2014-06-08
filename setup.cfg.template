@@ -4,10 +4,11 @@
 [options]
 # If true (or yes, or 1), the threaded versions of the fftw and nfft libraries
 # will be used. Set to False (or no, or 0) to use unthreaded library versions
-# only
+# only. The following settings are used by default
 
-fftw-threads = Yes
-nfft-threads = No
+fftw-threads          = Yes
+combined-fftw-threads = No   # Yes on MS Windows
+nfft-threads          = Yes
 
 [build_sphinx]
 source-dir = doc/source

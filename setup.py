@@ -23,6 +23,7 @@ except ImportError:
 
 import os
 import os.path
+import platform
 import sys
 import numpy
 import shutil
@@ -36,36 +37,48 @@ setup_dir = dir = os.path.dirname(os.path.abspath(__file__))
 package_name = 'pynfft'
 package_dir = os.path.join(setup_dir, package_name)
 
-fftw_threaded = True  # Default as implemented before
-nfft_threaded = True
+if platform.system() == "Windows":
+    fftw_threads = True    # use multi-threaded fftw libraries
+    fftw_combined = True   # Windows usually has combined fftw3_threads and fftw3 libraries
+    nfft_threads = True    # use multi-threaded nfft libraries
+else:
+    fftw_threads = True    # use multi-threaded fftw libraries
+    fftw_combined = False  # Unices usually have seperate fftw3_threads and fftw3 libraries
+    nfft_threads = True    # use multi-threaded nfft libraries
 
 setup_cfg = 'setup.cfg'
 ncconfig = None
 if os.path.exists(setup_cfg):
     config = configparser.SafeConfigParser()
     config.read(setup_cfg)
-    try: fftw_threaded = config.getboolean("options", "fftw-threads")
+    try: fftw_threads = config.getboolean("options", "fftw-threads")
     except: pass
-    try: nfft_threaded = config.getboolean("options", "nfft-threads")
+    try: fftw_combined = config.getboolean("options", "fftw-threads-combined")
+    except: pass
+    try: nfft_threads = config.getboolean("options", "nfft-threads")
     except: pass
 
-use_fftw_threaded = os.environ.get('FFTW_THREADS')
-if use_fftw_threaded is not None:
-    fftw_threaded = use_fftw_threaded.lower() in ('yes', 'y', 'true', 't', '1')
+fftw_threads_env = os.environ.get('FFTW_THREADS')
+if fftw_threads_env is not None:
+    fftw_threads = fftw_threads_env.lower() in ('yes', 'y', 'true', 't', '1')
 
-use_nfft_threaded = os.environ.get('NFFT_THREADS')
-if use_nfft_threaded is not None:
-    nfft_threaded = use_nfft_threaded.lower() in ('yes', 'y', 'true', 't', '1')
+fftw_combined_env = os.environ.get('FFTW_THREADS_COMBINED')
+if fftw_combined_env is not None:
+    fftw_combined = fftw_combined_env.lower() in ('yes', 'y', 'true', 't', '1')
+
+nfft_threads_env = os.environ.get('NFFT_THREADS')
+if nfft_threads_env is not None:
+    nfft_threads = nfft_threads_env.lower() in ('yes', 'y', 'true', 't', '1')
 
 with open(os.path.join("pynfft", "config.h"), "w") as config_h:
     config_h.write("/* pynfft/config.h. Generated from setup.py. */\n\n")
     config_h.write("/* Define to enable multi-threaded FFTW. */\n")
-    if fftw_threaded:
+    if fftw_threads:
         config_h.write("#define FFTW_THREADS\n\n")
     else:
         config_h.write("/* #undef FFTW_THREADS */\n\n")
     config_h.write("/* Define to enable multi-threaded NFFT (requires OpemMP build of NFFT). */\n")
-    if nfft_threaded:
+    if nfft_threads:
         config_h.write("#define NFFT_THREADS\n")
     else:
         config_h.write("/* #undef NFFT_THREADS */\n")
@@ -74,12 +87,12 @@ include_dirs = [numpy.get_include()]
 library_dirs = []
 package_data = {}
 
-if fftw_threaded:
+if fftw_threads and not fftw_combined:
     libraries = ['fftw3_threads', 'fftw3', 'm']
 else:
     libraries = ['fftw3', 'm']
 
-if nfft_threaded:
+if nfft_threads:
     libraries = ['nfft3_threads', 'nfft3'] + libraries
 else:
     libraries = ['nfft3'] + libraries

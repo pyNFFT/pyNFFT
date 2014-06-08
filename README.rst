@@ -75,9 +75,16 @@ with::
 or::
 
     NFFT_THREADS=no python setup.py install
-    
-Similarly, the use of a threaded version of the FFTW library can be disabled
-with FFTW_THREADS=no.
+
+pyNFFT further assumes that the underlying FFTW library is available in a 
+multi-threaded version. On Unix platforms, the default is to link against
+both libfftw3_threads.so and libfftw3.so, while on Windows platforms, a 
+combined fftw3 library containing both multi- and single-threaded library
+functions are assumed. If necessary, the default behaviour can be overwritten
+with setting FFTW_THREADS_COMBINED to 'yes' or 'No' as required. 
+
+Similarly, the use of a threaded version of the FFTW library can be entirely
+disabled with FFTW_THREADS=no.
 
 If pyNFFT is build with python setup.py, equivalent settings can also be made
 in the setup.cfg file. For details, see the description in setup.cfg.template.

@@ -10,3 +10,5 @@ dist/
 *.egg-info/
 doc/build
 MANIFEST
+pynfft/config.h
+!pynfft/threading.c

@@ -42,24 +42,33 @@ nfft_threaded = True
 setup_cfg = 'setup.cfg'
 ncconfig = None
 if os.path.exists(setup_cfg):
-    sys.stdout.write('Reading from setup.cfg...\n')
     config = configparser.SafeConfigParser()
     config.read(setup_cfg)
-    try: fftw_threaded = config.getboolean("options", "fftw-threaded")
+    try: fftw_threaded = config.getboolean("options", "fftw-threads")
     except: pass
-    try: nfft_threaded = config.getboolean("options", "nfft-threaded")
+    try: nfft_threaded = config.getboolean("options", "nfft-threads")
     except: pass
 
-use_fftw_threaded = os.environ.get('USE_FFTW_THREADED')
+use_fftw_threaded = os.environ.get('FFTW_THREADS')
 if use_fftw_threaded is not None:
     fftw_threaded = use_fftw_threaded.lower() in ('yes', 'y', 'true', 't', '1')
 
-use_nfft_threaded = os.environ.get('USE_NFFT_THREADED')
+use_nfft_threaded = os.environ.get('NFFT_THREADS')
 if use_nfft_threaded is not None:
     nfft_threaded = use_nfft_threaded.lower() in ('yes', 'y', 'true', 't', '1')
 
-print "fftw_threaded:", fftw_threaded, use_fftw_threaded
-print "nfft_threaded:", nfft_threaded, use_nfft_threaded
+with open(os.path.join("pynfft", "config.h"), "w") as config_h:
+    config_h.write("/* pynfft/config.h. Generated from setup.py. */\n\n")
+    config_h.write("/* Define to enable multi-threaded FFTW. */\n")
+    if fftw_threaded:
+        config_h.write("#define FFTW_THREADS\n\n")
+    else:
+        config_h.write("/* #undef FFTW_THREADS */\n\n")
+    config_h.write("/* Define to enable multi-threaded NFFT (requires OpemMP build of NFFT). */\n")
+    if nfft_threaded:
+        config_h.write("#define NFFT_THREADS\n")
+    else:
+        config_h.write("/* #undef NFFT_THREADS */\n")
 
 include_dirs = [numpy.get_include()]
 library_dirs = []
@@ -80,7 +89,7 @@ try:
     ext_modules = [
         Extension(
             name=package_name+'.nfft',
-            sources=[os.path.join(package_dir, 'nfft.pyx')],
+            sources=[os.path.join(package_dir, 'nfft.pyx'), os.path.join(package_dir, "threading.c")],
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
@@ -89,7 +98,7 @@ try:
         ),
         Extension(
             name=package_name+'.solver',
-            sources=[os.path.join(package_dir, 'solver.pyx')],
+            sources=[os.path.join(package_dir, 'solver.pyx'), os.path.join(package_dir, "threading.c")],
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
@@ -98,7 +107,7 @@ try:
         ),
         Extension(
             name=package_name+'.util',
-            sources=[os.path.join(package_dir, 'util.pyx')],
+            sources=[os.path.join(package_dir, 'util.pyx'), os.path.join(package_dir, "threading.c")],
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
@@ -111,7 +120,7 @@ except ImportError as e:
     ext_modules = [
         Extension(
             name=package_name+'.nfft',
-            sources=[os.path.join(package_dir, 'nfft.c')],
+            sources=[os.path.join(package_dir, 'nfft.c'), os.path.join(package_dir, "threading.c")],
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
@@ -120,7 +129,7 @@ except ImportError as e:
         ),
         Extension(
             name=package_name+'.solver',
-            sources=[os.path.join(package_dir, 'solver.c')],
+            sources=[os.path.join(package_dir, 'solver.c'), os.path.join(package_dir, "threading.c")],
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
@@ -129,7 +138,7 @@ except ImportError as e:
         ),
         Extension(
             name=package_name+'.util',
-            sources=[os.path.join(package_dir, 'util.c')],
+            sources=[os.path.join(package_dir, 'util.c'), os.path.join(package_dir, "threading.c")],
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
@@ -157,7 +166,7 @@ class CleanCommand(Command):
                 shutil.rmtree(_dir)
         for root, _, files in os.walk(package_dir):
             for _file in files:
-                if not _file.endswith(('.py', '.pyx', '.pxd', '.pxi')):
+                if not _file.endswith(('.py', '.pyx', '.pxd', '.pxi', 'threading.c')):
                     os.remove(os.path.join(package_dir, _file))
 
 

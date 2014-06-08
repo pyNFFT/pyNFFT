@@ -70,14 +70,14 @@ the library. If the threaded version of the NFFT library is not available,
 pyNFFT can be build and linked against the unthreaded version of the library
 with::
 
-    USE_NFFT_THREADED=0 pip install pynfft
+    NFFT_THREADS=no pip install pynfft
     
 or::
 
-    USE_NFFT_THREADED=0 python setup.py install
+    NFFT_THREADS=no python setup.py install
     
 Similarly, the use of a threaded version of the FFTW library can be disabled
-with USE_FFTW_THREADED=0.
+with FFTW_THREADS=no.
 
 If pyNFFT is build with python setup.py, equivalent settings can also be made
 in the setup.cfg file. For details, see the description in setup.cfg.template.

@@ -23,7 +23,6 @@ except ImportError:
 
 import os
 import os.path
-import platform
 import sys
 import numpy
 import shutil
@@ -37,7 +36,7 @@ setup_dir = dir = os.path.dirname(os.path.abspath(__file__))
 package_name = 'pynfft'
 package_dir = os.path.join(setup_dir, package_name)
 
-if platform.system() == "Windows":
+if sys.platform.startswith('win'):
     fftw_threads = True    # use multi-threaded fftw libraries
     fftw_combined = True   # Windows usually has combined fftw3_threads and fftw3 libraries
     nfft_threads = True    # use multi-threaded nfft libraries
@@ -69,6 +68,23 @@ if fftw_combined_env is not None:
 nfft_threads_env = os.environ.get('NFFT_THREADS')
 if nfft_threads_env is not None:
     nfft_threads = nfft_threads_env.lower() in ('yes', 'y', 'true', 't', '1')
+
+args = []
+for arg in list(sys.argv):
+    if arg == "--with-fftw-threads" or arg == "--enable-fftw-threads":
+        fftw_threads = True ; args.append(arg)
+    elif arg == "--without-fftw-threads" or arg == "--disable-fftw-threads":
+        fftw_threads = False ; args.append(arg)
+    elif arg == "--with-combined-fftw-threads" or arg == "--enable-combined-fftw-threads":
+        fftw_combined = True ; args.append(arg)
+    elif arg == "--without-combined-fftw-threads" or arg == "--disable-combined-fftw-threads":
+        fftw_combined = False ; args.append(arg)
+    elif arg == "--with-nfft-threads" or arg == "--enable-nfft-threads":
+        nfft_threads = True ; args.append(arg)
+    elif arg == "--without-nfft-threads" or arg == "--disable-nfft-threads":
+        nfft_threads = False ; args.append(arg)
+for arg in args:
+    sys.argv.remove(arg)
 
 with open(os.path.join("pynfft", "config.h"), "w") as config_h:
     config_h.write("/* pynfft/config.h. Generated from setup.py. */\n\n")

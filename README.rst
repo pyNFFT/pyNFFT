@@ -70,21 +70,21 @@ the library. If the threaded version of the NFFT library is not available,
 pyNFFT can be build and linked against the unthreaded version of the library
 with::
 
-    NFFT_THREADS=no pip install pynfft
+    python setup.py --without-nfft-threads install
     
-or::
+or even::
 
-    NFFT_THREADS=no python setup.py install
+    pip install --install-option="--without-nfft-threads" pynfft
 
 pyNFFT further assumes that the underlying FFTW library is available in a 
 multi-threaded version. On Unix platforms, the default is to link against
 both libfftw3_threads.so and libfftw3.so, while on Windows platforms, a 
 combined fftw3 library containing both multi- and single-threaded library
-functions are assumed. If necessary, the default behaviour can be overwritten
-with setting FFTW_THREADS_COMBINED to 'yes' or 'No' as required. 
+functions are assumed. The respective default behaviour can be overwritten 
+with `--with-fftw-combined-threads` or `--without-fftw-combined-threads`.
 
-Similarly, the use of a threaded version of the FFTW library can be entirely
-disabled with FFTW_THREADS=no.
+Finally, FFTW's threading can be disabled with `--without-fftw-threads`, 
+e.g. if no multi-threaded FFTW library isn't available. 
 
 If pyNFFT is build with python setup.py, equivalent settings can also be made
 in the setup.cfg file. For details, see the description in setup.cfg.template.

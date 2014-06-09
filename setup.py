@@ -23,25 +23,102 @@ except ImportError:
 
 import os
 import os.path
+import sys
 import numpy
 import shutil
+
+if sys.version_info[0] < 3:
+    import ConfigParser as configparser
+else:
+    import configparser
 
 setup_dir = dir = os.path.dirname(os.path.abspath(__file__))
 package_name = 'pynfft'
 package_dir = os.path.join(setup_dir, package_name)
 
+if sys.platform.startswith('win'):
+    fftw_threads = True    # use multi-threaded fftw libraries
+    fftw_combined = True   # Windows usually has combined fftw3_threads and fftw3 libraries
+    nfft_threads = True    # use multi-threaded nfft libraries
+else:
+    fftw_threads = True    # use multi-threaded fftw libraries
+    fftw_combined = False  # Unices usually have seperate fftw3_threads and fftw3 libraries
+    nfft_threads = True    # use multi-threaded nfft libraries
+
+setup_cfg = 'setup.cfg'
+ncconfig = None
+if os.path.exists(setup_cfg):
+    config = configparser.SafeConfigParser()
+    config.read(setup_cfg)
+    try: fftw_threads = config.getboolean("options", "fftw-threads")
+    except: pass
+    try: fftw_combined = config.getboolean("options", "fftw-threads-combined")
+    except: pass
+    try: nfft_threads = config.getboolean("options", "nfft-threads")
+    except: pass
+
+fftw_threads_env = os.environ.get('FFTW_THREADS')
+if fftw_threads_env is not None:
+    fftw_threads = fftw_threads_env.lower() in ('yes', 'y', 'true', 't', '1')
+
+fftw_combined_env = os.environ.get('FFTW_THREADS_COMBINED')
+if fftw_combined_env is not None:
+    fftw_combined = fftw_combined_env.lower() in ('yes', 'y', 'true', 't', '1')
+
+nfft_threads_env = os.environ.get('NFFT_THREADS')
+if nfft_threads_env is not None:
+    nfft_threads = nfft_threads_env.lower() in ('yes', 'y', 'true', 't', '1')
+
+args = []
+for arg in list(sys.argv):
+    if arg == "--with-fftw-threads" or arg == "--enable-fftw-threads":
+        fftw_threads = True ; args.append(arg)
+    elif arg == "--without-fftw-threads" or arg == "--disable-fftw-threads":
+        fftw_threads = False ; args.append(arg)
+    elif arg == "--with-combined-fftw-threads" or arg == "--enable-combined-fftw-threads":
+        fftw_combined = True ; args.append(arg)
+    elif arg == "--without-combined-fftw-threads" or arg == "--disable-combined-fftw-threads":
+        fftw_combined = False ; args.append(arg)
+    elif arg == "--with-nfft-threads" or arg == "--enable-nfft-threads":
+        nfft_threads = True ; args.append(arg)
+    elif arg == "--without-nfft-threads" or arg == "--disable-nfft-threads":
+        nfft_threads = False ; args.append(arg)
+for arg in args:
+    sys.argv.remove(arg)
+
+with open(os.path.join("pynfft", "config.h"), "w") as config_h:
+    config_h.write("/* pynfft/config.h. Generated from setup.py. */\n\n")
+    config_h.write("/* Define to enable multi-threaded FFTW. */\n")
+    if fftw_threads:
+        config_h.write("#define FFTW_THREADS\n\n")
+    else:
+        config_h.write("/* #undef FFTW_THREADS */\n\n")
+    config_h.write("/* Define to enable multi-threaded NFFT (requires OpemMP build of NFFT). */\n")
+    if nfft_threads:
+        config_h.write("#define NFFT_THREADS\n")
+    else:
+        config_h.write("/* #undef NFFT_THREADS */\n")
+
 include_dirs = [numpy.get_include()]
 library_dirs = []
 package_data = {}
-libraries = ['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm']
 
+if fftw_threads and not fftw_combined:
+    libraries = ['fftw3_threads', 'fftw3', 'm']
+else:
+    libraries = ['fftw3', 'm']
+
+if nfft_threads:
+    libraries = ['nfft3_threads', 'nfft3'] + libraries
+else:
+    libraries = ['nfft3'] + libraries
 
 try:
     from Cython.Distutils import build_ext as build_ext
     ext_modules = [
         Extension(
             name=package_name+'.nfft',
-            sources=[os.path.join(package_dir, 'nfft.pyx')],
+            sources=[os.path.join(package_dir, 'nfft.pyx'), os.path.join(package_dir, "threading.c")],
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
@@ -50,7 +127,7 @@ try:
         ),
         Extension(
             name=package_name+'.solver',
-            sources=[os.path.join(package_dir, 'solver.pyx')],
+            sources=[os.path.join(package_dir, 'solver.pyx'), os.path.join(package_dir, "threading.c")],
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
@@ -59,7 +136,7 @@ try:
         ),
         Extension(
             name=package_name+'.util',
-            sources=[os.path.join(package_dir, 'util.pyx')],
+            sources=[os.path.join(package_dir, 'util.pyx'), os.path.join(package_dir, "threading.c")],
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
@@ -72,7 +149,7 @@ except ImportError as e:
     ext_modules = [
         Extension(
             name=package_name+'.nfft',
-            sources=[os.path.join(package_dir, 'nfft.c')],
+            sources=[os.path.join(package_dir, 'nfft.c'), os.path.join(package_dir, "threading.c")],
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
@@ -81,7 +158,7 @@ except ImportError as e:
         ),
         Extension(
             name=package_name+'.solver',
-            sources=[os.path.join(package_dir, 'solver.c')],
+            sources=[os.path.join(package_dir, 'solver.c'), os.path.join(package_dir, "threading.c")],
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
@@ -90,7 +167,7 @@ except ImportError as e:
         ),
         Extension(
             name=package_name+'.util',
-            sources=[os.path.join(package_dir, 'util.c')],
+            sources=[os.path.join(package_dir, 'util.c'), os.path.join(package_dir, "threading.c")],
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
@@ -118,7 +195,7 @@ class CleanCommand(Command):
                 shutil.rmtree(_dir)
         for root, _, files in os.walk(package_dir):
             for _file in files:
-                if not _file.endswith(('.py', '.pyx', '.pxd', '.pxi')):
+                if not _file.endswith(('.py', '.pyx', '.pxd', '.pxi', 'threading.c')):
                     os.remove(os.path.join(package_dir, _file))
 
 

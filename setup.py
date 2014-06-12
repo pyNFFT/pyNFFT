@@ -17,9 +17,9 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 try:
-    from setuptools import setup, Command, Extension
+    from setuptools import setup, Extension
 except ImportError:
-    from distutils.core import setup, Command, Extension
+    from distutils.core import setup, Extension
 
 import os
 import os.path
@@ -100,28 +100,6 @@ except ImportError as e:
     ]
 
 
-class CleanCommand(Command):
-
-    description = "Force clean of build files and directories."
-    user_options = []
-
-    def initialize_options(self):
-        self.all = None
-
-    def finalize_options(self):
-        pass
-
-    def run(self):
-        for _dir in [os.path.join(setup_dir, d)
-                for d in ('build', 'dist', 'doc/build', 'pyNFFT.egg-info')]:
-            if os.path.exists(_dir):
-                shutil.rmtree(_dir)
-        for root, _, files in os.walk(package_dir):
-            for _file in files:
-                if not _file.endswith(('.py', '.pyx', '.pxd', '.pxi')):
-                    os.remove(os.path.join(package_dir, _file))
-
-
 version = '1.3.0'
 release = True
 if not release:
@@ -169,8 +147,7 @@ setup_args = {
     'ext_modules': ext_modules,
     'include_dirs': include_dirs,
     'package_data': package_data,
-    'cmdclass': {'build_ext': build_ext,
-                 'clean': CleanCommand,},
+    'cmdclass': {'build_ext': build_ext},
     'install_requires': ['numpy'],
 }
 

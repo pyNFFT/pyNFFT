@@ -1,6 +1,12 @@
 Changelog
 =========
 
+Changes in version 1.3.1
+------------------------
+
+    * setup: fix build from cythonized sources
+    * setup: remove obsolete custom clean command
+
 Changes in version 1.3
 ----------------------
 

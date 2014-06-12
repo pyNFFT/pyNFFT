@@ -21,6 +21,13 @@ try:
 except ImportError:
     from distutils.core import setup, Extension
 
+try:
+    from Cython.Distutils import build_ext
+except ImportError:
+    use_cython = False
+else:
+    use_cython = True
+
 import os
 import os.path
 import numpy
@@ -35,10 +42,11 @@ library_dirs = []
 package_data = {}
 libraries = ['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm']
 
+cmdclass = {}
+ext_modules = []
 
-try:
-    from Cython.Distutils import build_ext as build_ext
-    ext_modules = [
+if use_cython:
+    ext_modules += [
         Extension(
             name=package_name+'.nfft',
             sources=[os.path.join(package_dir, 'nfft.pyx')],
@@ -67,9 +75,9 @@ try:
             '-fstrict-aliasing -ffast-math'.split(),
         ),
     ]
-
-except ImportError as e:
-    ext_modules = [
+    cmdclass.update({'build_ext': build_ext})
+else:
+    ext_modules += [
         Extension(
             name=package_name+'.nfft',
             sources=[os.path.join(package_dir, 'nfft.c')],
@@ -147,7 +155,7 @@ setup_args = {
     'ext_modules': ext_modules,
     'include_dirs': include_dirs,
     'package_data': package_data,
-    'cmdclass': {'build_ext': build_ext},
+    'cmdclass': cmdclass,
     'install_requires': ['numpy'],
 }
 

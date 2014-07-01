@@ -53,8 +53,6 @@ if use_cython:
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
         ),
         Extension(
             name=package_name+'.solver',
@@ -62,8 +60,6 @@ if use_cython:
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
         ),
         Extension(
             name=package_name+'.util',
@@ -71,8 +67,6 @@ if use_cython:
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
         ),
     ]
     cmdclass.update({'build_ext': build_ext})
@@ -84,8 +78,6 @@ else:
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
         ),
         Extension(
             name=package_name+'.solver',
@@ -93,8 +85,6 @@ else:
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
         ),
         Extension(
             name=package_name+'.util',
@@ -102,8 +92,6 @@ else:
             libraries=libraries,
             library_dirs=library_dirs,
             include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
         ),
     ]
 

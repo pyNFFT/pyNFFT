@@ -53,6 +53,14 @@ cd to where pip downloaded the package, then build with `setup.py`::
 and do a final call to pip::
 
     pip install --no-download pynfft
+    
+Alternatively, environment variables can be used:
+
+    CPPFLAGS='-I <path_to_include>' LDFLAGS='-L <path_to_lib> -R <path_to_lib>' \
+       pip install pynfft
+       
+Additional compiler options can be specified using the CFLAGS environment
+variable in an analogous way.
 
 Building
 --------
@@ -69,6 +77,9 @@ The build process requires Cython in order to generate the cythonized
 c-files::
 
     python setup.py build_ext --inplace
+
+Setting compiler and linker options through environment variables as decribed
+above also works for the python setup.py commands.
 
 Build info
 ----------

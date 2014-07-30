@@ -151,7 +151,7 @@ setup_args = {
     'long_description': long_description,
     'url': 'https://github.com/ghisvail/pyNFFT.git',
     'classifiers': classifiers,
-    'packages': [package_name],
+    'packages': ['pynfft', 'pynfft.tests'],
     'ext_modules': ext_modules,
     'include_dirs': include_dirs,
     'package_data': package_data,

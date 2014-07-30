@@ -1,7 +1,18 @@
-include *.txt *.rst
-exclude CONTRIBUTING.txt
-recursive-include pynfft *.pyx *.pxd *.py *.c
-recursive-include tests *.py
-recursive-include doc *
-recursive-exclude doc/build *
-exclude MANIFEST.in
+include MANIFEST.in
+include CHANGELOG.txt
+include COPYING.txt
+include README.rst
+include setup.cfg
+include setup.py
+exclude CONTRIBUTING.rst
+
+graft pynfft
+graft doc
+prune doc/build
+
+global-exclude *.pyc
+global-exclude *.pyd
+global-exclude *.pyo
+global-exclude *.so
+global-exclude .git*
+global-exclude *~

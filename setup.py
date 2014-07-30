@@ -107,11 +107,11 @@ else:
         ),
     ]
 
-
-version = '1.3.1'
-release = True
-if not release:
-    version += '-dev'
+MAJOR = 1
+MINOR = 3
+MICRO = 1
+SUFFIX = "" # Should be blank except for rc's, betas, etc.
+VERSION = '%d.%d.%d%s' % (MAJOR, MINOR, MICRO, SUFFIX)
 
 long_description = '''"The NFFT is a C subroutine library for computing the
 nonequispaced discrete Fourier transform (NDFT) in one or more dimensions, of
@@ -144,7 +144,7 @@ classifiers = [
 
 setup_args = {
     'name': 'pyNFFT',
-    'version': version,
+    'version': VERSION,
     'author': 'Ghislain Vaillant',
     'author_email': 'ghisvail@gmail.com',
     'description': 'A pythonic wrapper around NFFT',
@@ -159,5 +159,27 @@ setup_args = {
     'install_requires': ['numpy'],
 }
 
-if __name__ == '__main__':
+
+# borrowed from pandas / theano
+def write_version_py(filename=None):
+    cnt = """\
+version = '%s'
+"""
+    if not filename:
+        filename = os.path.join(
+            os.path.dirname(__file__), 'pynfft', 'version.py')
+            
+    a = open(filename, 'w')
+    try:
+        a.write(cnt % (VERSION,))
+    finally:
+        a.close()
+
+
+def do_setup():
+    write_version_py()
     setup(**setup_args)
+
+
+if __name__ == '__main__':
+    do_setup()

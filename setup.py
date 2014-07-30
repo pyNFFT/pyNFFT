@@ -16,99 +16,87 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-try:
-    from setuptools import setup, Command, Extension
-except ImportError:
-    from distutils.core import setup, Command, Extension
-
-from distutils.command.build import build
-from distutils.command.sdist import sdist
-
-try:
-    from Cython.Distutils import build_ext
-    use_cython = True
-except ImportError:
-    from distutils.command.build_ext import build_ext
-    use_cython = False
-
 import os
-import os.path
-import numpy
-import shutil
+import sys
+import subprocess
 
+
+# Define global path variables
 setup_dir = dir = os.path.dirname(os.path.abspath(__file__))
 package_name = 'pynfft'
 package_dir = os.path.join(setup_dir, package_name)
 
-include_dirs = [numpy.get_include()]
-library_dirs = []
-package_data = {}
-libraries = ['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm']
 
+# Define utility functions to build the extensions
+def get_common_extension_args():
+    import numpy
+    common_extension_args = dict(
+        libraries=['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm'],
+        library_dirs=[],
+        include_dirs=[numpy.get_include()],
+        extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
+        '-fstrict-aliasing -ffast-math'.split(),
+        )
+    return common_extension_args
 
-ext_modules = []
-if use_cython:
-    ext_modules += [
-        Extension(
-            name=package_name+'.nfft',
-            sources=[os.path.join(package_dir, 'nfft.pyx')],
-            libraries=libraries,
-            library_dirs=library_dirs,
-            include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
-        ),
-        Extension(
-            name=package_name+'.solver',
-            sources=[os.path.join(package_dir, 'solver.pyx')],
-            libraries=libraries,
-            library_dirs=library_dirs,
-            include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
-        ),
-        Extension(
-            name=package_name+'.util',
-            sources=[os.path.join(package_dir, 'util.pyx')],
-            libraries=libraries,
-            library_dirs=library_dirs,
-            include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
-        ),
-    ]
-else:
-    ext_modules += [
-        Extension(
+def get_extensions():
+    from distutils.extension import Extension
+    ext_modules = []
+    common_extension_args = get_common_extension_args()
+    ext_modules.append(Extension(
             name=package_name+'.nfft',
             sources=[os.path.join(package_dir, 'nfft.c')],
-            libraries=libraries,
-            library_dirs=library_dirs,
-            include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
-        ),
-        Extension(
+            **common_extension_args
+            )
+        )
+    ext_modules.append(Extension(
             name=package_name+'.solver',
             sources=[os.path.join(package_dir, 'solver.c')],
-            libraries=libraries,
-            library_dirs=library_dirs,
-            include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
-        ),
-        Extension(
+            **common_extension_args
+            )
+        )
+    ext_modules.append(Extension(
             name=package_name+'.util',
             sources=[os.path.join(package_dir, 'util.c')],
-            libraries=libraries,
-            library_dirs=library_dirs,
-            include_dirs=include_dirs,
-            extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-            '-fstrict-aliasing -ffast-math'.split(),
-        ),
-    ]
+            **common_extension_args
+            )
+        )
+    return ext_modules
+
+def get_cython_extensions():
+    from distutils.extension import Extension
+    from Cython.Build import cythonize
+    ext_modules = []
+    common_extension_args = get_common_extension_args()
+    ext_modules.append(Extension(
+            name=package_name+'.nfft',
+            sources=[os.path.join(package_dir, 'nfft.pyx')],
+            **common_extension_args
+            )
+        )
+    ext_modules.append(Extension(
+            name=package_name+'.solver',
+            sources=[os.path.join(package_dir, 'solver.pyx')],
+            **common_extension_args
+            )
+        )
+    ext_modules.append(Extension(
+            name=package_name+'.util',
+            sources=[os.path.join(package_dir, 'util.pyx')],
+            **common_extension_args
+            )
+        )
+    return cythonize(ext_modules)
 
 
+# BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
+# update it when the contents of directories change.
+if os.path.exists('MANIFEST'):
+    os.remove('MANIFEST')
+
+
+# Define custom clean command
+from distutils.core import Command
 class CleanCommand(Command):
     """Custom distutils command to clean the .so and .pyc files."""
 
@@ -151,22 +139,10 @@ class CleanCommand(Command):
             except Exception:
                 pass
 
-
-cmdclass = {
-    'clean': CleanCommand,
-    'build': build,
-    'build_ext': build_ext,
-    'sdist': sdist,
-    }
+cmdclass = {'clean': CleanCommand}
 
 
-MAJOR = 1
-MINOR = 3
-MICRO = 1
-SUFFIX = "" # Should be blank except for rc's, betas, etc.
-VERSION = '%d.%d.%d%s' % (MAJOR, MINOR, MICRO, SUFFIX)
-
-long_description = '''"The NFFT is a C subroutine library for computing the
+LONG_DESCRIPTION = '''"The NFFT is a C subroutine library for computing the
 nonequispaced discrete Fourier transform (NDFT) in one or more dimensions, of
 arbitrary input size, and of complex data."
 
@@ -182,55 +158,151 @@ particular, the API is not yet frozen and is likely to change as the
 development continues. Please consult the documentation and changelog for more
 information.'''
 
-classifiers = [
-    'Programming Language :: Python',
-    'Programming Language :: Python :: 3',
-    'Development Status :: 4 - Beta',
-    'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
-    'Operating System :: POSIX :: Linux',
-    'Intended Audience :: Developers',
-    'Intended Audience :: Science/Research',
-    'Topic :: Scientific/Engineering',
-    'Topic :: Scientific/Engineering :: Mathematics',
-    'Topic :: Multimedia :: Sound/Audio :: Analysis',
-]
+CLASSIFIERS = """\
+Programming Language :: Python
+Programming Language :: Python :: 3
+Development Status :: 4 - Beta
+License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)
+Operating System :: POSIX :: Linux
+Intended Audience :: Developers
+Intended Audience :: Science/Research
+Topic :: Scientific/Engineering
+Topic :: Scientific/Engineering :: Mathematics
+Topic :: Multimedia :: Sound/Audio :: Analysis
 
-setup_args = {
-    'name': 'pyNFFT',
-    'version': VERSION,
-    'author': 'Ghislain Vaillant',
-    'author_email': 'ghisvail@gmail.com',
-    'description': 'A pythonic wrapper around NFFT',
-    'long_description': long_description,
-    'url': 'https://github.com/ghisvail/pyNFFT.git',
-    'classifiers': classifiers,
-    'packages': ['pynfft', 'pynfft.tests'],
-    'ext_modules': ext_modules,
-    'include_dirs': include_dirs,
-    'package_data': package_data,
-    'cmdclass': cmdclass,
-    'install_requires': ['numpy'],
-}
-
-
-# borrowed from pandas / theano
-def write_version_py(filename=None):
-    cnt = """\
-version = '%s'
 """
-    if not filename:
-        filename = os.path.join(package_dir, 'version.py')
+
+MAJOR = 1
+MINOR = 3
+MICRO = 1
+ISRELEASED = True
+VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
+
+# borrowed from scipy
+def git_version():
+    def _minimal_ext_cmd(cmd):
+        # construct minimal environment
+        env = {}
+        for k in ['SYSTEMROOT', 'PATH']:
+            v = os.environ.get(k)
+            if v is not None:
+                env[k] = v
+        # LANGUAGE is used on win32
+        env['LANGUAGE'] = 'C'
+        env['LANG'] = 'C'
+        env['LC_ALL'] = 'C'
+        out = subprocess.Popen(cmd, stdout = subprocess.PIPE, env=env).communicate()[0]
+        return out
+
+    try:
+        out = _minimal_ext_cmd(['git', 'rev-parse', 'HEAD'])
+        GIT_REVISION = out.strip().decode('ascii')
+    except OSError:
+        GIT_REVISION = "Unknown"
+
+    return GIT_REVISION
+
+# borrowed from scipy
+def get_version_info():
+    FULLVERSION = VERSION
+    if os.path.exists('.git'):
+        GIT_REVISION = git_version()
+    elif os.path.exists('pynfft/version.py'):
+        # must be a source distribution, use existing version file
+        # load it as a separate module in order not to load __init__.py
+        import imp
+        version = imp.load_source('pynfft.version', 'pynfft/version.py')
+        GIT_REVISION = version.git_revision
+    else:
+        GIT_REVISION = "Unknown"
+
+    if not ISRELEASED:
+        FULLVERSION += '.dev-' + GIT_REVISION[:7]
+
+    return FULLVERSION, GIT_REVISION
+
+# borrowed from scipy
+def write_version_py(filename='pynfft/version.py'):
+    cnt = """
+# THIS FILE IS GENERATED FROM SETUP.PY
+short_version = '%(version)s'
+version = '%(version)s'
+full_version = '%(full_version)s'
+git_revision = '%(git_revision)s'
+release = %(isrelease)s
+
+if not release:
+    version = full_version
+"""
+    FULLVERSION, GIT_REVISION = get_version_info()
+
     f = open(filename, 'w')
     try:
-        f.write(cnt % (VERSION,))
+        f.write(cnt % {'version': VERSION,
+                       'full_version' : FULLVERSION,
+                       'git_revision' : GIT_REVISION,
+                       'isrelease': str(ISRELEASED)})
     finally:
         f.close()
 
 
-def do_setup():
+def setup_package():
+    # Use setuptools if available
+    try:
+        from setuptools import setup
+    except ImportError:
+        from distutils.core import setup
+    
+    # Get current version
+    FULLVERSION, GIT_REVISION = get_version_info()
+    
+    # Refresh version file
     write_version_py()
+    
+    # Figure out whether to add ``*_requires = ['numpy']``.
+    build_requires = []
+    try:
+        import numpy
+    except:
+        build_requires = ['numpy>=1.6',]
+        
+    # Common setup args
+    setup_args = dict(
+        name = 'pyNFFT',
+        version = FULLVERSION,
+        author = 'Ghislain Vaillant',
+        author_email = 'ghisvail@gmail.com',
+        description = 'A pythonic wrapper around NFFT',
+        long_description = LONG_DESCRIPTION,
+        url = 'https://github.com/ghisvail/pyNFFT.git',
+        cmdclass = cmdclass,
+        classifiers = CLASSIFIERS,
+        platforms=['Linux', 'Unix'],
+        test_suite='nose.collector',
+        setup_requires = build_requires,
+        install_requires = build_requires,
+        )
+        
+    if len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or
+            sys.argv[1] in ('--help-commands', 'egg_info', '--version',
+                            'clean')):
+        # For these actions, NumPy is not required.
+        pass
+    else:
+        try:
+            from Cython.Distutils import build_ext
+            have_cython = True
+        except:
+            have_cython = False
+        if have_cython:
+            extensions = get_cython_extensions()
+        else:
+            extensions = get_extensions()
+        setup_args['packages'] = ['pynfft', 'pynfft.tests']
+        setup_args['ext_modules'] = extensions
+        
     setup(**setup_args)
 
 
 if __name__ == '__main__':
-    do_setup()
+    setup_package()

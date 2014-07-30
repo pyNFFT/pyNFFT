@@ -17,16 +17,19 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 try:
-    from setuptools import setup, Extension
+    from setuptools import setup, Command, Extension
 except ImportError:
-    from distutils.core import setup, Extension
+    from distutils.core import setup, Command, Extension
+
+from distutils.command.build import build
+from distutils.command.sdist import sdist
 
 try:
     from Cython.Distutils import build_ext
-except ImportError:
-    use_cython = False
-else:
     use_cython = True
+except ImportError:
+    from distutils.command.build_ext import build_ext
+    use_cython = False
 
 import os
 import os.path
@@ -42,9 +45,8 @@ library_dirs = []
 package_data = {}
 libraries = ['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm']
 
-cmdclass = {}
-ext_modules = []
 
+ext_modules = []
 if use_cython:
     ext_modules += [
         Extension(
@@ -75,7 +77,6 @@ if use_cython:
             '-fstrict-aliasing -ffast-math'.split(),
         ),
     ]
-    cmdclass.update({'build_ext': build_ext})
 else:
     ext_modules += [
         Extension(
@@ -106,6 +107,58 @@ else:
             '-fstrict-aliasing -ffast-math'.split(),
         ),
     ]
+
+
+class CleanCommand(Command):
+    """Custom distutils command to clean the .so and .pyc files."""
+
+    user_options = [("all", "a", "")]
+
+    def initialize_options(self):
+        self.all = True
+        self._clean_me = []
+        self._clean_trees = []
+        self._clean_exclude = []
+        # clean Cython generated files and cache
+        for root, dirs, files in os.walk(package_dir):
+            for f in files:
+                if f in self._clean_exclude:
+                    continue
+                if os.path.splitext(f)[-1] in ('.pyc', '.so', '.o',
+                                               '.pyo',
+                                               '.pyd', '.c', '.orig'):
+                    self._clean_me.append(os.path.join(root, f))
+            for d in dirs:
+                if d == '__pycache__':
+                    self._clean_trees.append(os.path.join(root, d))
+        # clean build and sdist directories in root
+        for d in ('build', 'dist'):
+            if os.path.exists(d):
+                self._clean_trees.append(d)
+
+    def finalize_options(self):
+        pass
+
+    def run(self):
+        for clean_me in self._clean_me:
+            try:
+                os.unlink(clean_me)
+            except Exception:
+                pass
+        for clean_tree in self._clean_trees:
+            try:
+                shutil.rmtree(clean_tree)
+            except Exception:
+                pass
+
+
+cmdclass = {
+    'clean': CleanCommand,
+    'build': build,
+    'build_ext': build_ext,
+    'sdist': sdist,
+    }
+
 
 MAJOR = 1
 MINOR = 3

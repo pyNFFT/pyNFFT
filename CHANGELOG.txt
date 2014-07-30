@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Changes in version 1.3.2
+------------------------
+
+    * setup: re-introduce proper clean target
+    * setup: remove dependency on numpy for some targets
+    * add PEP-396 compliant version
+
 Changes in version 1.3.1
 ------------------------
 

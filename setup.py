@@ -158,19 +158,25 @@ particular, the API is not yet frozen and is likely to change as the
 development continues. Please consult the documentation and changelog for more
 information.'''
 
-CLASSIFIERS = """\
-Programming Language :: Python
-Programming Language :: Python :: 3
-Development Status :: 4 - Beta
-License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)
-Operating System :: POSIX :: Linux
-Intended Audience :: Developers
-Intended Audience :: Science/Research
-Topic :: Scientific/Engineering
-Topic :: Scientific/Engineering :: Mathematics
-Topic :: Multimedia :: Sound/Audio :: Analysis
-
-"""
+CLASSIFIERS = [
+    'Programming Language :: Cython',
+    'Programming Language :: Python',
+    'Programming Language :: Python :: 2',
+    'Programming Language :: Python :: 2.6',
+    'Programming Language :: Python :: 2.7',
+    'Programming Language :: Python :: 3',
+    'Programming Language :: Python :: 3.2',
+    'Programming Language :: Python :: 3.3',
+    'Programming Language :: Python :: 3.4',
+    'Development Status :: 4 - Beta',
+    'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+    'Operating System :: POSIX :: Linux',
+    'Intended Audience :: Developers',
+    'Intended Audience :: Science/Research',
+    'Topic :: Scientific/Engineering',
+    'Topic :: Scientific/Engineering :: Mathematics',
+    'Topic :: Multimedia :: Sound/Audio :: Analysis',
+]
 
 MAJOR = 1
 MINOR = 3

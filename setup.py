@@ -219,14 +219,12 @@ def write_version_py(filename=None):
 version = '%s'
 """
     if not filename:
-        filename = os.path.join(
-            os.path.dirname(__file__), 'pynfft', 'version.py')
-            
-    a = open(filename, 'w')
+        filename = os.path.join(package_dir, 'version.py')
+    f = open(filename, 'w')
     try:
-        a.write(cnt % (VERSION,))
+        f.write(cnt % (VERSION,))
     finally:
-        a.close()
+        f.close()
 
 
 def do_setup():

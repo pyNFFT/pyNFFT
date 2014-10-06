@@ -1,10 +1,10 @@
 include MANIFEST.in
-include CHANGELOG.txt
-include COPYING.txt
-include README.rst
+include ChangeLog
+include COPYING
+include README
 include setup.cfg
 include setup.py
-exclude CONTRIBUTING.rst
+exclude CONTRIBUTING
 
 graft pynfft
 graft doc

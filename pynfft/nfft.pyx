@@ -321,6 +321,10 @@ cdef class NFFT(object):
     def __dealloc__(self):
         nfft_finalize(&self._plan)
 
+    @classmethod
+    def from_arrays(cls, f_hat, f, **kwargs):
+        return cls(N=f_hat.shape, M=f.size, f_hat=f_hat, f=f, **kwargs)
+
     def precompute(self):
         '''Precomputes the NFFT plan internals.'''
         self._precompute()

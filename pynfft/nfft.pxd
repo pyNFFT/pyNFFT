@@ -38,4 +38,5 @@ cdef class NFFT(object):
     cdef void _trafo_direct(self)    
     cdef void _adjoint(self)
     cdef void _adjoint_direct(self)
+    cdef bint _is_precomputed
 

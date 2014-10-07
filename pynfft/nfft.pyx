@@ -277,6 +277,7 @@ cdef class NFFT(object):
         self._n = n
         self._dtype = dtype_complex
         self._flags = flags_used
+        self._is_precomputed = False
 
 
     # here, just holds the documentation of the class constructor
@@ -328,6 +329,7 @@ cdef class NFFT(object):
     def precompute(self):
         '''Precomputes the NFFT plan internals.'''
         self._precompute()
+        self._is_precomputed = True
 
     def trafo(self, use_dft=False):
         '''Performs the forward NFFT.
@@ -338,6 +340,8 @@ cdef class NFFT(object):
         :rtype: ndarray
 
         '''
+        if not self._is_precomputed:
+            raise RuntimeError("nfft object must be precomputed first")
         if use_dft:
             self._trafo_direct()
         else:
@@ -353,6 +357,8 @@ cdef class NFFT(object):
         :rtype: ndarray
 
         '''
+        if not self._is_precomputed:
+            raise RuntimeError("nfft object must be precomputed first")
         if use_dft:
             self._adjoint_direct()
         else:

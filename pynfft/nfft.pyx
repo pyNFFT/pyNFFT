@@ -102,7 +102,8 @@ cdef class NFFT(object):
     '''
 
     # where the C-related content of the class is being initialized
-    def __cinit__(self, N, M, n=None, m=12, flags=None, *args, **kwargs):
+    def __cinit__(self, N, M, n=None, m=12, flags=None, f=None, f_hat=None,
+                  x=None, *args, **kwargs):
 
         # support only double / double complex NFFT
         # TODO: if support for multiple floating precision lands in the
@@ -159,6 +160,30 @@ cdef class NFFT(object):
         if not all([nt > m for nt in n]):
             raise ValueError('n must be higher than m')
 
+        # sanity checks on optional arrays
+        # each of them need to be of the right type, size and be contiguous
+        if f:
+            if f.dtype != dtype_complex:
+                raise ValueError("array is of wrong dtype")
+            if f.size != M:
+                raise ValueError("array is of wrong size")
+            if not f.flags.c_contiguous:
+                raise ValueError("array is not contiguous")
+        if f_hat:
+            if f_hat.dtype != dtype_complex:
+                raise ValueError("array is of wrong dtype")
+            if f_hat.size != N_total:
+                raise ValueError("array is of wrong size")
+            if not f_hat.flags.c_contiguous:
+                raise ValueError("array is not contiguous")            
+        if x:
+            if x.dtype != dtype_real:
+                raise ValueError("array is of wrong dtype")
+            if x.size != d * M:
+                raise ValueError("array is of wrong size")
+            if not x.flags.c_contiguous:
+                raise ValueError("array is not contiguous")            
+
         # convert tuple of litteral precomputation flags to its expected
         # C-compatible value. Each flag is a power of 2, which allows to compute
         # this value using BITOR operations.
@@ -188,7 +213,12 @@ cdef class NFFT(object):
                 'FFTW_DESTROY_INPUT',)
 
         # memory allocation flags
-        flags_used += ('MALLOC_F', 'MALLOC_F_HAT', 'MALLOC_X')
+        if f is None:
+            flags_used += ('MALLOC_F',)
+        if f_hat is None:
+            flags_used += ('MALLOC_F_HAT',)
+        if x is None:
+            flags_used += ('MALLOC_X',)
 
         # Parallel computation flag
         flags_used += ('NFFT_SORT_NODES',)
@@ -229,31 +259,36 @@ cdef class NFFT(object):
         free(p_n)
 
         # create array views
+        if f_hat is not None:
+            self._plan.f_hat = <fftw_complex *> np.PyArray_DATA(self._f_hat)
+            
         cdef np.npy_intp *shape_f_hat
         shape_f_hat = <np.npy_intp *> malloc(d * sizeof(np.npy_intp))
         if shape_f_hat == NULL:
             raise MemoryError
         for dt in range(d):
             shape_f_hat[dt] = N[dt]
-
         self._f_hat = np.PyArray_SimpleNewFromData(d, shape_f_hat,
             np.NPY_COMPLEX128, <void *>(self._plan.f_hat))
-
         free(shape_f_hat)
 
+        if f is not None:
+            self._plan.f = <fftw_complex *> np.PyArray_DATA(self._f)
+            
         cdef np.npy_intp shape_f[1]
         shape_f[0] = M
-
         self._f = np.PyArray_SimpleNewFromData(1, shape_f,
             np.NPY_COMPLEX128, <void *>(self._plan.f))
-
+        
+        if x is not None:
+            self._plan.x = <double *> np.PyArray_DATA(self._x)
+           
         cdef np.npy_intp shape_x[2]
         shape_x[0] = M
         shape_x[1] = d
-
         self._x = np.PyArray_SimpleNewFromData(2, shape_x,
             np.NPY_FLOAT64, <void *>(self._plan.x))
-
+        
         # initialize class members
         self._d = d
         self._M = M
@@ -265,7 +300,8 @@ cdef class NFFT(object):
 
 
     # here, just holds the documentation of the class constructor
-    def __init__(self, N, M, n=None, m=12, flags=None, *args, **kwargs):
+    def __init__(self, N, M, n=None, m=12, flags=None, f=None, f_hat=None,
+                  x=None, *args, **kwargs):
         '''
         :param N: multi-bandwith.
         :type N: tuple of int

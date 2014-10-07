@@ -103,3 +103,13 @@ def test_adjoint_ndft():
         plan.precompute()
         yield check_adjoint_ndft, plan
 
+def test_forward_nfft_with_external_arrays():
+    N, M, nfft_kwargs = tested_nfft_args[0]
+    x = numpy.empty(M, dtype=numpy.double)
+    vrand_shifted_unit_double(x.ravel())
+    f_hat = numpy.empty(N, dtype=numpy.complex128)
+    vrand_unit_complex(f_hat.ravel())
+    f = numpy.empty(M, dtype=numpy.complex128)
+    plan = NFFT(N, M, f_hat=f_hat, f=f, x=x, **nfft_kwargs)
+    plan.precompute()
+    assert_allclose(plan.trafo(), fdft(plan.x, plan.f_hat))

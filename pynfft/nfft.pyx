@@ -103,7 +103,7 @@ cdef class NFFT(object):
 
     # where the C-related content of the class is being initialized
     def __cinit__(self, N, M, n=None, m=12, flags=None, f=None, f_hat=None,
-                  x=None, *args, **kwargs):
+                  x=None, precompute=False, *args, **kwargs):
 
         # support only double / double complex NFFT
         # TODO: if support for multiple floating precision lands in the
@@ -278,11 +278,15 @@ cdef class NFFT(object):
         self._dtype = dtype_complex
         self._flags = flags_used
         self._is_precomputed = False
+        
+        # optional precomputation
+        if precompute:
+            self.precompute()
 
 
     # here, just holds the documentation of the class constructor
     def __init__(self, N, M, n=None, m=12, flags=None, f=None, f_hat=None,
-                  x=None, *args, **kwargs):
+                  x=None, precompute=False, *args, **kwargs):
         '''
         :param N: multi-bandwith.
         :type N: tuple of int

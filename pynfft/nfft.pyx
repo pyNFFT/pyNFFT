@@ -162,21 +162,21 @@ cdef class NFFT(object):
 
         # sanity checks on optional arrays
         # each of them need to be of the right type, size and be contiguous
-        if f:
+        if f is not None:
             if f.dtype != dtype_complex:
                 raise ValueError("array is of wrong dtype")
             if f.size != M:
                 raise ValueError("array is of wrong size")
             if not f.flags.c_contiguous:
                 raise ValueError("array is not contiguous")
-        if f_hat:
+        if f_hat is not None:
             if f_hat.dtype != dtype_complex:
                 raise ValueError("array is of wrong dtype")
             if f_hat.size != N_total:
                 raise ValueError("array is of wrong size")
             if not f_hat.flags.c_contiguous:
                 raise ValueError("array is not contiguous")            
-        if x:
+        if x is not None:
             if x.dtype != dtype_real:
                 raise ValueError("array is of wrong dtype")
             if x.size != d * M:
@@ -257,38 +257,36 @@ cdef class NFFT(object):
         
         free(p_N)
         free(p_n)
-
+        
         # create array views
+        cdef np.npy_intp size_f_hat[1], size_f[1], size_x[1]
+        
         if f_hat is not None:
+            self._f_hat = f_hat.reshape(N)
             self._plan.f_hat = <fftw_complex *> np.PyArray_DATA(self._f_hat)
+        else:
+            size_f_hat[0] = N_total
+            self._f_hat = np.PyArray_SimpleNewFromData(1, size_f_hat,
+                np.NPY_COMPLEX128, <void *>(self._plan.f_hat))
+            self._f_hat = self._f_hat.reshape(N)
             
-        cdef np.npy_intp *shape_f_hat
-        shape_f_hat = <np.npy_intp *> malloc(d * sizeof(np.npy_intp))
-        if shape_f_hat == NULL:
-            raise MemoryError
-        for dt in range(d):
-            shape_f_hat[dt] = N[dt]
-        self._f_hat = np.PyArray_SimpleNewFromData(d, shape_f_hat,
-            np.NPY_COMPLEX128, <void *>(self._plan.f_hat))
-        free(shape_f_hat)
-
         if f is not None:
+            self._f = f.ravel()
             self._plan.f = <fftw_complex *> np.PyArray_DATA(self._f)
-            
-        cdef np.npy_intp shape_f[1]
-        shape_f[0] = M
-        self._f = np.PyArray_SimpleNewFromData(1, shape_f,
-            np.NPY_COMPLEX128, <void *>(self._plan.f))
-        
+        else:
+            size_f[0] = M
+            self._f = np.PyArray_SimpleNewFromData(1, size_f,
+                np.NPY_COMPLEX128, <void *>(self._plan.f))
+                
         if x is not None:
+            self._x = x.reshape([M, d])
             self._plan.x = <double *> np.PyArray_DATA(self._x)
-           
-        cdef np.npy_intp shape_x[2]
-        shape_x[0] = M
-        shape_x[1] = d
-        self._x = np.PyArray_SimpleNewFromData(2, shape_x,
-            np.NPY_FLOAT64, <void *>(self._plan.x))
-        
+        else:
+            size_x[0] = M * d
+            self._x = np.PyArray_SimpleNewFromData(1, size_x,
+                np.NPY_FLOAT64, <void *>(self._plan.x))
+            self._x = self._x.reshape([M, d])
+            
         # initialize class members
         self._d = d
         self._M = M

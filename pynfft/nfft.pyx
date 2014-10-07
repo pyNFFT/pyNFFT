@@ -212,14 +212,6 @@ cdef class NFFT(object):
         flags_used += ('FFTW_INIT', 'FFT_OUT_OF_PLACE', 'FFTW_ESTIMATE',
                 'FFTW_DESTROY_INPUT',)
 
-        # memory allocation flags
-        if f is None:
-            flags_used += ('MALLOC_F',)
-        if f_hat is None:
-            flags_used += ('MALLOC_F_HAT',)
-        if x is None:
-            flags_used += ('MALLOC_X',)
-
         # Parallel computation flag
         flags_used += ('NFFT_SORT_NODES',)
 
@@ -259,33 +251,23 @@ cdef class NFFT(object):
         free(p_n)
         
         # create array views
-        cdef np.npy_intp size_f_hat[1], size_f[1], size_x[1]
-        
         if f_hat is not None:
             self._f_hat = f_hat.reshape(N)
-            self._plan.f_hat = <fftw_complex *> np.PyArray_DATA(self._f_hat)
         else:
-            size_f_hat[0] = N_total
-            self._f_hat = np.PyArray_SimpleNewFromData(1, size_f_hat,
-                np.NPY_COMPLEX128, <void *>(self._plan.f_hat))
-            self._f_hat = self._f_hat.reshape(N)
-            
+            self._f_hat = np.empty(N, dtype=dtype_complex)
+        self._plan.f_hat = <fftw_complex *> np.PyArray_DATA(self._f_hat)
+                    
         if f is not None:
             self._f = f.ravel()
-            self._plan.f = <fftw_complex *> np.PyArray_DATA(self._f)
         else:
-            size_f[0] = M
-            self._f = np.PyArray_SimpleNewFromData(1, size_f,
-                np.NPY_COMPLEX128, <void *>(self._plan.f))
+            self._f = np.empty(M, dtype=dtype_complex)
+        self._plan.f = <fftw_complex *> np.PyArray_DATA(self._f)
                 
         if x is not None:
             self._x = x.reshape([M, d])
-            self._plan.x = <double *> np.PyArray_DATA(self._x)
         else:
-            size_x[0] = M * d
-            self._x = np.PyArray_SimpleNewFromData(1, size_x,
-                np.NPY_FLOAT64, <void *>(self._plan.x))
-            self._x = self._x.reshape([M, d])
+            self._x = np.empty([M, d], dtype=dtype_real)
+        self._plan.x = <double *> np.PyArray_DATA(self._x)
             
         # initialize class members
         self._d = d

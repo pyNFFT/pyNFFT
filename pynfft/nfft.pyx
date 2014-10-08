@@ -23,7 +23,7 @@ from libc cimport limits
 from cnfft3 cimport *
 
 cdef extern from *:
-    int Py_AtExit(void (*callback)()) 
+    int Py_AtExit(void (*callback)())
 
 # Initialize module
 # Numpy must be initialized. When using numpy from C or Cython you must
@@ -83,21 +83,21 @@ cdef class NFFT(object):
     '''
     NFFT is a class for computing the multivariate Non-uniform Discrete
     Fourier (NDFT) transform using the NFFT library. The interface is
-    designed to be somewhat pythonic, whilst preserving the workflow of the 
-    original C-library. Computation of the NFFT is achieved in 3 steps : 
+    designed to be somewhat pythonic, whilst preserving the workflow of the
+    original C-library. Computation of the NFFT is achieved in 3 steps :
     instantiation, precomputation and execution.
-    
+
     On instantiation, the geometry of the transform is provided. Optional
     computation parameters may also be defined.
-    
-    Precomputation initializes the internals of the transform prior to 
-    execution. First the non-uniform locations must be given to the plan 
-    via its :attr:`x` attribute. Computation can then be called with the 
+
+    Precomputation initializes the internals of the transform prior to
+    execution. First the non-uniform locations must be given to the plan
+    via its :attr:`x` attribute. Computation can then be called with the
     :meth:`precompute` method.
-    
-    The forward and adjoint NFFT can be eventually performed by calling the 
-    :meth:`forward` and :meth:`adjoint` methods respectively. The input/output 
-    of the transform can be read/written by access to the :attr:`f` and 
+
+    The forward and adjoint NFFT can be eventually performed by calling the
+    :meth:`forward` and :meth:`adjoint` methods respectively. The input/output
+    of the transform can be read/written by access to the :attr:`f` and
     :attr:`f_hat` attributes.
     '''
 
@@ -120,18 +120,18 @@ cdef class NFFT(object):
 
         if n is None:
             n = [2 * Nt for Nt in N]
-        
+
         try:
             n = tuple(n)
         except TypeError:
             n = (n,)
-        
+
         d = len(N)
         N_total = np.prod(N)
         n_total = np.prod(n)
- 
+
         if len(n) != d:
-            raise ValueError('n should be of same length as N')       
+            raise ValueError('n should be of same length as N')
 
         # check geometry is compatible with C-class internals
         int_max = <Py_ssize_t>limits.INT_MAX
@@ -144,7 +144,7 @@ cdef class NFFT(object):
         if not all([nt > 0 for nt in n]):
             raise ValueError('n must be strictly positive')
         if not all([nt < int_max for nt in n]):
-            raise ValueError('n exceeds integer limit value')        
+            raise ValueError('n exceeds integer limit value')
         if not n_total < int_max:
             raise ValueError('product of n exceeds integer limit value')
         if not M > 0:
@@ -175,14 +175,14 @@ cdef class NFFT(object):
             if f_hat.size != N_total:
                 raise ValueError("array is of wrong size")
             if not f_hat.flags.c_contiguous:
-                raise ValueError("array is not contiguous")            
+                raise ValueError("array is not contiguous")
         if x is not None:
             if x.dtype != dtype_real:
                 raise ValueError("array is of wrong dtype")
             if x.size != d * M:
                 raise ValueError("array is of wrong size")
             if not x.flags.c_contiguous:
-                raise ValueError("array is not contiguous")            
+                raise ValueError("array is not contiguous")
 
         # convert tuple of litteral precomputation flags to its expected
         # C-compatible value. Each flag is a power of 2, which allows to compute
@@ -246,29 +246,29 @@ cdef class NFFT(object):
 
         nfft_init_guru(&self._plan, d, p_N, M, p_n, m,
             _nfft_flags, _fftw_flags)
-        
+
         free(p_N)
         free(p_n)
-        
+
         # create array views
         if f_hat is not None:
             self._f_hat = f_hat.reshape(N)
         else:
             self._f_hat = np.empty(N, dtype=dtype_complex)
         self._plan.f_hat = <fftw_complex *> np.PyArray_DATA(self._f_hat)
-                    
+
         if f is not None:
             self._f = f.ravel()
         else:
             self._f = np.empty(M, dtype=dtype_complex)
         self._plan.f = <fftw_complex *> np.PyArray_DATA(self._f)
-                
+
         if x is not None:
             self._x = x.reshape([M, d])
         else:
             self._x = np.empty([M, d], dtype=dtype_real)
         self._plan.x = <double *> np.PyArray_DATA(self._x)
-            
+
         # initialize class members
         self._d = d
         self._M = M
@@ -278,7 +278,7 @@ cdef class NFFT(object):
         self._dtype = dtype_complex
         self._flags = flags_used
         self._is_precomputed = False
-        
+
         # optional precomputation
         if precompute:
             self.precompute()
@@ -298,7 +298,7 @@ cdef class NFFT(object):
         :type m: int
         :param flags: list of precomputation flags, see note below.
         :type flags: tuple
-        
+
         **Precomputation flags**
 
         This table lists the supported precomputation flags for the NFFT.
@@ -351,7 +351,7 @@ cdef class NFFT(object):
         else:
             self._trafo()
         return self.f
-    
+
     def adjoint(self, use_dft=False):
         '''Performs the adjoint NFFT.
 
@@ -390,7 +390,7 @@ cdef class NFFT(object):
             nfft_adjoint_direct(&self._plan)
 
     property f:
-        
+
         '''The vector of non-uniform samples.'''
 
         def __get__(self):
@@ -402,7 +402,7 @@ cdef class NFFT(object):
     property f_hat:
 
         '''The vector of Fourier coefficients.'''
-        
+
         def __get__(self):
             return self._f_hat
 
@@ -410,15 +410,16 @@ cdef class NFFT(object):
             self._f_hat.ravel()[:] = array.ravel()
 
     property x:
-    
+
         '''The nodes in time/spatial domain.'''
-        
+
         def __get__(self):
             return self._x
 
         def __set__(self, array):
             self._x.ravel()[:] = array.ravel()
-   
+            self._is_precomputed = False
+
     @property
     def d(self):
         '''The dimensionality of the NFFT.'''
@@ -458,4 +459,3 @@ cdef class NFFT(object):
     def flags(self):
         '''The precomputation flags.'''
         return self._flags
-

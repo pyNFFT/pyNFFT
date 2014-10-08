@@ -344,7 +344,7 @@ cdef class NFFT(object):
         :rtype: ndarray
 
         '''
-        if not self._is_precomputed:
+        if not self.is_precomputed:
             raise RuntimeError("nfft object must be precomputed first")
         if use_dft:
             self._trafo_direct()
@@ -361,7 +361,7 @@ cdef class NFFT(object):
         :rtype: ndarray
 
         '''
-        if not self._is_precomputed:
+        if not self.is_precomputed:
             raise RuntimeError("nfft object must be precomputed first")
         if use_dft:
             self._adjoint_direct()
@@ -459,3 +459,8 @@ cdef class NFFT(object):
     def flags(self):
         '''The precomputation flags.'''
         return self._flags
+
+    @property
+    def is_precomputed(self):
+        '''Test whether this plan is precomputed or not'''
+        return self._is_precomputed

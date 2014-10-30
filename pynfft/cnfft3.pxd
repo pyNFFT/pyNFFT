@@ -15,6 +15,13 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+cdef extern from "fftw3.h":
+
+    # double precision complex type
+    ctypedef double fftw_complex[2]
+
+
+
 cdef extern from "nfft3.h":
 
     # precomputation flags for the NFFT component
@@ -38,9 +45,6 @@ cdef extern from "nfft3.h":
     ctypedef enum:
         FFTW_ESTIMATE
         FFTW_DESTROY_INPUT
-
-    # double precision complex type
-    ctypedef double fftw_complex[2]
 
     # double precision NFFT plan
     ctypedef struct nfft_plan:
@@ -69,6 +73,9 @@ cdef extern from "nfft3.h":
 
     void nfft_precompute_one_psi (nfft_plan *ths) nogil
         # Precomputation for a transform plan.
+
+    const char* nfft_check(nfft_plan*)
+        # Checks a transform plan for frequently used bad parameter.
 
     void nfft_finalize (nfft_plan *ths)
         # Destroys a transform plan.

@@ -1,25 +1,11 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
-#
-# Copyright (C) 2013  Ghislain Vaillant
-#
-# This program is free software: you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation, either version 3 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 import os
 import sys
 import subprocess
-
+import shutil
+from distutils.core import Command
 
 # Define global path variables
 setup_dir = dir = os.path.dirname(os.path.abspath(__file__))
@@ -31,62 +17,38 @@ package_dir = os.path.join(setup_dir, package_name)
 def get_common_extension_args():
     import numpy
     common_extension_args = dict(
-        libraries=['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm'],
+        libraries=['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3'],
         library_dirs=[],
         include_dirs=[numpy.get_include()],
         extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-        '-fstrict-aliasing -ffast-math'.split(),
+        '-fstrict-aliasing '.split(),
+        define_macros=[("NPY_NO_DEPRECATED_API", None)],
         )
     return common_extension_args
 
 def get_extensions():
     from distutils.extension import Extension
+    try:
+        from Cython.Build import cythonize
+        has_cython = True
+    except ImportError:
+        has_cython = False
     ext_modules = []
     common_extension_args = get_common_extension_args()
-    ext_modules.append(Extension(
-            name=package_name+'.nfft',
-            sources=[os.path.join(package_dir, 'nfft.c')],
-            **common_extension_args
+    module_base_names = ('nfft_plan', 'solver_plan', 'util')
+    module_file_ext = '.pyx' if has_cython else '.c'
+    for base_name in module_base_names:
+        ext_modules.append(
+            Extension(
+                name = package_name + '.' + base_name,
+                sources = [os.path.join(package_dir, base_name + module_file_ext)],
+                **common_extension_args
+                )
             )
-        )
-    ext_modules.append(Extension(
-            name=package_name+'.solver',
-            sources=[os.path.join(package_dir, 'solver.c')],
-            **common_extension_args
-            )
-        )
-    ext_modules.append(Extension(
-            name=package_name+'.util',
-            sources=[os.path.join(package_dir, 'util.c')],
-            **common_extension_args
-            )
-        )
-    return ext_modules
-
-def get_cython_extensions():
-    from distutils.extension import Extension
-    from Cython.Build import cythonize
-    ext_modules = []
-    common_extension_args = get_common_extension_args()
-    ext_modules.append(Extension(
-            name=package_name+'.nfft',
-            sources=[os.path.join(package_dir, 'nfft.pyx')],
-            **common_extension_args
-            )
-        )
-    ext_modules.append(Extension(
-            name=package_name+'.solver',
-            sources=[os.path.join(package_dir, 'solver.pyx')],
-            **common_extension_args
-            )
-        )
-    ext_modules.append(Extension(
-            name=package_name+'.util',
-            sources=[os.path.join(package_dir, 'util.pyx')],
-            **common_extension_args
-            )
-        )
-    return cythonize(ext_modules)
+    if has_cython:
+        return cythonize(ext_modules)
+    else:
+        return ext_modules
 
 
 # BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
@@ -96,7 +58,6 @@ if os.path.exists('MANIFEST'):
 
 
 # Define custom clean command
-from distutils.core import Command
 class CleanCommand(Command):
     """Custom distutils command to clean the .so and .pyc files."""
 
@@ -139,8 +100,6 @@ class CleanCommand(Command):
             except Exception:
                 pass
 
-cmdclass = {'clean': CleanCommand}
-
 
 LONG_DESCRIPTION = '''"The NFFT is a C subroutine library for computing the
 nonequispaced discrete Fourier transform (NDFT) in one or more dimensions, of
@@ -169,7 +128,7 @@ CLASSIFIERS = [
     'Programming Language :: Python :: 3.3',
     'Programming Language :: Python :: 3.4',
     'Development Status :: 4 - Beta',
-    'License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)',
+    'License :: OSI Approved :: BSD License',
     'Operating System :: POSIX :: Linux',
     'Intended Audience :: Developers',
     'Intended Audience :: Science/Research',
@@ -178,10 +137,10 @@ CLASSIFIERS = [
     'Topic :: Multimedia :: Sound/Audio :: Analysis',
 ]
 
-MAJOR = 1
-MINOR = 3
-MICRO = 2
-ISRELEASED = True
+MAJOR = 2
+MINOR = 0
+MICRO = 0
+ISRELEASED = False
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 # borrowed from scipy
@@ -258,55 +217,39 @@ def setup_package():
         from setuptools import setup
     except ImportError:
         from distutils.core import setup
-    
+
     # Get current version
     FULLVERSION, GIT_REVISION = get_version_info()
-    
+
     # Refresh version file
     write_version_py()
-    
-    # Figure out whether to add ``*_requires = ['numpy']``.
-    build_requires = []
-    try:
-        import numpy
-    except:
-        build_requires = ['numpy>=1.6',]
-        
+
     # Common setup args
     setup_args = dict(
         name = 'pyNFFT',
         version = FULLVERSION,
-        author = 'Ghislain Vaillant',
+        author = 'Ghislain Antony Vaillant',
         author_email = 'ghisvail@gmail.com',
         description = 'A pythonic wrapper around NFFT',
         long_description = LONG_DESCRIPTION,
         url = 'https://github.com/ghisvail/pyNFFT.git',
-        cmdclass = cmdclass,
+        cmdclass = {'clean': CleanCommand},
         classifiers = CLASSIFIERS,
         platforms=['Linux', 'Unix'],
-        test_suite='nose.collector',
-        setup_requires = build_requires,
-        install_requires = build_requires,
         )
-        
+
     if len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or
             sys.argv[1] in ('--help-commands', 'egg_info', '--version',
                             'clean')):
         # For these actions, NumPy is not required.
         pass
     else:
-        try:
-            from Cython.Distutils import build_ext
-            have_cython = True
-        except:
-            have_cython = False
-        if have_cython:
-            extensions = get_cython_extensions()
-        else:
-            extensions = get_extensions()
         setup_args['packages'] = ['pynfft', 'pynfft.tests']
-        setup_args['ext_modules'] = extensions
-        
+        setup_args['ext_modules'] = get_extensions()
+        setup_args['test_suite'] = 'nose.collector'
+        setup_args['setup_requires'] = ['numpy>=1.7',]
+        setup_args['install_requires'] = ['numpy>=1.7',]
+
     setup(**setup_args)
 
 

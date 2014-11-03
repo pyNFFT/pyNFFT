@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2013, 2014 Ghislain Antony Vaillant
@@ -25,10 +24,8 @@
 # CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
-from __future__ import division, print_function, absolute_import
 
-from .nfft import *
-from .solver import *
-from .version import version as __version__
+__all__ = ('Solver',)
 
-__all__ = [s for s in dir() if not s.startswith('_')]
+class Solver(object):
+    pass

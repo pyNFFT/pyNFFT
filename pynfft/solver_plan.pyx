@@ -25,7 +25,69 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from cnfft3 cimport (LANDWEBER, STEEPEST_DESCENT, CGNR, CGNE,
+                     NORMS_FOR_LANDWEBER, PRECOMPUTE_WEIGHT,
+                     PRECOMPUTE_DAMP)
+from cnfft3 cimport solver_plan_complex, nfft_mv_plan_complex
+from cnfft3 cimport (solver_init_advanced_complex, solver_finalize_complex,
+                     solver_before_loop_complex, solver_loop_one_step_complex)
+from cnfft3 cimport nfft_malloc, nfft_free
+from copy import copy
+
 __all__ = ('solver_plan_proxy',)
 
+
+# Dictionary mapping the solver plan flag names to their mask value
+cdef dict _solver_plan_flags = {
+    'LANDWEBER'             : LANDWEBER,
+    'STEEPEST_DESCENT'      : STEEPEST_DESCENT,
+    'CGNR'                  : CGNR,
+    'CGNE'                  : CGNE,
+    'NORMS_FOR_LANDWEBER'   : NORMS_FOR_LANDWEBER,
+    'PRECOMPUTE_WEIGHT'     : PRECOMPUTE_WEIGHT,
+    'PRECOMPUTE_DAMP'       : PRECOMPUTE_DAMP,
+}
+solver_plan_flags = copy(_solver_plan_flags)
+
+
 cdef class solver_plan_proxy:
-    pass
+    cdef solver_plan_complex *plan
+    cdef object _w
+    cdef object _w_hat
+    cdef object _y
+    cdef object _f_hat_iter
+
+    def __cinit__(self):
+        self.plan = NULL
+
+    def __dealloc__(self):
+        if self.plan != NULL:
+            solver_finalize_complex(self.plan)
+        nfft_free(self.plan)
+
+    @staticmethod
+    def init_advanced(cls, nfft_plan, unsigned int flags):
+        cdef solver_plan_proxy self = cls()
+        cdef nfft_mv_plan_complex *mv_plan = <nfft_mv_plan_complex*>nfft_plan.plan
+        solver_init_advanced_complex(self.plan, mv_plan, flags)
+
+    def before_loop(self):
+        if not self._is_initialized():
+            raise RuntimeError("plan is not initialized")
+        self._before_loop()
+
+    def loop_one_step(self):
+        if not self._is_initialized():
+            raise RuntimeError("plan is not initialized")
+        self._loop_one_step()
+
+    cdef _before_loop(self):
+        with nogil:
+            solver_before_loop_complex(self.plan)
+
+    cdef _loop_one_step(self):
+        with nogil:
+            solver_loop_one_step_complex(self.plan)
+
+    cdef bint _is_initialized(self):
+        return (self.plan != NULL)

@@ -43,9 +43,18 @@ cdef extern from "fftw3.h":
 
 cdef extern from "nfft3.h":
 
-    # memory allocation and exit functions
+    # malloc routines
     void *nfft_malloc(size_t)
     void nfft_free(void*)
+
+    # base plan structure common to any nfft-like plan
+    ctypedef struct nfft_mv_plan_complex:
+        int N_total
+        int M_total
+        fftw_complex *f_hat
+        fftw_complex *f
+        void (*mv_trafo)(void*)
+        void (*mv_adjoint)(void*)
 
     # precomputation flags for the NFFT plan
     ctypedef enum:
@@ -136,15 +145,11 @@ cdef extern from "nfft3.h":
         PRECOMPUTE_WEIGHT
         PRECOMPUTE_DAMP
 
-    # base plan used by solver
-    ctypedef struct nfft_mv_plan_complex:
-        pass
-
     # complex solver plan
     ctypedef struct solver_plan_complex:
         nfft_mv_plan_complex *mv
             # matrix vector multiplication.
-        unsigned flags
+        unsigned int flags
             # iteration type
         double *w
             # weighting factors

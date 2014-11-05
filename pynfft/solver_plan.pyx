@@ -34,7 +34,9 @@ from cnfft3 cimport (solver_init_advanced_complex, solver_finalize_complex,
 from cnfft3 cimport nfft_malloc, nfft_free
 from copy import copy
 
-__all__ = ('solver_plan_proxy',)
+
+# Python API
+__all__ = ('solver_plan_proxy', 'solver_plan_flags')
 
 
 # Dictionary mapping the solver plan flag names to their mask value
@@ -52,6 +54,7 @@ solver_plan_flags = copy(_solver_plan_flags)
 
 cdef class solver_plan_proxy:
     cdef solver_plan_complex *plan
+    cdef bint _is_initialized
     cdef object _w
     cdef object _w_hat
     cdef object _y
@@ -59,27 +62,33 @@ cdef class solver_plan_proxy:
 
     def __cinit__(self):
         self.plan = NULL
+        self._is_initialized = False
 
     def __dealloc__(self):
-        if self.plan != NULL:
+        if self._is_initialized:
             solver_finalize_complex(self.plan)
-        nfft_free(self.plan)
+            nfft_free(self.plan)
 
     @staticmethod
     def init_advanced(cls, nfft_plan, unsigned int flags):
         cdef solver_plan_proxy self = cls()
+        self.plan = <solver_plan_complex*> nfft_malloc(sizeof(solver_plan_complex))
         cdef nfft_mv_plan_complex *mv_plan = <nfft_mv_plan_complex*>nfft_plan.plan
         solver_init_advanced_complex(self.plan, mv_plan, flags)
+        self._is_initialized = True
 
     def before_loop(self):
-        if not self._is_initialized():
+        if not self.is_initialized():
             raise RuntimeError("plan is not initialized")
         self._before_loop()
 
     def loop_one_step(self):
-        if not self._is_initialized():
+        if not self.is_initialized():
             raise RuntimeError("plan is not initialized")
         self._loop_one_step()
+
+    cpdef bint is_initialized(self):
+        return self._is_initialized
 
     cdef _before_loop(self):
         with nogil:
@@ -88,6 +97,3 @@ cdef class solver_plan_proxy:
     cdef _loop_one_step(self):
         with nogil:
             solver_loop_one_step_complex(self.plan)
-
-    cdef bint _is_initialized(self):
-        return (self.plan != NULL)

@@ -54,34 +54,24 @@ cdef void _cleanup():
 Py_AtExit(_cleanup)
 
 
-cdef class base_plan_proxy:
+
+cdef class mv_plan_complex_proxy:
 
     cdef void *_plan
-    cdef bint _is_initialized
-
-    def __cinit__(self):
-        self._plan = NULL
-        self._is_initialized = False
-
-    def __dealloc__(self):
-        if self._is_initialized:
-            nfft_free(self._plan)
-
-    cpdef is_initialized(self):
-        return self._is_initialized
-
-
-cdef class mv_plan_complex_proxy(base_plan_proxy):
-
     cdef object _f_hat
     cdef object _f
 
     def __cinit__(self):
+        self._plan = NULL
         self._f_hat = None
         self._f = None
 
     def __dealloc__(self):
-        pass
+        if self.is_initialized():
+            nfft_free(self._plan)
+
+    cpdef is_initialized(self):
+        return (self._plan != NULL)
 
     cpdef trafo(self):
         raise NotImplementedError("plan does not provide an implementation")
@@ -192,6 +182,7 @@ cdef class nfft_plan_proxy(mv_plan_complex_proxy):
         for t in range(d):
             N_ptr[t] = N[t]
             n_ptr[t] = n[t]
+        # FIXME: do not force usage of internal malloc
         nfft_flags = nfft_flags and MALLOC_F_HAT
         nfft_flags = nfft_flags and MALLOC_F
         nfft_flags = nfft_flags and MALLOC_X

@@ -35,7 +35,7 @@ def get_extensions():
         has_cython = False
     ext_modules = []
     common_extension_args = get_common_extension_args()
-    module_base_names = ('nfft_plan', 'solver_plan', 'util')
+    module_base_names = ('mv_plan', 'nfft_plan', 'solver_plan', 'util')
     module_file_ext = '.pyx' if has_cython else '.c'
     for base_name in module_base_names:
         ext_modules.append(

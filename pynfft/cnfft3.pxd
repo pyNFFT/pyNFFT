@@ -48,13 +48,15 @@ cdef extern from "nfft3.h":
     void nfft_free(void*)
 
     # base plan structure common to any nfft-like plan
-    ctypedef struct nfft_mv_plan_complex:
+    ctypedef struct mv_plan_complex:
         int N_total
         int M_total
         fftw_complex *f_hat
         fftw_complex *f
         void (*mv_trafo)(void*)
         void (*mv_adjoint)(void*)
+
+    ctypedef mv_plan_complex nfft_mv_plan_complex
 
     # precomputation flags for the NFFT plan
     ctypedef enum:

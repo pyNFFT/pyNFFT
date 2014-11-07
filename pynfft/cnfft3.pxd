@@ -25,20 +25,7 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-cdef extern from "fftw3.h":
-
-    # precomputation flags for the FFTW plan
-    ctypedef enum:
-        FFTW_ESTIMATE
-        FFTW_DESTROY_INPUT
-
-    # complex types
-    ctypedef double fftw_complex[2]
-
-    # init and cleanup routines
-    void fftw_cleanup()
-    void fftw_init_threads()
-    void fftw_cleanup_threads()
+from cfftw3 cimport fftw_complex
 
 
 cdef extern from "nfft3.h":
@@ -48,15 +35,13 @@ cdef extern from "nfft3.h":
     void nfft_free(void*)
 
     # base plan structure common to any nfft-like plan
-    ctypedef struct mv_plan_complex:
+    ctypedef struct nfft_mv_plan_complex:
         int N_total
         int M_total
         fftw_complex *f_hat
         fftw_complex *f
-        void (*mv_trafo)(void*)
-        void (*mv_adjoint)(void*)
-
-    ctypedef mv_plan_complex nfft_mv_plan_complex
+        void (*mv_trafo)(void*) nogil
+        void (*mv_adjoint)(void*) nogil
 
     # precomputation flags for the NFFT plan
     ctypedef enum:

@@ -25,7 +25,20 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from cfftw3 cimport fftw_complex
+cdef extern from "fftw3.h":
+
+    # precomputation flags for the FFTW plan
+    ctypedef enum:
+        FFTW_ESTIMATE
+        FFTW_DESTROY_INPUT
+
+    # complex types
+    ctypedef double fftw_complex[2]
+
+    # init and cleanup routines
+    void fftw_cleanup()
+    void fftw_init_threads()
+    void fftw_cleanup_threads()
 
 
 cdef extern from "nfft3.h":

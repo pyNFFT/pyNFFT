@@ -34,33 +34,40 @@ from pynfft.nfft_plan import (nfft_plan_proxy, nfft_plan_flags,
 
 class NFFT(object):
 
-    _allowed_flags = ('PRE_PHI_HUT',
-                      'FG_PSI',
-                      'PRE_LIN_PSI',
-                      'PRE_FG_PSI',
-                      'PRE_PSI',
-                      'PRE_FULL_PSI',
-                      'FFT_OUT_OF_PLACE',
-                      'FFTW_INIT',
-                      'NFFT_SORT_NODES',
-                      'NFFT_OMP_BLOCKWISE_ADJOINT',
-                      'PRE_ONE_PSI')
+    precomputation_flags = ('PRE_PHI_HUT',
+                            'FG_PSI',
+                            'PRE_LIN_PSI',
+                            'PRE_FG_PSI',
+                            'PRE_PSI',
+                            'PRE_FULL_PSI',
+                            'FFT_OUT_OF_PLACE',
+                            'FFTW_INIT',
+                            'NFFT_SORT_NODES',
+                            'NFFT_OMP_BLOCKWISE_ADJOINT',
+                            'PRE_ONE_PSI')
 
     def __init__(self, N, M, n=None, m=6, flags=None, f_hat=None, f=None,
                  x=None, precompute=False, *args, **kwargs):
+        """Instantiate an NFFT operator"""
         # extract dimensionality of the transform
-        d = len(N)
+        try:
+            d = len(N)
+        except TypeError:
+            d = 1
+            N = (N,)
         # store shape, dtype and floating precision of operator
-        self._shape = tuple([N, M])
+        self._shape = tuple([M, N])
         self._dtype = numpy.dtype('complex128')
         self._precision = numpy.dtype('float64')
         # (optional) calculate the FFTW length
         nextpow2 = lambda x: 2 ** numpy.ceil(numpy.log2(x))
         n = n if n is not None else [nextpow2(Nt) for Nt in N]
-        # control default and valid flags
+        # check whether user specified flags are valid
+        # or assign sensible defaults
         if flags is not None:
-            flags = [flag for flag in flags if flag in self._allowed_flags]
+            NFFT.check_flags(flags)
         else:
+            flags = NFFT._guess_flags(flags)
             # same logic as in nfft_init
             flags = ['PRE_PHI_HUT', 'PRE_PSI', 'FFTW_INIT',
                      'FFT_OUT_OF_PLACE', 'NFFT_SORT_NODES',]
@@ -88,44 +95,64 @@ class NFFT(object):
         self._plan = nfft_plan_proxy.init_guru(d, N, M, n, m, nfft_flags,
                                                fftw_flags)
         # set internal arrays with optional array arguments
-        self._update_arrays(f_hat=f_hat, f=f, x=x)
+        self.update_arrays(f_hat=f_hat, f=f, x=x)
         # (optional) precompute the plan right after creation
         if precompute:
             self.precompute()
 
     @classmethod
     def from_arrays(cls, f_hat, f, **kwargs):
+        """Instantiate an NFFT operator from the computation arrays"""
         return cls(N=f_hat.shape, M=f.size, f_hat=f_hat, f=f, **kwargs)
 
-    def trafo(self, f_hat=None, f=None, use_dft=False):
-        self._update_arrays(f_hat=f_hat, f=f)
-        self._plan.check()
+    @classmethod
+    def from_shape(cls, shape, **kwargs):
+        """Instantiate an NFFT operator from the given shape"""
+        return cls(N=shape[1], M=shape[0], **kwargs)
+
+    @classmethod
+    def check_flags(cls, flags):
+        """Check the validity of a list of precomputation flags"""
+        if flags is not None:
+            for flag in flags:
+                if flag not in cls.precomputation_flags:
+                    raise ValueError("flag {} not allowed".format(flag))
+
+    def forward(self, f_hat=None, f=None, use_dft=False):
+        """Compute the forward NFFT"""
+        self.update_arrays(f_hat=f_hat, f=f)
+        self.plan.check()
         if use_dft:
-            self._plan.trafo_direct()
+            self.plan.trafo_direct()
         else:
-            self._plan.trafo()
+            self.plan.trafo()
         return self.f
 
     def adjoint(self, f=None, f_hat=None, use_dft=False):
-        self._update_arrays(f_hat=f_hat, f=f)
-        self._plan.check()
+        """Compute the adjoint NFFT"""
+        self.update_arrays(f_hat=f_hat, f=f)
+        self.plan.check()
         if use_dft:
-            self._plan.adjoint_direct()
+            self.plan.adjoint_direct()
         else:
-            self._plan.adjoint()
+            self.plan.adjoint()
         return self.f_hat
 
     def precompute(self, x=None):
-        self._update_arrays(x=x)
+        """Precompute"""
+        self.update_arrays(x=x)
         self.plan.precompute()
 
-    def _update_arrays(self, f_hat=None, f=None, x=None):
+    def update_arrays(self, f_hat=None, f=None, x=None):
+        """Update the internal arrays used for plan computations"""
+        # TODO: thorough checks on flags and dtype to avoid copies
+        # as much as possible
         if f_hat is not None:
-            self._plan.f_hat = f_hat
+            self.plan.f_hat = f_hat
         if f is not None:
-            self._plan.f = f
+            self.plan.f = f
         if x is not None:
-            self._plan.x = x
+            self.plan.x = x
 
     @property
     def plan(self):
@@ -149,36 +176,24 @@ class NFFT(object):
 
     @property
     def N_total(self):
-        return self.plan.N_total
+        return numpy.product(self.shape[1])
 
     @property
     def M_total(self):
-        return self.plan.M_total
+        return self.shape[0]
 
     @property
     def f_hat(self):
-        return self._plan.f_hat.reshape(self.shape[0])
-
-    @f_hat.setter
-    def f_hat(self, value):
-        self._update_arrays(f_hat=value)
+        return self.plan.f_hat.reshape(self.shape[1])
 
     @property
     def f(self):
-        return self._plan.f.reshape(self.shape[1])
-
-    @f.setter
-    def f(self, value):
-        self._update_arrays(f=value)
+        return self.plan.f.reshape(self.shape[0])
 
     @property
     def d(self):
-        return self.plan.d
+        return len(self.shape[1])
 
     @property
     def x(self):
-        return self._plan.x.reshape([self.shape[1], self.d])
-
-    @x.setter
-    def x(self, value):
-        self._update_arrays(x=value)
+        return self.plan.x.reshape([self.shape[0], self.d])

@@ -72,8 +72,7 @@ class CleanCommand(Command):
             for f in files:
                 if f in self._clean_exclude:
                     continue
-                if os.path.splitext(f)[-1] in ('.pyc', '.so', '.o',
-                                               '.pyo',
+                if os.path.splitext(f)[-1] in ('.pyc', '.so', '.o', '.pyo',
                                                '.pyd', '.c', '.orig'):
                     self._clean_me.append(os.path.join(root, f))
             for d in dirs:

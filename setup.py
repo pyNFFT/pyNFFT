@@ -20,8 +20,7 @@ def get_common_extension_args():
         libraries=['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3'],
         library_dirs=[],
         include_dirs=[numpy.get_include()],
-        extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-        '-fstrict-aliasing '.split(),
+        extra_compile_args='-O3 -fomit-frame-pointer -fstrict-aliasing '.split(),
         define_macros=[("NPY_NO_DEPRECATED_API", None)],
         )
     return common_extension_args

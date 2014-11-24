@@ -53,8 +53,8 @@ ctypedef void   (*_plan_precompute_func)        (void *) nogil
 ctypedef const char *(*_plan_check_func)        (void *)
 
 # NFFT plan class
-cdef class nfft_plan_proxy(mv_plan_proxy):
-    cdef object _x
+cdef class nfft_plan(mv_plan):
+    cdef ndarray _x
 
     cdef _plan_get_d_func           _plan_get_d
     cdef _plan_get_N_func           _plan_get_N

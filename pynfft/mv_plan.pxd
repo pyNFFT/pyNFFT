@@ -25,38 +25,25 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from numpy cimport ndarray
+
 # Function pointers to plan management functions common to all plans
-ctypedef void *(*_plan_malloc_func)         ()
-ctypedef void  (*_plan_free_func)           (void *)
-ctypedef void  (*_plan_trafo_func)          (void *) nogil
-ctypedef void  (*_plan_adjoint_func)        (void *) nogil
-ctypedef void  (*_plan_finalize_func)       (void *)
-ctypedef int   (*_plan_get_N_total_func)    (void *)
-ctypedef int   (*_plan_get_M_total_func)    (void *)
-ctypedef void *(*_plan_get_f_hat_func)      (void *)
-ctypedef void  (*_plan_set_f_hat_func)      (void *, void *)
-ctypedef void *(*_plan_get_f_func)          (void *)
-ctypedef void  (*_plan_set_f_func)          (void *, void *)
+ctypedef void *(*_plan_malloc_func) ()
+ctypedef void (*_plan_finalize_func) (void *)
+ctypedef bytes (*_plan_check_func) (void *)
+ctypedef void (*_plan_trafo_func) (void *) nogil
+ctypedef void (*_plan_adjoint_func) (void *) nogil
 
 # Base plan class
 cdef class mv_plan_proxy:
     cdef void   *_plan
-    cdef bint   _is_initialized
-    cdef object _f_hat
-    cdef object _f
-
-    cdef _plan_get_N_total_func _plan_get_N_total
-    cdef _plan_get_M_total_func _plan_get_M_total
-    cdef _plan_get_f_hat_func   _plan_get_f_hat
-    cdef _plan_set_f_hat_func   _plan_set_f_hat
-    cdef _plan_get_f_func       _plan_get_f
-    cdef _plan_set_f_func       _plan_set_f
-
+    cdef ndarray _f_hat
+    cdef ndarray _f
     cdef _plan_malloc_func      _plan_malloc 
-    cdef _plan_free_func        _plan_free
+    cdef _plan_finalize_func    _plan_finalize
+    cdef _plan_check_func       _plan_check
     cdef _plan_trafo_func       _plan_trafo
     cdef _plan_adjoint_func     _plan_adjoint
-    cdef _plan_finalize_func    _plan_finalize
-
+    cpdef check(self)
     cpdef trafo(self)
     cpdef adjoint(self)

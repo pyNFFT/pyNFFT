@@ -84,28 +84,7 @@ cdef extern from "nfft3.h":
 
     # double precision NFFT plan
     ctypedef struct nfft_plan:
-        int N_total
-            # Total number of Fourier coefficients.
-        int M_total
-            # Total number of samples.
-        fftw_complex *f_hat
-            # Vector of Fourier coefficients, size is N_total.
-        fftw_complex *f
-            # Vector of samples, size is M_total.
-        int d
-            # Dimension, rank.
-        int *N
-            # Multi bandwidth.
-        int *n
-            # FFTW length, equal to sigma*N.
-        int m
-            # Cut-off parameter of the window function.
-        unsigned int nfft_flags
-            # Flags for precomputation.
-        unsigned int fftw_flags
-            # Flags for the FFTW.
-        double *x
-            # Nodes in time/spatial domain, size is M_total.
+        pass
 
     void nfft_trafo_direct(nfft_plan *) nogil
         # Computes a NDFT.

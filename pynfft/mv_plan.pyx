@@ -25,48 +25,86 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+from cnfft3 cimport *
 from mv_plan cimport *
 import numpy
-cimport numpy
+from numpy cimport PyArray_CopyInto
+
+# Numpy must be initialized. When using numpy from C or Cython you must
+# _always_ do that, or you will have segfaults
+from numpy cimport import_array
+import_array()
+
+ 
+cdef void _mv_plan_double_trafo(void *plan) nogil:
+    cdef nfft_mv_plan_double *this_plan = <nfft_mv_plan_double*>(plan)
+    this_plan.mv_trafo(plan)
+
+cdef void _mv_plan_double_adjoint(void *plan) nogil:
+    cdef nfft_mv_plan_double *this_plan = <nfft_mv_plan_double*>(plan)
+    this_plan.mv_adjoint(plan)
+
+cdef void _mv_plan_complex_trafo(void *plan) nogil:
+    cdef nfft_mv_plan_complex *this_plan = <nfft_mv_plan_complex*>(plan)
+    this_plan.mv_trafo(plan)
+
+cdef void _mv_plan_complex_adjoint(void *plan) nogil:
+    cdef nfft_mv_plan_complex *this_plan = <nfft_mv_plan_complex*>(plan)
+    this_plan.mv_adjoint(plan)
 
 
-cdef class mv_plan:
+# Executor table (of size the number of executors)
+#cdef _plan_trafo_func trafo_func_list[2]
+#cdef _plan_trafo_func *_build_trafo_func_list():
+#    trafo_func_list[0] = <_plan_trafo_func>&_mv_plan_double_trafo
+#    trafo_func_list[1] = <_plan_trafo_func>&_mv_plan_complex_trafo
+
+#cdef dict trafo_func_dict = {
+#    NPY_COMPLEX64:  &_mv_plan_double_trafo,
+#    NPY_COMPLEX128: &_mv_plan_complex_trafo,
+#}
+
+#cdef _plan_adjoint_func adjoint_func_list[2]
+#cdef _plan_adjoint_func *_build_adjoint_func_list():
+#    adjoint_func_list[0] = <_plan_adjoint_func>&_mv_plan_double_adjoint
+#    adjoint_func_list[1] = <_plan_adjoint_func>&_mv_plan_complex_adjoint
+
+#cdef dict adjoint_func_dict = {
+#    NPY_COMPLEX64:  &_mv_plan_double_adjoint,
+#    NPY_COMPLEX128: &_mv_plan_complex_adjoint,
+#}
+
+cdef class mv_plan_proxy:
     """
     Base plan class.
     
     Implements the minimal interface shared by all plans of the NFFT library. 
-    It holds the main direct and ajoint computation methods (trafo and 
+    It holds the main direct and adjoint computation methods (trafo and 
     adjoint methods), the internal arrays used for computation (f_hat and f), 
-    and the real and complex data types compatible with the C-structs. In 
-    addition, a check method is provided which is run before any call to the 
-    computation methods.
+    and their data type.
 
     This class is only meant to be used as a base class for deriving more 
-    specific plans. It is however *not* an abstract class. 
+    specific plans.
     """    
 
-    def __cinit__(self, N_total, M_total, *args, **kwargs):
-        # To be malloc'd by derived class to the wrapped plan
-        self._plan = NULL
-        # To be assigned to the relevant methods of the wrapped plan
-        self._plan_malloc = NULL
-        self._plan_finalize = NULL
-        self._plan_check = NULL
-        self._plan_trafo = NULL
-        self._plan_adjoint = NULL
+    def __cinit__(self, dtype, *args, **kwargs):
         # Define the appropriate real and complex data types for the interface 
         # arrays. Will be also used to select the right function pointers for 
-        # the individual methods for transparent support of multi-precision.        
+        # the individual methods of the derived for transparent support of 
+        # multi-precision.
         # For now, only double is supported.
-        real_dtype = numpy.dtype('double')
-        cplx_dtype = numpy.result_type(real_dtype, 1j)
-        self._real_dtype = real_dtype
-        self._cplx_dtype = cplx_dtype
-        # Store the dimensions of the interface arrays
-        self._N_total = N_total
-        self._M_total = M_total
+        self._dtype = numpy.dtype(dtype)       
+        # To be malloc'd / assigned by the derived plan
+        self._plan = NULL
+        self._is_initialized = False
+        self._N_total = 0
+        self._M_total = 0
+        self._f_hat = None
+        self._f = None
+        self._plan_trafo = NULL
+        self._plan_adjoint = NULL
 
-    def __init__(self, N_total, M_total, *args, **kwargs):
+    def __init__(self, dtype, *args, **kwargs):
         """Instantiate a base plan.
         
         The base plan is only responsible for initializing the relevant 
@@ -74,74 +112,54 @@ cdef class mv_plan:
         plans (f_hat and f) to valid Numpy arrays with the right size and 
         dtype. The rest should be handled by the derived classes.         
         """
-        self._f_hat = numpy.empty(self.N_total, dtype=self.complex_dtype)
-        self._f = numpy.empty(self.M_total, dtype=self.complex_dtype)                
+        pass              
 
     def __dealloc__(self):
         """Clear a base plan.
         
-        Responsiblity of properly destroying the internal C-plan is handled to 
-        the derived class.
+        Responsiblity for properly destroying the internal C-plan should be 
+        handled by the derived class.
         """
         pass
 
-    cpdef check(self):
-        """Check the state of a plan.
-
-        Sanity checks for the internal plan structure. The bare minimum is to 
-        to check whether the structure has been initialized.
-        
-        Additional checks for the wrapped plan structure may be performed by 
-        assigning the internal plan_check function pointer to the relevant 
-        c-function.
-        """
-        cdef bytes errmsg
-        if self._plan == NULL:
-            raise RuntimeError("plan is not initialized")
-        else:
-            if self._plan_check != NULL:
-                errmsg = self._plan_check(self._plan)
-                if errmsg is not None:
-                    raise RuntimeError(errmsg)
-
     cpdef trafo(self):
-        """Compute the forward NFFT on current plan.""" 
-        self.check()
-        with nogil:
-            if self._plan_trafo != NULL:
+        """Compute the forward NFFT on current plan."""
+        if self._is_initialized:
+            with nogil:
                 self._plan_trafo(self._plan)
+        else:
+            raise RuntimeError("plan is not initialized")
         
     cpdef adjoint(self):
         """Compute the adjoint NFFT on current plan."""
-        self.check()
-        with nogil:
-            if self._plan_adjoint != NULL:
+        if self._is_initialized:
+            with nogil:
                 self._plan_adjoint(self._plan)
+        else:
+            raise RuntimeError("plan is not initialized")
 
     @property
-    def real_dtype(self):
-        return self._real_dtype
-        
-    @property
-    def complex_dtype(self):
-        return self._cplx_dtype
-
-    @property
-    def M_total(self):
-        return self._f_hat.size
+    def dtype(self):
+        return self._dtype
 
     @property
     def N_total(self):
-        return self._f.size
+        return self._N_total
+
+    @property
+    def M_total(self):
+        return self._M_total
         
     property f_hat:
-        def __get__(self): return self._f_hat
-        def __set__(self, value):
-            value = numpy.ascontigousarray(value, dtype=self.complex_dtype).reshape(self.N_total)
-            self._f_hat = value
+        def __get__(self):
+            return self._f_hat
+        def __set__(self, object value):
+            if self._is_initialized:
+                PyArray_CopyInto(self._f_hat, value)
         
     property f:
-        def __get__(self): return self._f
-        def __set__(self, value):
-            value = numpy.ascontigousarray(value, dtype=self.complex_dtype).reshape(self.M_total)
-            self._f = value
+        def __get__(self):
+            return self._f
+        def __set__(self, object value):
+            if self._is_initialized:
+                PyArray_CopyInto(self._f, value)

@@ -25,25 +25,22 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from numpy cimport ndarray
-
-# Function pointers to plan management functions common to all plans
-ctypedef void *(*_plan_malloc_func) ()
-ctypedef void (*_plan_finalize_func) (void *)
-ctypedef bytes (*_plan_check_func) (void *)
+# Function pointers common to all plans
 ctypedef void (*_plan_trafo_func) (void *) nogil
 ctypedef void (*_plan_adjoint_func) (void *) nogil
 
 # Base plan class
 cdef class mv_plan_proxy:
-    cdef void   *_plan
-    cdef ndarray _f_hat
-    cdef ndarray _f
-    cdef _plan_malloc_func      _plan_malloc 
-    cdef _plan_finalize_func    _plan_finalize
-    cdef _plan_check_func       _plan_check
-    cdef _plan_trafo_func       _plan_trafo
-    cdef _plan_adjoint_func     _plan_adjoint
-    cpdef check(self)
+    cdef void *_plan
+    cdef bint _is_initialized
+    cdef object _dtype
+    cdef int _N_total
+    cdef int _M_total
+    cdef object _f_hat
+    cdef object _f
+
+    cdef _plan_trafo_func _plan_trafo
+    cdef _plan_adjoint_func _plan_adjoint
+
     cpdef trafo(self)
     cpdef adjoint(self)

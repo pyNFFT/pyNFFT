@@ -47,7 +47,16 @@ cdef extern from "nfft3.h":
     void *nfft_malloc(size_t)
     void nfft_free(void*)
 
-    # base plan structure common to any nfft-like plan
+    # base plan structure common to any nfft-like plan (double)
+    ctypedef struct nfft_mv_plan_double:
+        int N_total
+        int M_total
+        double *f_hat
+        double *f
+        void (*mv_trafo)(void*) nogil
+        void (*mv_adjoint)(void*) nogil
+
+    # base plan structure common to any nfft-like plan (cdouble)
     ctypedef struct nfft_mv_plan_complex:
         int N_total
         int M_total

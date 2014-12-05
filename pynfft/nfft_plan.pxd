@@ -28,26 +28,32 @@
 from mv_plan cimport *
 
 # Function pointers specific to NFFT plans
-ctypedef void *(*_plan_malloc_func) ()
-ctypedef void (*_plan_destroy_func) (void *)
-ctypedef void (*_plan_init_guru_func) (void *, int, int *, int, int *, int,
-                                       unsigned int, unsigned int)
-ctypedef void (*_plan_trafo_direct_func) (void *) nogil
-ctypedef void (*_plan_adjoint_direct_func) (void *) nogil
-ctypedef void (*_plan_precompute_func) (void *) nogil
-ctypedef const char *(*_plan_check_func) (void *)
+ctypedef void *(*_nfft_plan_malloc_func) ()
+ctypedef void (*_nfft_plan_finalize_func) (void *)
+ctypedef void (*_nfft_plan_init_guru_func) (void *, int, int *, int, int *,
+                                            int, unsigned int, unsigned int)
+ctypedef void (*_nfft_plan_trafo_direct_func) (void *) nogil
+ctypedef void (*_nfft_plan_adjoint_direct_func) (void *) nogil
+ctypedef void (*_nfft_plan_precompute_one_psi_func) (void *) nogil
+ctypedef const char *(*_nfft_plan_check_func) (void *)
 
 # NFFT plan class
 cdef class nfft_plan_proxy(mv_plan_proxy):
     cdef object _x
+    cdef int _d
+    cdef object _N
+    cdef object _n
+    cdef int _m
+    cdef unsigned int _nfft_flags
+    cdef unsigned int _fftw_flags
 
-    cdef _plan_malloc_func _plan_malloc
-    cdef _plan_destroy_func _plan_destroy
-    cdef _plan_init_guru_func _plan_init_guru
-    cdef _plan_trafo_direct_func _plan_trafo_direct
-    cdef _plan_adjoint_direct_func _plan_adjoint_direct
-    cdef _plan_precompute_func _plan_precompute
-    cdef _plan_check_func _plan_check    
+    cdef _nfft_plan_malloc_func _plan_malloc
+    cdef _nfft_plan_finalize_func _plan_finalize
+    cdef _nfft_plan_init_guru_func _plan_init_guru
+    cdef _nfft_plan_trafo_direct_func _plan_trafo_direct
+    cdef _nfft_plan_adjoint_direct_func _plan_adjoint_direct
+    cdef _nfft_plan_precompute_one_psi_func _plan_precompute
+    cdef _nfft_plan_check_func _plan_check    
     
     cpdef init_1d(self, int N, int M)    
     cpdef init_2d(self, int N1, int N2, int M)

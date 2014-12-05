@@ -77,47 +77,10 @@ cdef dict fftw_plan_flags_dict = {
     }
 fftw_plan_flags = copy(fftw_plan_flags_dict)
 
-# Numpy must be initialized. When using numpy from C or Cython you must
-# _always_ do that, or you will have segfaults
-from numpy cimport import_array
-import_array()
-
-# Necessary for usage of threaded FFTW
-fftw_init_threads()
-
-# Register cleanup callback to the Python module
-cdef extern from *:
-    int Py_AtExit(void (*callback)())
-
-cdef void _cleanup():
-    fftw_cleanup()
-    fftw_cleanup_threads()
-
-Py_AtExit(_cleanup)
 
 
-cdef void *_nfft_plan_malloc():
-    return nfft_malloc(sizeof(nfft_plan))
 
-cdef void _nfft_plan_destroy(void *plan):
-    nfft_finalize(<nfft_plan*> plan)
-    nfft_free(plan)
 
-cdef void _nfft_init_guru(void *plan, int d, int *N, int M, int *n, int m,
-                          unsigned int nfft_flags, unsigned int fftw_flags):
-    nfft_init_guru(<nfft_plan*> plan, d, N, M, n, m, nfft_flags, fftw_flags)
-
-cdef void _nfft_trafo_direct(void *plan) nogil:
-    nfft_trafo_direct(<nfft_plan*> plan)
-
-cdef void _nfft_adjoint_direct(void *plan) nogil:
-    nfft_adjoint_direct(<nfft_plan*> plan)
-
-cdef void _nfft_precompute_one_psi(void *plan) nogil:
-    nfft_precompute_one_psi(<nfft_plan*> plan)
-
-cdef const char *_nfft_check(void *plan):
-    return nfft_check(<nfft_plan*> plan)
 
 #cdef void _nfft_plan_set_f_hat(void *plan, void *data):
 #    cdef nfft_plan *this_plan = <nfft_plan*> plan
@@ -131,17 +94,118 @@ cdef const char *_nfft_check(void *plan):
 #    cdef nfft_plan *this_plan = <nfft_plan*> plan
 #    this_plan.x = <double *> data
 
+
+### Forward declarations
+
+cdef void *_nfft_plan_malloc():
+    return nfft_malloc(sizeof(nfft_plan))
+
+cdef void _nfft_plan_finalize(void *plan):
+    nfft_finalize(<nfft_plan*> plan)
+
+cdef void _nfft_plan_init_guru(void *plan, int d, int *N, int M, int *n,
+                               int m, unsigned int nfft_flags,
+                               unsigned int fftw_flags):
+    nfft_init_guru(<nfft_plan*> plan, d, N, M, n, m, nfft_flags, fftw_flags)
+
+cdef void _nfft_plan_trafo_direct(void *plan) nogil:
+    nfft_trafo_direct(<nfft_plan*> plan)
+
+cdef void _nfft_plan_adjoint_direct(void *plan) nogil:
+    nfft_adjoint_direct(<nfft_plan*> plan)
+
+cdef void _nfft_plan_precompute_one_psi(void *plan) nogil:
+    nfft_precompute_one_psi(<nfft_plan*> plan)
+
+cdef const char *_nfft_plan_check(void *plan):
+    return nfft_check(<nfft_plan*> plan)
+
+cdef dict _nfft_plan_typenum_to_index = {
+    NPY_COMPLEX128: 0,
+}
+# - malloc
+cdef _nfft_plan_malloc_func _nfft_plan_malloc_func_list[1]
+cdef void _build_nfft_plan_malloc_func_list():
+    _nfft_plan_malloc_func_list[0] = (
+        <_nfft_plan_malloc_func>(&_nfft_plan_malloc))
+# - finalize
+cdef _nfft_plan_finalize_func _nfft_plan_finalize_func_list[1]
+cdef void _build_nfft_plan_finalize_func_list():
+    _nfft_plan_finalize_func_list[0] = (
+        <_nfft_plan_finalize_func>(&_nfft_plan_finalize))
+# - init_guru
+cdef _nfft_plan_init_guru_func _nfft_plan_init_guru_func_list[1]
+cdef void _build_nfft_plan_init_guru_func_list():
+    _nfft_plan_init_guru_func_list[0] = (
+        <_nfft_plan_init_guru_func>(&_nfft_plan_init_guru))
+# - trafo_direct
+cdef _nfft_plan_trafo_direct_func _nfft_plan_trafo_direct_func_list[1]
+cdef void _build_nfft_plan_trafo_direct_func_list():
+    _nfft_plan_trafo_direct_func_list[0] = (
+        <_nfft_plan_trafo_direct_func>(&_nfft_plan_trafo_direct))
+# - adjoint_direct
+cdef _nfft_plan_adjoint_direct_func _nfft_plan_adjoint_direct_func_list[1]
+cdef void _build_nfft_plan_adjoint_direct_func_list():
+    _nfft_plan_adjoint_direct_func_list[0] = (
+        <_nfft_plan_adjoint_direct_func>(&_nfft_plan_adjoint_direct))
+# - precompute_one_psi
+cdef _nfft_plan_precompute_one_psi_func _nfft_plan_precompute_one_psi_func_list[1]
+cdef void _build_nfft_plan_precompute_one_psi_func_list():
+    _nfft_plan_precompute_one_psi_func_list[0] = (
+        <_nfft_plan_precompute_one_psi_func>(&_nfft_plan_precompute_one_psi))
+# - check
+cdef _nfft_plan_check_func _nfft_plan_check_func_list[1]
+cdef void _build_nfft_plan_check_func_list():
+    _nfft_plan_check_func_list[0] = (
+        <_nfft_plan_check_func>(&_nfft_plan_check))
+
+
+### Module initialization
+# Numpy must be initialized. When using numpy from C or Cython you must
+# _always_ do that, or you will have segfaults
+from numpy cimport import_array
+import_array()
+
+# Populate lists of function pointers
+_build_nfft_plan_malloc_func_list()
+_build_nfft_plan_finalize_func_list()
+_build_nfft_plan_init_guru_func_list()
+_build_nfft_plan_trafo_direct_func_list()
+_build_nfft_plan_adjoint_direct_func_list()
+_build_nfft_plan_precompute_one_psi_func_list()
+_build_nfft_plan_check_func_list()
+
+# Necessary for usage of threaded FFTW:
+# - call init_threads on module import
+fftw_init_threads()
+# - define cleanup callback routine
+cdef void _cleanup():
+    fftw_cleanup()
+    fftw_cleanup_threads()
+# - register callback on module exit
+cdef extern from *:
+    int Py_AtExit(void (*callback)())
+Py_AtExit(_cleanup)
+###
+
+
 cdef class nfft_plan_proxy(mv_plan_proxy):
     
     def __cinit__(self, dtype='cdouble', *args, **kwargs):
+        idx = _nfft_plan_typenum_to_index[self._dtype.num]
         self._x                     = None
-        self._plan_malloc           = &_nfft_plan_malloc
-        self._plan_destroy          = &_nfft_plan_destroy
-        self._plan_init_guru        = &_nfft_init_guru
-        self._plan_trafo_direct     = &_nfft_trafo_direct
-        self._plan_adjoint_direct   = &_nfft_adjoint_direct
-        self._plan_precompute       = &_nfft_precompute_one_psi
-        self._plan_check            = &_nfft_check
+        self._plan_malloc           = _nfft_plan_malloc_func_list[idx]
+        self._plan_finalize         = _nfft_plan_finalize_func_list[idx]
+        self._plan_init_guru        = _nfft_plan_init_guru_func_list[idx]
+        self._plan_trafo_direct     = _nfft_plan_trafo_direct_func_list[idx]
+        self._plan_adjoint_direct   = _nfft_plan_adjoint_direct_func_list[idx]
+        self._plan_precompute       = _nfft_plan_precompute_one_psi_func_list[idx]
+        self._plan_check            = _nfft_plan_check_func_list[idx]
+
+    def __dealloc__(self):
+        if self._is_initialized:
+            self._plan_finalize(self._plan)
+            nfft_free(self._plan)
 
     cpdef init_1d(self, int N, int M):
         self.init_guru((N,), M, (2*N,), 6, 0, 0)
@@ -157,7 +221,29 @@ cdef class nfft_plan_proxy(mv_plan_proxy):
     
     cpdef init_guru(self, object N, int M, object n, int m,
                     unsigned int nfft_flags, unsigned int fftw_flags):
+        cdef int *N_ptr = NULL
+        cdef int *n_ptr = NULL
         if not self._is_initialized:
+            if len(N) != len(n):
+                raise ValueError("incompatible geometry parameters")
+            d = len(N)
+            N_ptr = <int*>nfft_malloc(d*sizeof(int))
+            for t, Nt in enumerate(N):
+                N_ptr[t] = Nt
+            n_ptr = <int*>nfft_malloc(d*sizeof(int))
+            for t, nt in enumerate(n):
+                n_ptr[t] = nt
+            self._plan = self._plan_malloc()
+            self._plan_init_guru(self._plan, d, N_ptr, M, n_ptr, m,
+                                 nfft_flags, fftw_flags)
+            nfft_free(N_ptr)
+            nfft_free(n_ptr)
+            self._d = d
+            self._N = N
+            self._n = n
+            self._m = m
+            self._nfft_flags = nfft_flags            
+            self._fftw_flags = fftw_flags
             self._is_initialized = True
         else:
             raise RuntimeError("plan is already initialized")

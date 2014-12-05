@@ -29,11 +29,7 @@ from cnfft3 cimport *
 from mv_plan cimport *
 import numpy
 from numpy cimport PyArray_CopyInto
-
-# Numpy must be initialized. When using numpy from C or Cython you must
-# _always_ do that, or you will have segfaults
-from numpy cimport import_array
-import_array()
+from numpy cimport NPY_FLOAT64, NPY_COMPLEX128
 
  
 cdef void _mv_plan_double_trafo(void *plan) nogil:
@@ -53,26 +49,32 @@ cdef void _mv_plan_complex_adjoint(void *plan) nogil:
     this_plan.mv_adjoint(plan)
 
 
-# Executor table (of size the number of executors)
-#cdef _plan_trafo_func trafo_func_list[2]
-#cdef _plan_trafo_func *_build_trafo_func_list():
-#    trafo_func_list[0] = <_plan_trafo_func>&_mv_plan_double_trafo
-#    trafo_func_list[1] = <_plan_trafo_func>&_mv_plan_complex_trafo
+cdef dict _mv_plan_typenum_to_index = {
+    NPY_FLOAT64: 0,
+    NPY_COMPLEX128: 1,
+}
 
-#cdef dict trafo_func_dict = {
-#    NPY_COMPLEX64:  &_mv_plan_double_trafo,
-#    NPY_COMPLEX128: &_mv_plan_complex_trafo,
-#}
+cdef _plan_trafo_func _plan_trafo_func_list[2]
+cdef void _build_plan_trafo_func_list():
+    _plan_trafo_func_list[0] = <_plan_trafo_func>(&_mv_plan_double_trafo)
+    _plan_trafo_func_list[1] = <_plan_trafo_func>(&_mv_plan_complex_trafo)
 
-#cdef _plan_adjoint_func adjoint_func_list[2]
-#cdef _plan_adjoint_func *_build_adjoint_func_list():
-#    adjoint_func_list[0] = <_plan_adjoint_func>&_mv_plan_double_adjoint
-#    adjoint_func_list[1] = <_plan_adjoint_func>&_mv_plan_complex_adjoint
+cdef _plan_adjoint_func _plan_adjoint_func_list[2]
+cdef void _build_plan_adjoint_func_list():
+    _plan_adjoint_func_list[0] = <_plan_adjoint_func>(&_mv_plan_double_adjoint)
+    _plan_adjoint_func_list[1] = <_plan_adjoint_func>(&_mv_plan_complex_adjoint)
 
-#cdef dict adjoint_func_dict = {
-#    NPY_COMPLEX64:  &_mv_plan_double_adjoint,
-#    NPY_COMPLEX128: &_mv_plan_complex_adjoint,
-#}
+
+### Module initialization
+# Numpy must be initialized. When using numpy from C or Cython you must
+# _always_ do that, or you will have segfaults
+from numpy cimport import_array
+import_array()
+
+# Populate lists of function pointers
+_build_plan_trafo_func_list()
+_build_plan_adjoint_func_list()
+###
 
 cdef class mv_plan_proxy:
     """
@@ -94,6 +96,7 @@ cdef class mv_plan_proxy:
         # multi-precision.
         # For now, only double is supported.
         self._dtype = numpy.dtype(dtype)       
+        idx = _mv_plan_typenum_to_index[self._dtype.num]
         # To be malloc'd / assigned by the derived plan
         self._plan = NULL
         self._is_initialized = False
@@ -101,8 +104,8 @@ cdef class mv_plan_proxy:
         self._M_total = 0
         self._f_hat = None
         self._f = None
-        self._plan_trafo = NULL
-        self._plan_adjoint = NULL
+        self._plan_trafo = _plan_trafo_func_list[idx]
+        self._plan_adjoint = _plan_adjoint_func_list[idx]
 
     def __init__(self, dtype, *args, **kwargs):
         """Instantiate a base plan.

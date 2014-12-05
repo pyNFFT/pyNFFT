@@ -43,12 +43,11 @@ from cnfft3 cimport (PRE_PHI_HUT, FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI,
                      FFTW_DESTROY_INPUT)
 
 # Import numpy C-API
-from numpy cimport ndarray, npy_intp
+import numpy
 from numpy cimport NPY_FLOAT64, NPY_COMPLEX128
-from numpy cimport PyArray_New, PyArray_DATA, PyArray_CopyInto
-from numpy cimport NPY_CARRAY, NPY_OWNDATA
+from numpy cimport PyArray_DATA, PyArray_CopyInto
 
-# Expose flags to Python API
+# To expose flags to Python API
 from copy import copy
 
 # Dictionary mapping the NFFT plan flag names to their mask value
@@ -77,22 +76,13 @@ cdef dict fftw_plan_flags_dict = {
     }
 fftw_plan_flags = copy(fftw_plan_flags_dict)
 
-
-
-
-
-
-#cdef void _nfft_plan_set_f_hat(void *plan, void *data):
-#    cdef nfft_plan *this_plan = <nfft_plan*> plan
-#    this_plan.f_hat = <fftw_complex*> data
-#
-#cdef void _nfft_plan_set_f(void *plan, void *data):
-#    cdef nfft_plan *this_plan = <nfft_plan*> plan
-#    this_plan.f = <fftw_complex*> data
-#
-#cdef void _nfft_plan_set_x(void *plan, void *data):
-#    cdef nfft_plan *this_plan = <nfft_plan*> plan
-#    this_plan.x = <double *> data
+# Conversion table between the supported complex dtypes and their 
+# corresponding real dtypes
+cdef dict complex_to_real_dtypes_table = {
+    numpy.dtype('cdouble'): numpy.dtype('double'),
+    numpy.dtype('csingle'): numpy.dtype('single'),
+    numpy.dtype('clongdouble'): numpy.dtype('longdouble'),
+}
 
 
 ### Forward declarations
@@ -101,24 +91,31 @@ cdef void *_nfft_plan_malloc():
     return nfft_malloc(sizeof(nfft_plan))
 
 cdef void _nfft_plan_finalize(void *plan):
-    nfft_finalize(<nfft_plan*> plan)
+    nfft_finalize(<nfft_plan *> plan)
 
 cdef void _nfft_plan_init_guru(void *plan, int d, int *N, int M, int *n,
                                int m, unsigned int nfft_flags,
                                unsigned int fftw_flags):
-    nfft_init_guru(<nfft_plan*> plan, d, N, M, n, m, nfft_flags, fftw_flags)
+    nfft_init_guru(<nfft_plan *> plan, d, N, M, n, m, nfft_flags, fftw_flags)
 
 cdef void _nfft_plan_trafo_direct(void *plan) nogil:
-    nfft_trafo_direct(<nfft_plan*> plan)
+    nfft_trafo_direct(<nfft_plan *> plan)
 
 cdef void _nfft_plan_adjoint_direct(void *plan) nogil:
-    nfft_adjoint_direct(<nfft_plan*> plan)
+    nfft_adjoint_direct(<nfft_plan *> plan)
 
 cdef void _nfft_plan_precompute_one_psi(void *plan) nogil:
-    nfft_precompute_one_psi(<nfft_plan*> plan)
+    nfft_precompute_one_psi(<nfft_plan *> plan)
 
 cdef const char *_nfft_plan_check(void *plan):
-    return nfft_check(<nfft_plan*> plan)
+    return nfft_check(<nfft_plan *> plan)
+
+cdef void _nfft_plan_connect_arrays(void *plan, object f_hat, object f,
+                                    object x):
+    cdef nfft_plan *this_plan = <nfft_plan *> plan
+    this_plan.f_hat   = <fftw_complex *> PyArray_DATA(f_hat)
+    this_plan.f       = <fftw_complex *> PyArray_DATA(f)
+    this_plan.x       = <double *> PyArray_DATA(x)
 
 cdef dict _nfft_plan_typenum_to_index = {
     NPY_COMPLEX128: 0,
@@ -159,6 +156,10 @@ cdef void _build_nfft_plan_check_func_list():
     _nfft_plan_check_func_list[0] = (
         <_nfft_plan_check_func>(&_nfft_plan_check))
 
+cdef _nfft_plan_connect_arrays_func _nfft_plan_connect_arrays_func_list[1]
+cdef void _build_nfft_plan_connect_arrays_func_list():
+    _nfft_plan_connect_arrays_func_list[0] = (
+        <_nfft_plan_connect_arrays_func>(&_nfft_plan_connect_arrays))
 
 ### Module initialization
 # Numpy must be initialized. When using numpy from C or Cython you must
@@ -174,6 +175,7 @@ _build_nfft_plan_trafo_direct_func_list()
 _build_nfft_plan_adjoint_direct_func_list()
 _build_nfft_plan_precompute_one_psi_func_list()
 _build_nfft_plan_check_func_list()
+_build_nfft_plan_connect_arrays_func_list()
 
 # Necessary for usage of threaded FFTW:
 # - call init_threads on module import
@@ -201,6 +203,7 @@ cdef class nfft_plan_proxy(mv_plan_proxy):
         self._plan_adjoint_direct   = _nfft_plan_adjoint_direct_func_list[idx]
         self._plan_precompute       = _nfft_plan_precompute_one_psi_func_list[idx]
         self._plan_check            = _nfft_plan_check_func_list[idx]
+        self._plan_connect_arrays   = _nfft_plan_connect_arrays_func_list[idx]
 
     def __dealloc__(self):
         if self._is_initialized:
@@ -238,6 +241,8 @@ cdef class nfft_plan_proxy(mv_plan_proxy):
                                  nfft_flags, fftw_flags)
             nfft_free(N_ptr)
             nfft_free(n_ptr)
+            self._N_total = numpy.prod(N) 
+            self._M_total = M
             self._d = d
             self._N = N
             self._n = n
@@ -245,8 +250,34 @@ cdef class nfft_plan_proxy(mv_plan_proxy):
             self._nfft_flags = nfft_flags            
             self._fftw_flags = fftw_flags
             self._is_initialized = True
+            self.initialize_arrays()
         else:
             raise RuntimeError("plan is already initialized")
+
+    cpdef initialize_arrays(self):
+        if self._is_initialized:
+            cplx_dtype = self.dtype
+            real_dtype = complex_to_real_dtypes_table[cplx_dtype]
+            self._f_hat = numpy.zeros(self.N, dtype=cplx_dtype)
+            self._f = numpy.zeros(self.M_total, dtype=cplx_dtype)
+            self._x = numpy.zeros([self.M_total, self.d], dtype=real_dtype)
+            self._plan_connect_arrays(self._plan, self._f_hat, self._f, self._x)
+        else:
+            raise RuntimeError("plan is not initialized")
+
+    cpdef update_arrays(self, object f_hat, object f, object x):
+        if self._is_initialized:
+            cplx_dtype = self.dtype
+            real_dtype = complex_to_real_dtypes_table[cplx_dtype]
+            if f_hat is not None:
+                self._f_hat = numpy.ascontiguousarray(f_hat, dtype=cplx_dtype).reshape(self.N)
+            if f is not None:
+                self._f = numpy.ascontiguousarray(f, dtype=cplx_dtype).reshape(self.M_total)
+            if x is not None:
+                self._x = numpy.ascontiguousarray(x, dtype=real_dtype).reshape([self.M_total, self.d])
+            self._plan_connect_arrays(self._plan, self._f_hat, self._f, self._x)
+        else:
+            raise RuntimeError("plan is not initialized")
 
     cpdef trafo_direct(self):
         if self._is_initialized:    

@@ -36,6 +36,7 @@ ctypedef void (*_nfft_plan_trafo_direct_func) (void *) nogil
 ctypedef void (*_nfft_plan_adjoint_direct_func) (void *) nogil
 ctypedef void (*_nfft_plan_precompute_one_psi_func) (void *) nogil
 ctypedef const char *(*_nfft_plan_check_func) (void *)
+ctypedef void (*_nfft_plan_connect_arrays_func) (void *, object, object, object)
 
 # NFFT plan class
 cdef class nfft_plan_proxy(mv_plan_proxy):
@@ -54,6 +55,7 @@ cdef class nfft_plan_proxy(mv_plan_proxy):
     cdef _nfft_plan_adjoint_direct_func _plan_adjoint_direct
     cdef _nfft_plan_precompute_one_psi_func _plan_precompute
     cdef _nfft_plan_check_func _plan_check    
+    cdef _nfft_plan_connect_arrays_func _plan_connect_arrays  
     
     cpdef init_1d(self, int N, int M)    
     cpdef init_2d(self, int N1, int N2, int M)
@@ -61,6 +63,8 @@ cdef class nfft_plan_proxy(mv_plan_proxy):
     cpdef init(self, object N, int M)
     cpdef init_guru(self, object N, int M, object n, int m,
                     unsigned int nfft_flags, unsigned int fftw_flags)
+    cpdef initialize_arrays(self)
+    cpdef update_arrays(self, object f_hat, object f, object x)
     cpdef trafo_direct(self)
     cpdef adjoint_direct(self)
     cpdef precompute(self)

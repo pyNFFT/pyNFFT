@@ -84,7 +84,9 @@ cdef extern from "nfft3.h":
 
     # double precision NFFT plan
     ctypedef struct nfft_plan:
-        pass
+        fftw_complex *f_hat
+        fftw_complex *f
+        double *x
 
     void nfft_trafo_direct(nfft_plan *) nogil
         # Computes a NDFT.

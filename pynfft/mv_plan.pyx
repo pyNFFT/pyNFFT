@@ -54,15 +54,15 @@ cdef dict _mv_plan_typenum_to_index = {
     NPY_COMPLEX128: 1,
 }
 
-cdef _plan_trafo_func _plan_trafo_func_list[2]
+cdef _mv_plan_trafo_func _mv_plan_trafo_func_list[2]
 cdef void _build_plan_trafo_func_list():
-    _plan_trafo_func_list[0] = <_plan_trafo_func>(&_mv_plan_double_trafo)
-    _plan_trafo_func_list[1] = <_plan_trafo_func>(&_mv_plan_complex_trafo)
+    _mv_plan_trafo_func_list[0] = <_mv_plan_trafo_func>(&_mv_plan_double_trafo)
+    _mv_plan_trafo_func_list[1] = <_mv_plan_trafo_func>(&_mv_plan_complex_trafo)
 
-cdef _plan_adjoint_func _plan_adjoint_func_list[2]
+cdef _mv_plan_adjoint_func _mv_plan_adjoint_func_list[2]
 cdef void _build_plan_adjoint_func_list():
-    _plan_adjoint_func_list[0] = <_plan_adjoint_func>(&_mv_plan_double_adjoint)
-    _plan_adjoint_func_list[1] = <_plan_adjoint_func>(&_mv_plan_complex_adjoint)
+    _mv_plan_adjoint_func_list[0] = <_mv_plan_adjoint_func>(&_mv_plan_double_adjoint)
+    _mv_plan_adjoint_func_list[1] = <_mv_plan_adjoint_func>(&_mv_plan_complex_adjoint)
 
 
 ### Module initialization
@@ -104,8 +104,8 @@ cdef class mv_plan_proxy:
         self._M_total = 0
         self._f_hat = None
         self._f = None
-        self._plan_trafo = _plan_trafo_func_list[idx]
-        self._plan_adjoint = _plan_adjoint_func_list[idx]
+        self._plan_trafo = _mv_plan_trafo_func_list[idx]
+        self._plan_adjoint = _mv_plan_adjoint_func_list[idx]
 
     def __init__(self, dtype, *args, **kwargs):
         """Instantiate a base plan.
@@ -121,9 +121,11 @@ cdef class mv_plan_proxy:
         """Clear a base plan.
         
         Responsiblity for properly destroying the internal C-plan should be 
-        handled by the derived class.
+        handled by the derived class. The base class only clears the memory
+        allocated for the internal pointer.
         """
-        pass
+        if self._is_initialized:
+            nfft_free(self._plan)
 
     cpdef trafo(self):
         """Compute the forward NFFT on current plan."""

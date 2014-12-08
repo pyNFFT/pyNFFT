@@ -26,6 +26,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from mv_plan cimport *
+from cnfft3 cimport (PRE_PHI_HUT, PRE_PSI, FFTW_INIT, FFT_OUT_OF_PLACE,
+                     FFTW_ESTIMATE, FFTW_DESTROY_INPUT)
 
 # Function pointers specific to NFFT plans
 ctypedef void *(*_nfft_plan_malloc_func) ()
@@ -37,6 +39,13 @@ ctypedef void (*_nfft_plan_adjoint_direct_func) (void *) nogil
 ctypedef void (*_nfft_plan_precompute_one_psi_func) (void *) nogil
 ctypedef const char *(*_nfft_plan_check_func) (void *)
 ctypedef void (*_nfft_plan_connect_arrays_func) (void *, object, object, object)
+
+# Default values for flag parameters
+cdef inline _default_nfft_flags():
+    return PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFT_OUT_OF_PLACE
+
+cdef inline _default_fftw_flags():
+    return FFTW_ESTIMATE | FFTW_DESTROY_INPUT
 
 # NFFT plan class
 cdef class nfft_plan_proxy(mv_plan_proxy):

@@ -26,8 +26,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 # Function pointers common to all plans
-ctypedef void (*_plan_trafo_func) (void *) nogil
-ctypedef void (*_plan_adjoint_func) (void *) nogil
+ctypedef void (*_mv_plan_trafo_func) (void *) nogil
+ctypedef void (*_mv_plan_adjoint_func) (void *) nogil
 
 # Base plan class
 cdef class mv_plan_proxy:
@@ -39,8 +39,8 @@ cdef class mv_plan_proxy:
     cdef object _f_hat
     cdef object _f
 
-    cdef _plan_trafo_func _plan_trafo
-    cdef _plan_adjoint_func _plan_adjoint
+    cdef _mv_plan_trafo_func _plan_trafo
+    cdef _mv_plan_adjoint_func _plan_adjoint
 
     cpdef trafo(self)
     cpdef adjoint(self)

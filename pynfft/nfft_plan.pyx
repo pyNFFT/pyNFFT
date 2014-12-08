@@ -208,19 +208,19 @@ cdef class nfft_plan_proxy(mv_plan_proxy):
     def __dealloc__(self):
         if self._is_initialized:
             self._plan_finalize(self._plan)
-            nfft_free(self._plan)
 
     cpdef init_1d(self, int N, int M):
-        self.init_guru((N,), M, (2*N,), 6, 0, 0)
+        self.init((N,), M)
  
     cpdef init_2d(self, int N1, int N2, int M):
-        self.init_guru((N1, N2), M, (2*N1, 2*N2), 6, 0, 0)
+        self.init((N1, N2), M)
 
     cpdef init_3d(self, int N1, int N2, int N3, int M):
-        self.init_guru((N1, N2), M, (2*N1, 2*N2), 6, 0, 0)
+        self.init((N1, N2, N3), M)
    
     cpdef init(self, object N, int M):
-        self.init_guru(N, M, [2 * Nt for Nt in N], 6, 0, 0)
+        self.init_guru(N, M, [2 * Nt for Nt in N], 6, _default_nfft_flags(),
+                       _default_fftw_flags())
     
     cpdef init_guru(self, object N, int M, object n, int m,
                     unsigned int nfft_flags, unsigned int fftw_flags):

@@ -65,7 +65,7 @@ cdef extern from "nfft3.h":
         void (*mv_trafo)(void*) nogil
         void (*mv_adjoint)(void*) nogil
 
-    # precomputation flags for the NFFT plan
+    # precomputation flags common to all plans
     ctypedef enum:
         PRE_PHI_HUT
         FG_PSI
@@ -124,6 +124,36 @@ cdef extern from "nfft3.h":
 
     void nfft_finalize(nfft_plan *)
         # Destroys a transform plan.
+
+    # double precision NFCT plan
+    ctypedef struct nfct_plan:
+        double *f_hat
+        double *f
+        double *x
+    
+    void nfct_trafo_direct(nfct_plan *) nogil
+
+    void nfct_adjoint_direct(nfct_plan *) nogil
+
+    void nfct_trafo(nfct_plan *) nogil
+
+    void nfct_adjoint(nfct_plan *) nogil
+
+    void nfct_init_1d(nfct_plan *, int, int)
+
+    void nfct_init_2d(nfct_plan *, int, int, int)
+
+    void nfct_init_3d(nfct_plan *, int, int, int, int)
+
+    void nfct_init(nfct_plan *, int, int *, int)
+
+    void nfct_init_guru(nfct_plan *, int, int *, int, int *, int,
+                        unsigned int, unsigned int)
+
+    void nfct_precompute_one_psi(nfct_plan *) nogil
+
+    void nfct_finalize(nfct_plan *)
+
 
     # precomputation flags for solver plan
     ctypedef enum:

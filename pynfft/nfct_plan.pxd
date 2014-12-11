@@ -38,7 +38,7 @@ from cnfft3 cimport (PRE_PHI_HUT, FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI,
                      FFTW_DESTROY_INPUT)
 
 # Default values for flag parameters
-cdef inline _default_nfft_flags():
+cdef inline _default_nfct_flags():
     return PRE_PHI_HUT | PRE_PSI | FFTW_INIT | FFT_OUT_OF_PLACE
 
 cdef inline _default_fftw_flags():

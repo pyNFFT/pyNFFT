@@ -25,9 +25,42 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-# Function pointers common to all plans
+from cnfft3 cimport (nfft_mv_plan_double, nfft_mv_plan_complex)
+from numpy cimport NPY_FLOAT64, NPY_COMPLEX128
+
+# More consistent aliases
+ctypedef nfft_mv_plan_double mv_plan_double
+ctypedef nfft_mv_plan_complex mv_plan_cdouble
+
+# Function pointers defined for all plans
 ctypedef void (*_mv_plan_trafo_func) (void *) nogil
 ctypedef void (*_mv_plan_adjoint_func) (void *) nogil
+
+# - trafo
+cdef inline void _mv_plan_double_trafo(void *plan) nogil:
+    cdef mv_plan_double *this_plan = <mv_plan_double*>(plan)
+    this_plan.mv_trafo(plan)
+
+cdef inline void _mv_plan_complex_trafo(void *plan) nogil:
+    cdef mv_plan_cdouble *this_plan = <mv_plan_cdouble*>(plan)
+    this_plan.mv_trafo(plan)
+
+cdef inline void _build_plan_trafo_func_list(_mv_plan_trafo_func func_list[2]):
+    func_list[0] = <_mv_plan_trafo_func>(&_mv_plan_double_trafo)
+    func_list[1] = <_mv_plan_trafo_func>(&_mv_plan_complex_trafo)
+
+# - adjoint
+cdef inline void _mv_plan_double_adjoint(void *plan) nogil:
+    cdef mv_plan_double *this_plan = <mv_plan_double*>(plan)
+    this_plan.mv_adjoint(plan)
+
+cdef inline void _mv_plan_complex_adjoint(void *plan) nogil:
+    cdef mv_plan_cdouble *this_plan = <mv_plan_cdouble*>(plan)
+    this_plan.mv_adjoint(plan)
+
+cdef inline void _build_plan_adjoint_func_list(_mv_plan_adjoint_func func_list[2]):
+    func_list[0] = <_mv_plan_adjoint_func>(&_mv_plan_double_adjoint)
+    func_list[1] = <_mv_plan_adjoint_func>(&_mv_plan_complex_adjoint)
 
 # Base plan class
 cdef class mv_plan_proxy:
@@ -38,9 +71,11 @@ cdef class mv_plan_proxy:
     cdef int _M_total
     cdef object _f_hat
     cdef object _f
-
     cdef _mv_plan_trafo_func _plan_trafo
     cdef _mv_plan_adjoint_func _plan_adjoint
-
+    cpdef initialize_arrays(self)
+    cpdef update_arrays(self, object f_hat, object f)
+    cpdef connect_arrays(self)
+    cpdef check_if_initialized(self)
     cpdef trafo(self)
     cpdef adjoint(self)

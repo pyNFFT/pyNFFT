@@ -25,45 +25,10 @@
 # ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-from cnfft3 cimport *
 from mv_plan cimport *
+from cnfft3 cimport *
 import numpy
 from numpy cimport PyArray_CopyInto
-from numpy cimport NPY_FLOAT64, NPY_COMPLEX128
-
- 
-cdef void _mv_plan_double_trafo(void *plan) nogil:
-    cdef nfft_mv_plan_double *this_plan = <nfft_mv_plan_double*>(plan)
-    this_plan.mv_trafo(plan)
-
-cdef void _mv_plan_double_adjoint(void *plan) nogil:
-    cdef nfft_mv_plan_double *this_plan = <nfft_mv_plan_double*>(plan)
-    this_plan.mv_adjoint(plan)
-
-cdef void _mv_plan_complex_trafo(void *plan) nogil:
-    cdef nfft_mv_plan_complex *this_plan = <nfft_mv_plan_complex*>(plan)
-    this_plan.mv_trafo(plan)
-
-cdef void _mv_plan_complex_adjoint(void *plan) nogil:
-    cdef nfft_mv_plan_complex *this_plan = <nfft_mv_plan_complex*>(plan)
-    this_plan.mv_adjoint(plan)
-
-
-cdef dict _mv_plan_typenum_to_index = {
-    NPY_FLOAT64: 0,
-    NPY_COMPLEX128: 1,
-}
-
-cdef _mv_plan_trafo_func _mv_plan_trafo_func_list[2]
-cdef void _build_plan_trafo_func_list():
-    _mv_plan_trafo_func_list[0] = <_mv_plan_trafo_func>(&_mv_plan_double_trafo)
-    _mv_plan_trafo_func_list[1] = <_mv_plan_trafo_func>(&_mv_plan_complex_trafo)
-
-cdef _mv_plan_adjoint_func _mv_plan_adjoint_func_list[2]
-cdef void _build_plan_adjoint_func_list():
-    _mv_plan_adjoint_func_list[0] = <_mv_plan_adjoint_func>(&_mv_plan_double_adjoint)
-    _mv_plan_adjoint_func_list[1] = <_mv_plan_adjoint_func>(&_mv_plan_complex_adjoint)
-
 
 ### Module initialization
 # Numpy must be initialized. When using numpy from C or Cython you must
@@ -71,9 +36,18 @@ cdef void _build_plan_adjoint_func_list():
 from numpy cimport import_array
 import_array()
 
-# Populate lists of function pointers
-_build_plan_trafo_func_list()
-_build_plan_adjoint_func_list()
+# Expose lists of function pointers
+# Typenum to index conversion table
+cdef dict _mv_plan_typenum_to_index = {
+    NPY_FLOAT64: 0,
+    NPY_COMPLEX128: 1,
+}
+# - trafo
+cdef _mv_plan_trafo_func _mv_plan_trafo_func_list[2]
+_build_plan_trafo_func_list(_mv_plan_trafo_func_list)
+# - adjoint
+cdef _mv_plan_adjoint_func _mv_plan_adjoint_func_list[2]
+_build_plan_adjoint_func_list(_mv_plan_adjoint_func_list)
 ###
 
 cdef class mv_plan_proxy:
@@ -127,21 +101,36 @@ cdef class mv_plan_proxy:
         if self._is_initialized:
             nfft_free(self._plan)
 
+    cpdef check_if_initialized(self):
+        if not self._is_initialized:        
+            raise RuntimeError("plan is not initialized")
+
+    cpdef initialize_arrays(self):
+        self._f_hat = numpy.zeros(self.N_total, dtype=self.dtype)
+        self._f = numpy.zeros(self.M_total, dtype=self.dtype)
+    
+    cpdef update_arrays(self, object f_hat, object f):
+        if f_hat is not None:
+            self._f_hat = numpy.ascontiguousarray(f_hat, dtype=self.dtype).reshape([self.N_total,])
+        if f is not None:
+            self._f = numpy.ascontiguousarray(f, dtype=self.dtype).reshape([self.M_total,])
+
+    cpdef connect_arrays(self):
+        raise NotImplementedError("plan connection method not implemented")
+
     cpdef trafo(self):
         """Compute the forward NFFT on current plan."""
-        if self._is_initialized:
-            with nogil:
-                self._plan_trafo(self._plan)
-        else:
-            raise RuntimeError("plan is not initialized")
+        self.check_if_initialized()
+        self.connect_arrays()
+        with nogil:
+            self._plan_trafo(self._plan)
         
     cpdef adjoint(self):
         """Compute the adjoint NFFT on current plan."""
-        if self._is_initialized:
-            with nogil:
-                self._plan_adjoint(self._plan)
-        else:
-            raise RuntimeError("plan is not initialized")
+        self.check_if_initialized()
+        self.connect_arrays()
+        with nogil:
+            self._plan_adjoint(self._plan)
 
     @property
     def dtype(self):
@@ -154,17 +143,17 @@ cdef class mv_plan_proxy:
     @property
     def M_total(self):
         return self._M_total
-        
+
     property f_hat:
         def __get__(self):
             return self._f_hat
         def __set__(self, object value):
-            if self._is_initialized:
+            if value is not None:
                 PyArray_CopyInto(self._f_hat, value)
-        
+
     property f:
         def __get__(self):
             return self._f
         def __set__(self, object value):
-            if self._is_initialized:
+            if value is not None:
                 PyArray_CopyInto(self._f, value)

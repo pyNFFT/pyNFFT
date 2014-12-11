@@ -26,19 +26,16 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from mv_plan cimport *
-from cnfft3 cimport (PRE_PHI_HUT, PRE_PSI, FFTW_INIT, FFT_OUT_OF_PLACE,
-                     FFTW_ESTIMATE, FFTW_DESTROY_INPUT)
-
-# Function pointers specific to NFFT plans
-ctypedef void *(*_nfft_plan_malloc_func) ()
-ctypedef void (*_nfft_plan_finalize_func) (void *)
-ctypedef void (*_nfft_plan_init_guru_func) (void *, int, int *, int, int *,
-                                            int, unsigned int, unsigned int)
-ctypedef void (*_nfft_plan_trafo_direct_func) (void *) nogil
-ctypedef void (*_nfft_plan_adjoint_direct_func) (void *) nogil
-ctypedef void (*_nfft_plan_precompute_one_psi_func) (void *) nogil
-ctypedef const char *(*_nfft_plan_check_func) (void *)
-ctypedef void (*_nfft_plan_connect_arrays_func) (void *, object, object, object)
+from cnfft3 cimport (nfft_plan, fftw_complex)
+from cnfft3 cimport (nfft_malloc, nfft_finalize, nfft_free, nfft_check,
+                     nfft_init_guru, nfft_trafo_direct, nfft_adjoint_direct,
+                     nfft_trafo, nfft_adjoint, nfft_precompute_one_psi)
+from cnfft3 cimport fftw_init_threads, fftw_cleanup, fftw_cleanup_threads
+from cnfft3 cimport (PRE_PHI_HUT, FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI,
+                     PRE_FULL_PSI, MALLOC_X, MALLOC_F_HAT, MALLOC_F,
+                     FFT_OUT_OF_PLACE, FFTW_INIT, NFFT_SORT_NODES,
+                     NFFT_OMP_BLOCKWISE_ADJOINT, PRE_ONE_PSI, FFTW_ESTIMATE,
+                     FFTW_DESTROY_INPUT)
 
 # Default values for flag parameters
 cdef inline _default_nfft_flags():
@@ -56,16 +53,6 @@ cdef class nfft_plan_proxy(mv_plan_proxy):
     cdef int _m
     cdef unsigned int _nfft_flags
     cdef unsigned int _fftw_flags
-
-    cdef _nfft_plan_malloc_func _plan_malloc
-    cdef _nfft_plan_finalize_func _plan_finalize
-    cdef _nfft_plan_init_guru_func _plan_init_guru
-    cdef _nfft_plan_trafo_direct_func _plan_trafo_direct
-    cdef _nfft_plan_adjoint_direct_func _plan_adjoint_direct
-    cdef _nfft_plan_precompute_one_psi_func _plan_precompute
-    cdef _nfft_plan_check_func _plan_check    
-    cdef _nfft_plan_connect_arrays_func _plan_connect_arrays  
-    
     cpdef init_1d(self, int N, int M)    
     cpdef init_2d(self, int N1, int N2, int M)
     cpdef init_3d(self, int N1, int N2, int N3, int M)
@@ -74,6 +61,7 @@ cdef class nfft_plan_proxy(mv_plan_proxy):
                     unsigned int nfft_flags, unsigned int fftw_flags)
     cpdef initialize_arrays(self)
     cpdef update_arrays(self, object f_hat, object f, object x)
+    cpdef connect_arrays(self)
     cpdef trafo_direct(self)
     cpdef adjoint_direct(self)
     cpdef precompute(self)

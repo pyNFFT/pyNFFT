@@ -29,26 +29,29 @@
 __all__ = ('nfft_plan_proxy', 'nfft_plan_flags', 'fftw_plan_flags')
 
 from nfft_plan cimport *
-
-# For forward declarations of nfft plan and function prototypes
-from cnfft3 cimport (nfft_plan, fftw_complex)
-from cnfft3 cimport (nfft_malloc, nfft_finalize, nfft_free, nfft_check,
-                     nfft_init_guru, nfft_trafo_direct, nfft_adjoint_direct,
-                     nfft_trafo, nfft_adjoint, nfft_precompute_one_psi)
-from cnfft3 cimport fftw_init_threads, fftw_cleanup, fftw_cleanup_threads
-from cnfft3 cimport (PRE_PHI_HUT, FG_PSI, PRE_LIN_PSI, PRE_FG_PSI, PRE_PSI,
-                     PRE_FULL_PSI, MALLOC_X, MALLOC_F_HAT, MALLOC_F,
-                     FFT_OUT_OF_PLACE, FFTW_INIT, NFFT_SORT_NODES,
-                     NFFT_OMP_BLOCKWISE_ADJOINT, PRE_ONE_PSI, FFTW_ESTIMATE,
-                     FFTW_DESTROY_INPUT)
-
-# Import numpy C-API
-import numpy
-from numpy cimport NPY_FLOAT64, NPY_COMPLEX128
-from numpy cimport PyArray_DATA, PyArray_CopyInto
-
-# To expose flags to Python API
 from copy import copy
+
+# Import numpy Python and C-API
+import numpy
+cimport numpy
+
+### Module initialization
+# Numpy must be initialized. When using numpy from C or Cython you must
+# _always_ do that, or you will have segfaults
+numpy.import_array()
+
+# Necessary for usage of threaded FFTW:
+# - call init_threads on module import
+fftw_init_threads()
+# - define cleanup callback routine
+cdef void _cleanup():
+    fftw_cleanup()
+    fftw_cleanup_threads()
+# - register callback on module exit
+cdef extern from *:
+    int Py_AtExit(void (*callback)())
+Py_AtExit(_cleanup)
+###
 
 # Dictionary mapping the NFFT plan flag names to their mask value
 cdef dict nfft_plan_flags_dict = {
@@ -75,120 +78,6 @@ cdef dict fftw_plan_flags_dict = {
     'FFTW_DESTROY_INPUT'            : FFTW_DESTROY_INPUT,
     }
 fftw_plan_flags = copy(fftw_plan_flags_dict)
-
-# Conversion table between the supported complex dtypes and their 
-# corresponding real dtypes
-cdef dict complex_to_real_dtypes_table = {
-    numpy.dtype('cdouble'): numpy.dtype('double'),
-    numpy.dtype('csingle'): numpy.dtype('single'),
-    numpy.dtype('clongdouble'): numpy.dtype('longdouble'),
-}
-
-
-### Forward declarations
-
-cdef void *_nfft_plan_malloc():
-    return nfft_malloc(sizeof(nfft_plan))
-
-cdef void _nfft_plan_finalize(void *plan):
-    nfft_finalize(<nfft_plan *> plan)
-
-cdef void _nfft_plan_init_guru(void *plan, int d, int *N, int M, int *n,
-                               int m, unsigned int nfft_flags,
-                               unsigned int fftw_flags):
-    nfft_init_guru(<nfft_plan *> plan, d, N, M, n, m, nfft_flags, fftw_flags)
-
-cdef void _nfft_plan_trafo_direct(void *plan) nogil:
-    nfft_trafo_direct(<nfft_plan *> plan)
-
-cdef void _nfft_plan_adjoint_direct(void *plan) nogil:
-    nfft_adjoint_direct(<nfft_plan *> plan)
-
-cdef void _nfft_plan_precompute_one_psi(void *plan) nogil:
-    nfft_precompute_one_psi(<nfft_plan *> plan)
-
-cdef const char *_nfft_plan_check(void *plan):
-    return nfft_check(<nfft_plan *> plan)
-
-cdef void _nfft_plan_connect_arrays(void *plan, object f_hat, object f,
-                                    object x):
-    cdef nfft_plan *this_plan = <nfft_plan *> plan
-    this_plan.f_hat   = <fftw_complex *> PyArray_DATA(f_hat)
-    this_plan.f       = <fftw_complex *> PyArray_DATA(f)
-    this_plan.x       = <double *> PyArray_DATA(x)
-
-cdef dict _nfft_plan_typenum_to_index = {
-    NPY_COMPLEX128: 0,
-}
-# - malloc
-cdef _nfft_plan_malloc_func _nfft_plan_malloc_func_list[1]
-cdef void _build_nfft_plan_malloc_func_list():
-    _nfft_plan_malloc_func_list[0] = (
-        <_nfft_plan_malloc_func>(&_nfft_plan_malloc))
-# - finalize
-cdef _nfft_plan_finalize_func _nfft_plan_finalize_func_list[1]
-cdef void _build_nfft_plan_finalize_func_list():
-    _nfft_plan_finalize_func_list[0] = (
-        <_nfft_plan_finalize_func>(&_nfft_plan_finalize))
-# - init_guru
-cdef _nfft_plan_init_guru_func _nfft_plan_init_guru_func_list[1]
-cdef void _build_nfft_plan_init_guru_func_list():
-    _nfft_plan_init_guru_func_list[0] = (
-        <_nfft_plan_init_guru_func>(&_nfft_plan_init_guru))
-# - trafo_direct
-cdef _nfft_plan_trafo_direct_func _nfft_plan_trafo_direct_func_list[1]
-cdef void _build_nfft_plan_trafo_direct_func_list():
-    _nfft_plan_trafo_direct_func_list[0] = (
-        <_nfft_plan_trafo_direct_func>(&_nfft_plan_trafo_direct))
-# - adjoint_direct
-cdef _nfft_plan_adjoint_direct_func _nfft_plan_adjoint_direct_func_list[1]
-cdef void _build_nfft_plan_adjoint_direct_func_list():
-    _nfft_plan_adjoint_direct_func_list[0] = (
-        <_nfft_plan_adjoint_direct_func>(&_nfft_plan_adjoint_direct))
-# - precompute_one_psi
-cdef _nfft_plan_precompute_one_psi_func _nfft_plan_precompute_one_psi_func_list[1]
-cdef void _build_nfft_plan_precompute_one_psi_func_list():
-    _nfft_plan_precompute_one_psi_func_list[0] = (
-        <_nfft_plan_precompute_one_psi_func>(&_nfft_plan_precompute_one_psi))
-# - check
-cdef _nfft_plan_check_func _nfft_plan_check_func_list[1]
-cdef void _build_nfft_plan_check_func_list():
-    _nfft_plan_check_func_list[0] = (
-        <_nfft_plan_check_func>(&_nfft_plan_check))
-
-cdef _nfft_plan_connect_arrays_func _nfft_plan_connect_arrays_func_list[1]
-cdef void _build_nfft_plan_connect_arrays_func_list():
-    _nfft_plan_connect_arrays_func_list[0] = (
-        <_nfft_plan_connect_arrays_func>(&_nfft_plan_connect_arrays))
-
-### Module initialization
-# Numpy must be initialized. When using numpy from C or Cython you must
-# _always_ do that, or you will have segfaults
-from numpy cimport import_array
-import_array()
-
-# Populate lists of function pointers
-_build_nfft_plan_malloc_func_list()
-_build_nfft_plan_finalize_func_list()
-_build_nfft_plan_init_guru_func_list()
-_build_nfft_plan_trafo_direct_func_list()
-_build_nfft_plan_adjoint_direct_func_list()
-_build_nfft_plan_precompute_one_psi_func_list()
-_build_nfft_plan_check_func_list()
-_build_nfft_plan_connect_arrays_func_list()
-
-# Necessary for usage of threaded FFTW:
-# - call init_threads on module import
-fftw_init_threads()
-# - define cleanup callback routine
-cdef void _cleanup():
-    fftw_cleanup()
-    fftw_cleanup_threads()
-# - register callback on module exit
-cdef extern from *:
-    int Py_AtExit(void (*callback)())
-Py_AtExit(_cleanup)
-###
 
 
 cdef class nfft_plan_proxy(mv_plan_proxy):
@@ -278,6 +167,9 @@ cdef class nfft_plan_proxy(mv_plan_proxy):
             self._plan_connect_arrays(self._plan, self._f_hat, self._f, self._x)
         else:
             raise RuntimeError("plan is not initialized")
+
+    cpdef connect_arrays(self):
+        pass
 
     cpdef trafo_direct(self):
         if self._is_initialized:    

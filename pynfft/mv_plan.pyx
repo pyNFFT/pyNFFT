@@ -78,8 +78,6 @@ cdef class mv_plan_proxy:
         self._M_total = 0
         self._f_hat = None
         self._f = None
-        self._plan_trafo = _mv_plan_trafo_func_list[idx]
-        self._plan_adjoint = _mv_plan_adjoint_func_list[idx]
 
     def __init__(self, dtype, *args, **kwargs):
         """Instantiate a base plan.
@@ -101,34 +99,19 @@ cdef class mv_plan_proxy:
         if self._is_initialized:
             nfft_free(self._plan)
 
-    cpdef check_if_initialized(self):
+    cpdef check(self):
         if not self._is_initialized:        
             raise RuntimeError("plan is not initialized")
 
-    cpdef initialize_arrays(self):
-        self._f_hat = numpy.zeros(self.N_total, dtype=self.dtype)
-        self._f = numpy.zeros(self.M_total, dtype=self.dtype)
-    
-    cpdef update_arrays(self, object f_hat, object f):
-        if f_hat is not None:
-            self._f_hat = numpy.ascontiguousarray(f_hat, dtype=self.dtype).reshape([self.N_total,])
-        if f is not None:
-            self._f = numpy.ascontiguousarray(f, dtype=self.dtype).reshape([self.M_total,])
-
-    cpdef connect_arrays(self):
-        raise NotImplementedError("plan connection method not implemented")
-
     cpdef trafo(self):
         """Compute the forward NFFT on current plan."""
-        self.check_if_initialized()
-        self.connect_arrays()
+        self.check()
         with nogil:
             self._plan_trafo(self._plan)
         
     cpdef adjoint(self):
         """Compute the adjoint NFFT on current plan."""
-        self.check_if_initialized()
-        self.connect_arrays()
+        self.check()
         with nogil:
             self._plan_adjoint(self._plan)
 

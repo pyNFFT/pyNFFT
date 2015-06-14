@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (C) 2013  Ghislain Vaillant
+# Copyright (C) 2014  Taco Cohen
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,6 +17,19 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 cdef extern from "nfft3.h":
+
+    # FFTW-related declarations
+    # precomputation flags for the FFTW component
+    ctypedef enum:
+        FFTW_ESTIMATE
+        FFTW_DESTROY_INPUT
+
+    # double precision complex type
+    ctypedef double fftw_complex[2]
+
+    ########
+    # nfft #
+    ########
 
     # precomputation flags for the NFFT component
     ctypedef enum:
@@ -34,14 +48,6 @@ cdef extern from "nfft3.h":
         NFFT_OMP_BLOCKWISE_ADJOINT #(1U<<12)
         PRE_ONE_PSI #(PRE_LIN_PSI| PRE_FG_PSI| PRE_PSI| PRE_FULL_PSI)
 
-    # precomputation flags for the FFTW component
-    ctypedef enum:
-        FFTW_ESTIMATE
-        FFTW_DESTROY_INPUT
-
-    # double precision complex type
-    ctypedef double fftw_complex[2]
-
     # double precision NFFT plan
     ctypedef struct nfft_plan:
         fftw_complex *f_hat
@@ -50,6 +56,10 @@ cdef extern from "nfft3.h":
             # Vector of samples, size is M_total float types.
         double *x
             # Nodes in time/spatial domain, size is $dM$ doubles.
+
+    # stripped down alias of a NFFT plan used by solver
+    ctypedef struct nfft_mv_plan_complex:
+        pass
 
     void nfft_trafo_direct (nfft_plan *ths) nogil
         # Computes a NDFT.
@@ -63,8 +73,7 @@ cdef extern from "nfft3.h":
     void nfft_adjoint (nfft_plan *ths) nogil
         # Computes an adjoint NFFT, see the definition.
 
-    void nfft_init_guru (nfft_plan *ths, int d, int *N, int M, int *n, int m,
-                         unsigned nfft_flags, unsigned fftw_flags)
+    void nfft_init_guru (nfft_plan *ths, int d, int *N, int M, int *n, int m, unsigned nfft_flags, unsigned fftw_flags)
         # Initialisation of a transform plan, guru.
 
     void nfft_precompute_one_psi (nfft_plan *ths) nogil
@@ -73,6 +82,60 @@ cdef extern from "nfft3.h":
     void nfft_finalize (nfft_plan *ths)
         # Destroys a transform plan.
 
+    #########
+    # nfsft #
+    #########
+
+    ctypedef struct nfsft_plan:
+        fftw_complex *f_hat
+            # Vector of Fourier coefficients, size is N_total float_types.
+        fftw_complex *f
+            # Vector of samples, size is M_total float types.
+        double *x
+            # Nodes in time/spatial domain, size is $dM$ doubles.
+
+    void nfsft_init_guru(nfsft_plan *plan, int N, int M,
+                         unsigned int nfsft_flags, unsigned int nfft_flags, int nfft_cutoff)
+
+    void nfsft_trafo_direct(nfsft_plan* plan) nogil
+
+    void nfsft_adjoint_direct(nfsft_plan* plan) nogil
+
+    void nfsft_trafo(nfsft_plan* plan) nogil
+
+    void nfsft_adjoint(nfsft_plan* plan) nogil
+
+    void nfsft_finalize(nfsft_plan *plan)
+
+    void nfsft_forget() nogil
+
+    void nfsft_precompute_x(nfsft_plan *plan) nogil
+
+    void nfsft_precompute(int N, double kappa, unsigned int nfsft_flags, unsigned int fpt_flags) nogil
+
+    # init flags
+    ctypedef enum:
+        NFSFT_NORMALIZED      # (1U << 0)
+        NFSFT_USE_NDFT        # (1U << 1)
+        NFSFT_USE_DPT         # (1U << 2)
+        NFSFT_MALLOC_X        # (1U << 3)
+        NFSFT_MALLOC_F_HAT    # (1U << 5)
+        NFSFT_MALLOC_F        # (1U << 6)
+        NFSFT_PRESERVE_F_HAT  # (1U << 7)
+        NFSFT_PRESERVE_X      # (1U << 8)
+        NFSFT_PRESERVE_F      # (1U << 9)
+        NFSFT_DESTROY_F_HAT   # (1U << 10)
+        NFSFT_DESTROY_X       # (1U << 11)
+        NFSFT_DESTROY_F       # (1U << 12)
+    # precompute flags
+        NFSFT_NO_DIRECT_ALGORITHM  # (1U << 13)
+        NFSFT_NO_FAST_ALGORITHM    # (1U << 14)
+        NFSFT_ZERO_F_HAT           # (1U << 16)
+
+
+    ##########
+    # Solver #
+    ##########
 
     ctypedef enum:
         # precomputation flags for solver
@@ -83,10 +146,6 @@ cdef extern from "nfft3.h":
         NORMS_FOR_LANDWEBER   #(1U<< 4)
         PRECOMPUTE_WEIGHT     #(1U<< 5)
         PRECOMPUTE_DAMP       #(1U<< 6)
-
-    # stripped down alias of a NFFT plan used by solver
-    ctypedef struct nfft_mv_plan_complex:
-        pass
 
     # complex solver plan
     ctypedef struct solver_plan_complex:
@@ -140,6 +199,8 @@ cdef extern from "nfft3.h":
 
     void solver_finalize_complex(solver_plan_complex *ths)
         # Destroys the plan for the inverse transform.
+
+
 
 
 cdef extern from "fftw3.h":

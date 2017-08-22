@@ -17,7 +17,7 @@
 
 from cnfft3 cimport fftw_complex
 
-cdef extern from "nfft3util.h":
+cdef extern from "nfft3.h":
 
     void nfft_vrand_unit_complex (fftw_complex *x, int n)
  	    # Inits a vector of random complex numbers in \

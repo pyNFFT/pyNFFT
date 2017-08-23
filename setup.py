@@ -50,6 +50,12 @@ def get_extensions():
             )
         )
     ext_modules.append(Extension(
+            name=package_name+'.nfsft',
+            sources=[os.path.join(package_dir, 'nfsft.c')],
+            **common_extension_args
+            )
+        )
+    ext_modules.append(Extension(
             name=package_name+'.solver',
             sources=[os.path.join(package_dir, 'solver.c')],
             **common_extension_args
@@ -71,6 +77,12 @@ def get_cython_extensions():
     ext_modules.append(Extension(
             name=package_name+'.nfft',
             sources=[os.path.join(package_dir, 'nfft.pyx')],
+            **common_extension_args
+            )
+        )
+    ext_modules.append(Extension(
+            name=package_name+'.nfsft',
+            sources=[os.path.join(package_dir, 'nfsft.pyx')],
             **common_extension_args
             )
         )
@@ -180,8 +192,8 @@ CLASSIFIERS = [
 
 MAJOR = 1
 MINOR = 3
-MICRO = 2
-ISRELEASED = True
+MICRO = 3
+ISRELEASED = False
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
 # borrowed from scipy

@@ -15,10 +15,3 @@ scripts. For instance::
 .. autofunction:: pynfft.util.vrand_unit_complex(x)
 
 .. autofunction:: pynfft.util.vrand_shifted_unit_double(x)
-
-Functions used for computing the density compensation weights necessary for the
-iterative solver and adjoint NFFT.
-
-.. autofunction:: pynfft.util.voronoi_weights_1d(w, x)
-
-.. autofunction:: pynfft.util.voronoi_weights_S2(w, xi)

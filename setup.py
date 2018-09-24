@@ -19,6 +19,7 @@
 import os
 import sys
 import subprocess
+from itertools import product
 
 
 # Define global path variables
@@ -30,12 +31,16 @@ package_dir = os.path.join(setup_dir, package_name)
 # Define utility functions to build the extensions
 def get_common_extension_args():
     import numpy
+    fft_libs = [pre + suf + thrd_ext
+                for pre, suf, thrd_ext in product(['nfft3', 'fftw3'],
+                                                  ['', 'f', 'l'],
+                                                  ['', '_threads'])]
     common_extension_args = dict(
-        libraries=['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm'],
+        libraries=fft_libs + ['m'],
         library_dirs=[],
         include_dirs=[numpy.get_include()],
-        extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-        '-fstrict-aliasing -ffast-math'.split(),
+        extra_compile_args='-O3 -fomit-frame-pointer '
+                           '-fstrict-aliasing -ffast-math'.split(),
         )
     return common_extension_args
 
@@ -258,20 +263,20 @@ def setup_package():
         from setuptools import setup
     except ImportError:
         from distutils.core import setup
-    
+
     # Get current version
     FULLVERSION, GIT_REVISION = get_version_info()
-    
+
     # Refresh version file
     write_version_py()
-    
+
     # Figure out whether to add ``*_requires = ['numpy']``.
     build_requires = []
     try:
         import numpy
     except:
         build_requires = ['numpy>=1.6',]
-        
+
     # Common setup args
     setup_args = dict(
         name = 'pyNFFT',
@@ -288,7 +293,7 @@ def setup_package():
         setup_requires = build_requires,
         install_requires = build_requires,
         )
-        
+
     if len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or
             sys.argv[1] in ('--help-commands', 'egg_info', '--version',
                             'clean')):
@@ -306,7 +311,7 @@ def setup_package():
             extensions = get_extensions()
         setup_args['packages'] = ['pynfft', 'pynfft.tests']
         setup_args['ext_modules'] = extensions
-        
+
     setup(**setup_args)
 
 

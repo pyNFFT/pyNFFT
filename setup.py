@@ -289,9 +289,9 @@ def setup_package():
         cmdclass = cmdclass,
         classifiers = CLASSIFIERS,
         platforms=['Linux', 'Unix'],
-        test_suite='nose.collector',
-        setup_requires = build_requires,
+        setup_requires = build_requires + ['pytest-runner'],
         install_requires = build_requires,
+        tests_require=['pytest'],
         )
 
     if len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or

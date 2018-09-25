@@ -24,27 +24,47 @@ from cnfft3util cimport *
 # _always_ do that, or you will have segfaults
 np.import_array()
 
-def vrand_unit_complex (object[np.complex128_t, mode='c'] x not None):
+def vrand_unit_complex(np.ndarray x not None):
     '''
     Utilitary function for initializing a vector of knots to random
     values within the range [-0.5, 0.5).
-
-    Used for testing :attr:`pynfft.NFFT.x`.
-
-    :param x: pre-allocated array
-    :type x: ndarray <complex128>
-    '''
-    nfft_vrand_unit_complex(<fftw_complex *>&x[0], x.size)
-
-def vrand_shifted_unit_double (object[np.float64_t, mode='c'] x not None):
-    '''
-    Utilitary function for initializing a vector of data to random
-    complex values within the range [0, 1).
 
     Used for testing :attr:`pynfft.NFFT.f` and
     :attr:`pynfft.NFFT.f_hat`.
 
     :param x: pre-allocated array
+    :type x: ndarray <complex64, complex128 or complex256>
+    '''
+    cdef np.uint8_t[:] buf
+    buf = x.ravel().view(np.uint8)
+
+    if x.dtype == np.complex64:
+        nfftf_vrand_unit_complex(<fftwf_complex *>&buf[0], x.size)
+    elif x.dtype == np.complex128:
+        nfft_vrand_unit_complex(<fftw_complex *>&buf[0], x.size)
+    elif x.dtype == np.complex256:
+        nfftl_vrand_unit_complex(<fftwl_complex *>&buf[0], x.size)
+    else:
+        raise ValueError("bad dtype {}".format(x.dtype))
+
+def vrand_shifted_unit_double (np.ndarray x not None):
+    '''
+    Utilitary function for initializing a vector of data to random
+    complex values within the range [0, 1).
+
+    Used for testing :attr:`pynfft.NFFT.x`.
+
+    :param x: pre-allocated array
     :type x: ndarray <float64>
     '''
-    nfft_vrand_shifted_unit_double(<double *>&x[0], x.size)
+    cdef np.uint8_t[:] buf
+    buf = x.ravel().view(np.uint8)
+
+    if x.dtype == np.float32:
+        nfftf_vrand_shifted_unit_double(<float *>&buf[0], x.size)
+    elif x.dtype == np.float64:
+        nfft_vrand_shifted_unit_double(<double *>&buf[0], x.size)
+    elif x.dtype == np.float128:
+        nfftl_vrand_shifted_unit_double(<long double *>&buf[0], x.size)
+    else:
+        raise ValueError("bad dtype {}".format(x.dtype))

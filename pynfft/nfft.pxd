@@ -17,9 +17,12 @@
 
 from cnfft3 cimport nfft_plan, nfftf_plan, nfftl_plan
 
-cdef object nfft_flags_dict
-cdef object fftw_flags_dict
-cdef object nfft_supported_flags_tuple
+
+cdef:
+    object nfft_flags_dict
+    object fftw_flags_dict
+    object nfft_supported_flags_tuple
+
 
 ctypedef union _nfft_plan:
     nfft_plan dbl
@@ -28,23 +31,23 @@ ctypedef union _nfft_plan:
 
 
 cdef class NFFT(object):
-    cdef _nfft_plan _plan
-    cdef int _dbl
-    cdef int _flt
-    cdef int _ldbl
-    cdef int _d
-    cdef int _M
-    cdef int _m
-    cdef object _N
-    cdef object _n
-    cdef object _dtype
-    cdef object _flags
-    cdef object _f
-    cdef object _f_hat
-    cdef object _x
-    cdef void _precompute(self)
-    cdef void _trafo(self)
-    cdef void _trafo_direct(self)
-    cdef void _adjoint(self)
-    cdef void _adjoint_direct(self)
-
+    cdef:
+        _nfft_plan _plan
+        int _dbl
+        int _flt
+        int _ldbl
+        int _d
+        int _M
+        int _m
+        object _N
+        object _n
+        object _dtype
+        object _flags
+        object _f
+        object _f_hat
+        object _x
+        void _precompute(self)
+        void _trafo(self)
+        void _trafo_direct(self)
+        void _adjoint(self)
+        void _adjoint_direct(self)

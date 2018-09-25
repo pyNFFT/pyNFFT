@@ -19,15 +19,15 @@ from cnfft3 cimport fftw_complex, fftwf_complex, fftwl_complex
 
 cdef extern from "nfft3.h":
 
-    void nfft_vrand_unit_complex (fftw_complex *x, int n)
+    void nfft_vrand_unit_complex(fftw_complex *x, int n)
  	    # Inits a vector of random complex numbers in \
         # $[0,1]\times[0,1]{\rm i}$ .
 
-    void nfft_vrand_shifted_unit_double (double *x, int n)
+    void nfft_vrand_shifted_unit_double(double *x, int n)
         # Inits a vector of random double numbers in $[-1/2,1/2]$ .
 
-    void nfftf_vrand_unit_complex (fftwf_complex *x, int n)
-    void nfftf_vrand_shifted_unit_double (float *x, int n)
+    void nfftf_vrand_unit_complex(fftwf_complex *x, int n)
+    void nfftf_vrand_shifted_unit_double(float *x, int n)
 
     void nfftl_vrand_unit_complex (fftwl_complex *x, int n)
-    void nfftl_vrand_shifted_unit_double (long double *x, int n)
+    void nfftl_vrand_shifted_unit_double(long double *x, int n)

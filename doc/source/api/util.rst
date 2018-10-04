@@ -20,5 +20,3 @@ Functions used for computing the density compensation weights necessary for the
 iterative solver and adjoint NFFT.
 
 .. autofunction:: pynfft.util.voronoi_weights_1d(w, x)
-
-.. autofunction:: pynfft.util.voronoi_weights_S2(w, xi)

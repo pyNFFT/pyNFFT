@@ -63,21 +63,3 @@ def voronoi_weights_1d (object[np.float64_t, mode='c'] w not None,
         raise ValueError('Incompatible size between weights and nodes \
                          (%d, %d)'%(w.size, x.size))
     nfft_voronoi_weights_1d(<double *>&w[0], <double *>&x[0], w.size)
-
-def voronoi_weights_S2 (object[np.float64_t, mode='c'] w not None,
-                        object[np.float64_t, mode='c'] xi not None):
-    '''
-    Utilitary function for computing density compensation weights from knots
-    located on the surface of a sphere.
-
-    Useful for reconstruction of 3D radial data.
-
-    :param w: pre-allocated array
-    :type w: ndarray <float64>
-    :param xi: angular locations (2D) on the unit sphere
-    :type xi: ndarray <float64>
-    '''
-    if xi.size != 2 * w.size:
-        raise ValueError('Incompatible size between weights and nodes \
-                         (%d, %d)'%(w.size, xi.size))
-    nfft_voronoi_weights_S2(<double *>&w[0], <double *>&xi[0], w.size)

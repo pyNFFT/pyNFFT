@@ -62,7 +62,7 @@ Using the NFFT
 
 The core of this library is encapsulated in the :class:`pyfftw.NFFT class`.
 
-**instantiation**
+**Instantiation**
 
 The bare minimum to instantiate a new :class:`pynfft.NFFT` plan is to specify
 the geometry to the transform, i.e. the shape of the matrix containing the
@@ -80,7 +80,7 @@ overriding the default design parameters `m`, `n` and `flags`. For more
 information, please consult the `NFFT manual
 <http://www-user.tu-chemnitz.de/~potts/nfft/guide3/html/index.html>`_.
 
-**precomputation**
+**Precomputation**
 
 Precomputation *must* be performed before calling any of the transforms. The
 user can manually set the nodes of the NFFT object using the
@@ -90,7 +90,7 @@ user can manually set the nodes of the NFFT object using the
     >>> plan.x = x
     >>> plan.precompute()  
 
-**execution**
+**Execution**
 
 The actual forward and adjoint NFFT are performed by calling the
 :meth:`pynfft.nfft.NFFT.trafo` and :meth:`pynfft.nfft.NFFT.adjoint` methods.
@@ -104,10 +104,10 @@ The actual forward and adjoint NFFT are performed by calling the
 
 .. _using_solver:
 
-Using the iterative solver
+Using the Iterative Solver
 --------------------------
 
-**instantiation**
+**Instantiation**
 
 The instantiation of a :class:`pynfft.solver.Solver` object requires an
 instance of :class:`pynfft.nfft.NFFT`. The following code shows you a simple
@@ -140,7 +140,7 @@ attributes. By default, these weights are set to 1.
     >>> infft = Solver(plan)
     >>> infft.w = w
 
-**using the solver**
+**Using the Solver**
 
 Before iterating, the solver has to be intialized. As a reminder, make sure the
 :class:`pynfft.nfft.NFFT` object used to instantiate the solver has been

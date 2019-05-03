@@ -60,12 +60,6 @@ def get_extensions():
             **common_extension_args
             )
         )
-    ext_modules.append(Extension(
-            name=package_name+'.util',
-            sources=[os.path.join(package_dir, 'util.c')],
-            **common_extension_args
-            )
-        )
     return ext_modules
 
 def get_cython_extensions():
@@ -82,12 +76,6 @@ def get_cython_extensions():
     ext_modules.append(Extension(
             name=package_name+'.solver',
             sources=[os.path.join(package_dir, 'solver.pyx')],
-            **common_extension_args
-            )
-        )
-    ext_modules.append(Extension(
-            name=package_name+'.util',
-            sources=[os.path.join(package_dir, 'util.pyx')],
             **common_extension_args
             )
         )
@@ -185,7 +173,7 @@ CLASSIFIERS = [
 
 MAJOR = 1
 MINOR = 3
-MICRO = 2
+MICRO = 3
 ISRELEASED = True
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
@@ -244,7 +232,7 @@ release = %(isrelease)s
 
 if not release:
     version = full_version
-"""
+""".strip()
     FULLVERSION, GIT_REVISION = get_version_info()
 
     f = open(filename, 'w')
@@ -279,24 +267,28 @@ def setup_package():
 
     # Common setup args
     setup_args = dict(
-        name = 'pyNFFT',
-        version = FULLVERSION,
-        author = 'Ghislain Vaillant',
-        author_email = 'ghisvail@gmail.com',
-        description = 'A pythonic wrapper around NFFT',
-        long_description = LONG_DESCRIPTION,
-        url = 'https://github.com/ghisvail/pyNFFT.git',
-        cmdclass = cmdclass,
-        classifiers = CLASSIFIERS,
+        name='pyNFFT',
+        version=FULLVERSION,
+        author='Ghislain Vaillant',
+        author_email='ghisvail@gmail.com',
+        description='A pythonic wrapper around NFFT',
+        long_description=LONG_DESCRIPTION,
+        url='https://github.com/ghisvail/pyNFFT.git',
+        cmdclass=cmdclass,
+        classifiers=CLASSIFIERS,
         platforms=['Linux', 'Unix'],
-        setup_requires = build_requires,
-        install_requires = build_requires,
+        setup_requires=build_requires,
+        install_requires=build_requires,
         tests_require=['pytest'],
-        )
+    )
 
-    if len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or
-            sys.argv[1] in ('--help-commands', 'egg_info', '--version',
-                            'clean')):
+    if (
+        len(sys.argv) >= 2
+        and (
+            '--help' in sys.argv[1:]
+            or sys.argv[1] in ('--help-commands', 'egg_info', '--version', 'clean')
+        )
+    ):
         # For these actions, NumPy is not required.
         pass
     else:

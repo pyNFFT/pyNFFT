@@ -20,7 +20,7 @@ import numpy as np
 import pytest
 from numpy import pi
 from pynfft.nfft import NFFT
-from pynfft.util import vrand_unit_complex, vrand_shifted_unit_double
+from pynfft.util import random_unit_complex, random_unit_shifted
 
 
 # --- Test fixtures --- #
@@ -82,7 +82,7 @@ def plan(request, m, prec):
         pytest.skip('likely to produce NaN')
 
     pl = NFFT(N, M, prec=prec, m=m)
-    vrand_shifted_unit_double(pl.x.ravel())
+    pl.x[:] = random_unit_shifted(pl.x.shape, pl.x.dtype)
     pl.precompute()
     return pl
 
@@ -116,7 +116,7 @@ def rdft(x, f, N):
 
 def test_forward(plan, use_dft):
     rtol = 1e-3 if plan.dtype == 'complex64' else 1e-7
-    vrand_unit_complex(plan.f_hat.ravel())
+    plan.f_hat[:] = random_unit_complex(plan.f_hat.shape, plan.f_hat.dtype)
     assert np.allclose(
         plan.trafo(use_dft=use_dft),
         fdft(plan.x, plan.f_hat),
@@ -126,7 +126,7 @@ def test_forward(plan, use_dft):
 
 def test_adjoint(plan, use_dft):
     rtol = 1e-3 if plan.dtype == 'complex64' else 1e-7
-    vrand_unit_complex(plan.f.ravel())
+    plan.f[:] = random_unit_complex(plan.f.shape, plan.f.dtype)
     assert np.allclose(
         plan.adjoint(use_dft=use_dft),
         rdft(plan.x, plan.f, plan.N),

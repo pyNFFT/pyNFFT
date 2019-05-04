@@ -289,7 +289,7 @@ def setup_package():
         cmdclass = cmdclass,
         classifiers = CLASSIFIERS,
         platforms=['Linux', 'Unix'],
-        setup_requires = build_requires + ['pytest-runner'],
+        setup_requires = build_requires,
         install_requires = build_requires,
         tests_require=['pytest'],
         )

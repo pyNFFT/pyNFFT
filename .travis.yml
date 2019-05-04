@@ -1,15 +1,25 @@
 language: python
 
 matrix:
-    include:
-        - python: 2.7
-        - python: 3.5
-        - python: 3.6
-        # TODO: 3.7
-        - python: 3.6
-          env: SKIP_TESTS=true
-        - python: 3.6
-          env: SKIP_TESTS=true BUILD_DOCS=true
+  include:
+    # TODO: 3.7
+    - os: linux
+      python: 2.7
+    - os: linux
+      python: 3.5
+    - os: linux
+      python: 3.6
+    - os: linux
+      python: 3.6
+      env: SKIP_TESTS=true
+    - os: linux
+      python: 3.6
+      env: SKIP_TESTS=true BUILD_DOCS=true
+    - os: osx
+      python: 3.6
+    - os: osx
+      python: 3.6
+      env: SKIP_TESTS=true
 
 sudo: false
 
@@ -22,17 +32,26 @@ addons:
             texlive-latex-extra
             dvipng
 
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then brew update; fi
 
 # Setup numpy + scipy using miniconda
 # See http://conda.pydata.org/docs/travis.html
 install:
-    # Install miniconda according to Python version of the build (saves downloading if versions match)
+    # Install miniconda according to Python version of the build (saves download bandwidth if versions match)
     - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
-        wget -q https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+        export _MINICONDA=Miniconda2;
       else
-        wget -q https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+        export _MINICONDA=Miniconda3;
       fi
-    - bash miniconda.sh -b -p $HOME/miniconda
+    - if [[ "$TRAVIS_OS_NAME" == "osx" ]]; then
+        export _OS=MacOSX;
+      else
+        export _OS=Linux;
+      fi
+    - wget -q https://repo.continuum.io/miniconda/${_MINICONDA}-latest-${_OS}-x86_64.sh -O miniconda.sh
+    - chmod +x miniconda.sh
+    - ./miniconda.sh -b -p $HOME/miniconda
     - export PATH="$HOME/miniconda/bin:$PATH"
     - hash -r
     - conda config --set always_yes yes --set changeps1 no
@@ -51,14 +70,18 @@ install:
       fi
 
     # Build and install our package
-    - CFLAGS="-I$CONDA_PREFIX/include" LDFLAGS="-L$CONDA_PREFIX/lib" pip install -e . -vv
+    - if [[ $TRAVIS_OS_NAME == "osx" ]]; then
+        pip install -e . -vv;
+      else
+        CFLAGS="-I$CONDA_PREFIX/include" LDFLAGS="-L$CONDA_PREFIX/lib" pip install -e . -vv;
+      fi
 
 script:
     # Run tests and produce a coverage report.
     # Also invoke the alternative way of running the unit tests.
     # Fail immediately after first failure to speed up the whole thing.
     - if [[ "$SKIP_TESTS" != "true" ]]; then
-        pytest --doctest-modules pynfft/ || exit -1;
+        pytest -v --doctest-modules pynfft/ || exit -1;
       fi
     # Build the Sphinx doc (only for one specific build, master branch, no PR)
     # To avoid clogging the logs, we redirect stderr to /dev/null

@@ -15,32 +15,25 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
+# cython: nonecheck=True
+
 from cnfft3 cimport nfft_plan, nfftf_plan, nfftl_plan
 
 
-cdef:
-    object nfft_flags_dict
-    object fftw_flags_dict
-    object nfft_supported_flags_tuple
-
-
-cdef class NFFT(object):
+cdef class _NFFT(object):
     cdef:
-        nfftf_plan _plan_flt
-        nfft_plan _plan_dbl
-        nfftl_plan _plan_ldbl
-        int _d
-        int _M
-        int _m
-        object _N
-        object _n
-        object _dtype
-        object _flags
-        object _f
-        object _f_hat
-        object _x
-        void _precompute(self)
-        void _trafo(self)
-        void _trafo_direct(self)
-        void _adjoint(self)
-        void _adjoint_direct(self)
+        nfftf_plan _planf
+        nfft_plan _plan
+        nfftl_plan _planl
+        public object f
+        public object f_hat
+        public object x
+        int _is_float
+        int _is_double
+        int _is_longdouble
+        cpdef void _precompute(self) except *
+        cpdef void _trafo(self) except *
+        cpdef void _trafo_direct(self) except *
+        cpdef void _adjoint(self) except *
+        cpdef void _adjoint_direct(self) except *
+

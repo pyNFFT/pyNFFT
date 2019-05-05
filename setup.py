@@ -49,11 +49,12 @@ def get_extensions():
     ext_modules = []
     common_extension_args = get_common_extension_args()
     ext_modules.append(Extension(
-            name=package_name+'.nfft',
-            sources=[os.path.join(package_dir, 'nfft.c')],
+            name=package_name + '._nfft',
+            sources=[os.path.join(package_dir, '_nfft.c')],
             **common_extension_args
             )
         )
+    return ext_modules  # TODO: add back solver if necessary
     ext_modules.append(Extension(
             name=package_name+'.solver',
             sources=[os.path.join(package_dir, 'solver.c')],
@@ -68,11 +69,12 @@ def get_cython_extensions():
     ext_modules = []
     common_extension_args = get_common_extension_args()
     ext_modules.append(Extension(
-            name=package_name+'.nfft',
-            sources=[os.path.join(package_dir, 'nfft.pyx')],
+            name=package_name + '._nfft',
+            sources=[os.path.join(package_dir, '_nfft.pyx')],
             **common_extension_args
             )
         )
+    return cythonize(ext_modules)  # TODO: add back solver if necessary
     ext_modules.append(Extension(
             name=package_name+'.solver',
             sources=[os.path.join(package_dir, 'solver.pyx')],

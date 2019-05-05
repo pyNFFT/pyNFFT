@@ -75,60 +75,60 @@ cdef extern from "nfft3.h":
 
     # double precision
 
-    void nfft_trafo_direct (nfft_plan *ths) nogil
+    void nfft_trafo_direct(nfft_plan *ths) nogil
         # Computes an NDFT
 
-    void nfft_adjoint_direct (nfft_plan *ths) nogil
+    void nfft_adjoint_direct(nfft_plan *ths) nogil
         # Computes an adjoint NDFT
 
-    void nfft_trafo (nfft_plan *ths) nogil
+    void nfft_trafo(nfft_plan *ths) nogil
         # Computes an NFFT, see the definition
 
-    void nfft_adjoint (nfft_plan *ths) nogil
+    void nfft_adjoint(nfft_plan *ths) nogil
         # Computes an adjoint NFFT, see the definition
 
     # single precision
 
-    void nfftf_trafo_direct (nfftf_plan *ths) nogil
-    void nfftf_adjoint_direct (nfftf_plan *ths) nogil
-    void nfftf_trafo (nfftf_plan *ths) nogil
-    void nfftf_adjoint (nfftf_plan *ths) nogil
+    void nfftf_trafo_direct(nfftf_plan *ths) nogil
+    void nfftf_adjoint_direct(nfftf_plan *ths) nogil
+    void nfftf_trafo(nfftf_plan *ths) nogil
+    void nfftf_adjoint(nfftf_plan *ths) nogil
 
     # extended precision
 
-    void nfftl_trafo_direct (nfftl_plan *ths) nogil
-    void nfftl_adjoint_direct (nfftl_plan *ths) nogil
-    void nfftl_trafo (nfftl_plan *ths) nogil
-    void nfftl_adjoint (nfftl_plan *ths) nogil
+    void nfftl_trafo_direct(nfftl_plan *ths) nogil
+    void nfftl_adjoint_direct(nfftl_plan *ths) nogil
+    void nfftl_trafo(nfftl_plan *ths) nogil
+    void nfftl_adjoint(nfftl_plan *ths) nogil
 
     # --- Advanced interface --- #
 
     # double precision
 
-    void nfft_init_guru (nfft_plan *ths, int d, int *N, int M, int *n, int m,
-                         unsigned int nfft_flags, unsigned int fftw_flags)
+    void nfft_init_guru(nfft_plan *ths, int d, int *N, int M, int *n, int m,
+                        unsigned int nfft_flags, unsigned int fftw_flags)
         # Initialisation of a transform plan, guru
 
-    void nfft_precompute_one_psi (nfft_plan *ths) nogil
+    void nfft_precompute_one_psi(nfft_plan *ths) nogil
         # Precomputation for a transform plan
 
     # single precision
 
-    void nfftf_init_guru (nfftf_plan *ths, int d, int *N, int M, int *n, int m,
-                          unsigned int nfft_flags, unsigned int fftw_flags)
+    void nfftf_init_guru(nfftf_plan *ths, int d, int *N, int M, int *n, int m,
+                         unsigned int nfft_flags, unsigned int fftw_flags)
     void nfftf_precompute_one_psi (nfftf_plan *ths) nogil
 
     # extended precision
-    void nfftl_init_guru (nfftl_plan *ths, int d, int *N, int M, int *n, int m,
-                          unsigned int nfft_flags, unsigned int fftw_flags)
-    void nfftl_precompute_one_psi (nfftl_plan *ths) nogil
+    void nfftl_init_guru(nfftl_plan *ths, int d, int *N, int M, int *n, int m,
+                         unsigned int nfft_flags, unsigned int fftw_flags)
+    void nfftl_precompute_one_psi(nfftl_plan *ths) nogil
 
     # --- Cleanup --- #
 
-    void nfft_finalize (nfft_plan *ths)
+    void nfft_finalize(nfft_plan *ths)
         # Destroys a transform plan
-    void nfftf_finalize (nfftf_plan *ths)
-    void nfftl_finalize (nfftl_plan *ths)
+    void nfftf_finalize(nfftf_plan *ths)
+    void nfftl_finalize(nfftl_plan *ths)
 
     # --- Solver precomputation flags --- #
 

@@ -19,7 +19,33 @@ from functools import reduce
 
 import numpy as np
 
-from ._nfft import _NFFT, NFFT_FLAGS
+from ._nfft import _NFFT
+
+NFFT_FLAGS = {
+    'PRE_PHI_HUT': 1 << 0,
+    'FG_PSI': 1 << 1,
+    'PRE_LIN_PSI': 1 << 2,
+    'PRE_FG_PSI': 1 << 3,
+    'PRE_PSI': 1 << 4,
+    'PRE_FULL_PSI': 1 << 5,
+    'MALLOC_X': 1 << 6,
+    'MALLOC_F_HAT': 1 << 7,
+    'MALLOC_F': 1 << 8,
+    'FFT_OUT_OF_PLACE': 1 << 9,
+    'FFTW_INIT': 1 << 10,
+    'NFFT_SORT_NODES': 1 << 11,
+    'NFFT_OMP_BLOCKWISE_ADJOINT': 1 <<12,
+}
+NFFT_FLAGS['PRE_ONE_PSI'] = (
+    NFFT_FLAGS['PRE_LIN_PSI']
+    | NFFT_FLAGS['PRE_FG_PSI']
+    | NFFT_FLAGS['PRE_PSI']
+    | NFFT_FLAGS['PRE_FULL_PSI']
+)
+FFTW_FLAGS = {
+    'FFTW_DESTROY_INPUT': 1 << 0,
+    'FFTW_ESTIMATE': 1 << 6,
+}
 
 
 class NFFT(object):
@@ -84,6 +110,8 @@ class NFFT(object):
 
     def __init__(self, N, M, n=None, m=12, flags=None, prec='double'):
         # Convert and check input parameters
+        assert prec == 'double'  # TODO: remove when supported
+
         try:
             N = tuple(int(Ni) for Ni in N)
         except TypeError:
@@ -129,11 +157,6 @@ class NFFT(object):
                 flags = tuple(flags)
             except:
                 flags = (flags,)
-            finally:
-                # Only allow NFFT flags
-                for flag in flags:
-                    if flag not in NFFT_FLAGS:
-                        raise ValueError('Unsupported flag: {}'.format(flag))
 
         # Set specific flags unconditionally
         # TODO: allow user control for some?
@@ -153,28 +176,28 @@ class NFFT(object):
         if d > 1:
             flags += ('NFFT_OMP_BLOCKWISE_ADJOINT',)
 
+        nfft_flags = 0
+        fftw_flags = 0
+        for flag in flags:
+            if flag in NFFT_FLAGS:
+                nfft_flags |= NFFT_FLAGS[flag]
+            elif flag in FFTW_FLAGS:
+                fftw_flags |= FFTW_FLAGS[flag]
+            else:
+                raise ValueError('Unsupported flag: {}'.format(flag))
+
         # 'long double' -> 'longdouble' (latter understood by np.dtype)
         dtype_real = np.dtype(str(prec).replace(' ', ''))
         dtype_complex = np.result_type(1j, dtype_real)
         if dtype_complex not in ('complex64', 'complex128', 'complex256'):
             raise ValueError('`prec` {!r} not recognized'.format(prec))
 
-        # Create arrays for the C interface and check for int overflow
-        N_arr = np.array(N, dtype=np.int_)
-        assert np.prod(N_arr) == N_total, str((np.prod(N_arr), N_total))
-        M_arr = np.array([M], dtype=np.int_)
-        assert np.prod(M_arr) == M, str((np.prod(M_arr), M))
-        n_arr = np.array(n, dtype=np.int_)
-        assert np.prod(n_arr) == n_total, str((np.prod(n_arr), n_total))
-        m_arr = np.array(m, dtype=np.int_)
-        assert np.prod(m_arr) == m, str((np.prod(m_arr), m))
-        x_shp_arr = np.array((M, d), dtype=np.int_)
-        assert np.prod(x_shp_arr) == M * d, str((np.prod(x_shp_arr), M * d))
-
         # Create wrapper plan
-        self._plan = _NFFT(
-            dtype_complex, d, N_arr, M_arr, n_arr, m_arr, flags
-        )
+        # TODO: adapt for other precision
+        self._plan = _NFFT(d, N, M, n, m, nfft_flags, fftw_flags)
+        # self._plan = _NFFT(
+        #     dtype_complex, d, N_arr, M_arr, n_arr, m_arr, flags
+        # )
 
         # Set misc member attributes
         self._d = d

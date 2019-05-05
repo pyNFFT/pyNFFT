@@ -24,18 +24,11 @@ cdef:
     object nfft_supported_flags_tuple
 
 
-ctypedef union _nfft_plan:
-    nfft_plan dbl
-    nfftf_plan flt
-    nfftl_plan ldbl
-
-
 cdef class NFFT(object):
     cdef:
-        _nfft_plan _plan
-        int _dbl
-        int _flt
-        int _ldbl
+        nfftf_plan _plan_flt
+        nfft_plan _plan_dbl
+        nfftl_plan _plan_ldbl
         int _d
         int _M
         int _m

@@ -29,14 +29,14 @@ from .nfft import NFFT
 np.import_array()
 
 solver_flags_dict = {
-    'LANDWEBER':LANDWEBER,
-    'STEEPEST_DESCENT':STEEPEST_DESCENT,
-    'CGNR':CGNR,
-    'CGNE':CGNE,
-    'NORMS_FOR_LANDWEBER':NORMS_FOR_LANDWEBER,
-    'PRECOMPUTE_WEIGHT':PRECOMPUTE_WEIGHT,
-    'PRECOMPUTE_DAMP':PRECOMPUTE_DAMP,
-    }
+    'LANDWEBER': LANDWEBER,
+    'STEEPEST_DESCENT': STEEPEST_DESCENT,
+    'CGNR': CGNR,
+    'CGNE': CGNE,
+    'NORMS_FOR_LANDWEBER': NORMS_FOR_LANDWEBER,
+    'PRECOMPUTE_WEIGHT': PRECOMPUTE_WEIGHT,
+    'PRECOMPUTE_DAMP': PRECOMPUTE_DAMP,
+}
 
 solver_flags = copy.copy(solver_flags_dict)
 
@@ -64,7 +64,7 @@ cdef class Solver(object):
 
     def __cinit__(self, NFFT nfft_plan, flags=None):
 
-        dtype_complex = nfft_plan.dtype
+        dtype_complex = nfft_plan._dtype
         dtype_real = np.dtype(dtype_complex.char.lower())
 
         # Convert tuple of literal precomputation flags to its expected

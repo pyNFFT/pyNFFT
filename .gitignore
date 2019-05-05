@@ -8,6 +8,8 @@
 build/
 dist/
 *.egg-info/
+.eggs/
+.pytest_cache/
 doc/build
 MANIFEST
 pynfft/version.py

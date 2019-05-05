@@ -19,6 +19,7 @@
 import os
 import sys
 import subprocess
+from itertools import product
 
 
 # Define global path variables
@@ -30,12 +31,16 @@ package_dir = os.path.join(setup_dir, package_name)
 # Define utility functions to build the extensions
 def get_common_extension_args():
     import numpy
+    fft_libs = [pre + suf + thrd_ext
+                for pre, suf, thrd_ext in product(['nfft3', 'fftw3'],
+                                                  ['', 'f', 'l'],
+                                                  ['', '_threads'])]
     common_extension_args = dict(
-        libraries=['nfft3_threads', 'nfft3', 'fftw3_threads', 'fftw3', 'm'],
+        libraries=fft_libs + ['m'],
         library_dirs=[],
         include_dirs=[numpy.get_include()],
-        extra_compile_args='-O3 -fomit-frame-pointer -malign-double '
-        '-fstrict-aliasing -ffast-math'.split(),
+        extra_compile_args='-O3 -fomit-frame-pointer '
+                           '-fstrict-aliasing -ffast-math'.split(),
         )
     return common_extension_args
 
@@ -55,12 +60,6 @@ def get_extensions():
             **common_extension_args
             )
         )
-    ext_modules.append(Extension(
-            name=package_name+'.util',
-            sources=[os.path.join(package_dir, 'util.c')],
-            **common_extension_args
-            )
-        )
     return ext_modules
 
 def get_cython_extensions():
@@ -77,12 +76,6 @@ def get_cython_extensions():
     ext_modules.append(Extension(
             name=package_name+'.solver',
             sources=[os.path.join(package_dir, 'solver.pyx')],
-            **common_extension_args
-            )
-        )
-    ext_modules.append(Extension(
-            name=package_name+'.util',
-            sources=[os.path.join(package_dir, 'util.pyx')],
             **common_extension_args
             )
         )
@@ -179,8 +172,8 @@ CLASSIFIERS = [
 ]
 
 MAJOR = 1
-MINOR = 3
-MICRO = 2
+MINOR = 4
+MICRO = 0
 ISRELEASED = True
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)
 
@@ -239,7 +232,7 @@ release = %(isrelease)s
 
 if not release:
     version = full_version
-"""
+""".strip()
     FULLVERSION, GIT_REVISION = get_version_info()
 
     f = open(filename, 'w')
@@ -258,40 +251,44 @@ def setup_package():
         from setuptools import setup
     except ImportError:
         from distutils.core import setup
-    
+
     # Get current version
     FULLVERSION, GIT_REVISION = get_version_info()
-    
+
     # Refresh version file
     write_version_py()
-    
+
     # Figure out whether to add ``*_requires = ['numpy']``.
     build_requires = []
     try:
         import numpy
     except:
         build_requires = ['numpy>=1.6',]
-        
+
     # Common setup args
     setup_args = dict(
-        name = 'pyNFFT',
-        version = FULLVERSION,
-        author = 'Ghislain Vaillant',
-        author_email = 'ghisvail@gmail.com',
-        description = 'A pythonic wrapper around NFFT',
-        long_description = LONG_DESCRIPTION,
-        url = 'https://github.com/ghisvail/pyNFFT.git',
-        cmdclass = cmdclass,
-        classifiers = CLASSIFIERS,
+        name='pyNFFT',
+        version=FULLVERSION,
+        author='Ghislain Vaillant',
+        author_email='ghisvail@gmail.com',
+        description='A pythonic wrapper around NFFT',
+        long_description=LONG_DESCRIPTION,
+        url='https://github.com/ghisvail/pyNFFT.git',
+        cmdclass=cmdclass,
+        classifiers=CLASSIFIERS,
         platforms=['Linux', 'Unix'],
-        test_suite='nose.collector',
-        setup_requires = build_requires,
-        install_requires = build_requires,
+        setup_requires=build_requires,
+        install_requires=build_requires,
+        tests_require=['pytest'],
+    )
+
+    if (
+        len(sys.argv) >= 2
+        and (
+            '--help' in sys.argv[1:]
+            or sys.argv[1] in ('--help-commands', 'egg_info', '--version', 'clean')
         )
-        
-    if len(sys.argv) >= 2 and ('--help' in sys.argv[1:] or
-            sys.argv[1] in ('--help-commands', 'egg_info', '--version',
-                            'clean')):
+    ):
         # For these actions, NumPy is not required.
         pass
     else:
@@ -306,7 +303,7 @@ def setup_package():
             extensions = get_extensions()
         setup_args['packages'] = ['pynfft', 'pynfft.tests']
         setup_args['ext_modules'] = extensions
-        
+
     setup(**setup_args)
 
 

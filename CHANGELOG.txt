@@ -1,6 +1,13 @@
 Changelog
 =========
 
+Changes in version 1.4.0
+------------------------
+
+    * nfft: add support for single and extended precision transforms
+    * util: fix build errors by removing `voronoi_weights_1d` and `voronoi_weights_S2` (no longer in `nfft3.h`)
+    * util: replace wrapped test helpers with NumPy implementations
+
 Changes in version 1.3.2
 ------------------------
 

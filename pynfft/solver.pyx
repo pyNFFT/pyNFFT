@@ -29,14 +29,14 @@ from .nfft import NFFT
 np.import_array()
 
 solver_flags_dict = {
-    'LANDWEBER':LANDWEBER,
-    'STEEPEST_DESCENT':STEEPEST_DESCENT,
-    'CGNR':CGNR,
-    'CGNE':CGNE,
-    'NORMS_FOR_LANDWEBER':NORMS_FOR_LANDWEBER,
-    'PRECOMPUTE_WEIGHT':PRECOMPUTE_WEIGHT,
-    'PRECOMPUTE_DAMP':PRECOMPUTE_DAMP,
-    }
+    'LANDWEBER': LANDWEBER,
+    'STEEPEST_DESCENT': STEEPEST_DESCENT,
+    'CGNR': CGNR,
+    'CGNE': CGNE,
+    'NORMS_FOR_LANDWEBER': NORMS_FOR_LANDWEBER,
+    'PRECOMPUTE_WEIGHT': PRECOMPUTE_WEIGHT,
+    'PRECOMPUTE_DAMP': PRECOMPUTE_DAMP,
+}
 
 solver_flags = copy.copy(solver_flags_dict)
 
@@ -45,39 +45,35 @@ cdef class Solver(object):
     '''
     Solver is a class for computing the inverse NFFT iteratively.
 
-    The solver's instantiation requires an initialized NFFT object used 
-    internally for the multiple forward and adjoint NFFT performed. The class 
-    uses conjugate-gradient as the default solver but alternative solvers may 
+    The solver's instantiation requires an initialized NFFT object used
+    internally for the multiple forward and adjoint NFFT performed. The class
+    uses conjugate-gradient as the default solver but alternative solvers may
     be specified at construct-time.
 
-    The solver must be first initialized by calling the :meth:`before_loop` 
+    The solver must be first initialized by calling the :meth:`before_loop`
     method.
 
-    The solver's implementation let you carry one iteration at a time with a 
+    The solver's implementation lets you carry one iteration at a time with a
     call to :meth:`loop_one_step`. It is left to the user to chose whichever
     stopping condition to apply.
-    
-    The class exposes the internals of the solver through its respective 
+
+    The class exposes the internals of the solver through its respective
     properties. For instance, the residuals for the current iteration can be
     accessed via the :attr:r_iter attribute.
     '''
 
     def __cinit__(self, NFFT nfft_plan, flags=None):
 
-        # support only double / double complex NFFT
-        # TODO: if support for multiple floating precision lands in the
-        # NFFT library, adapt this section to dynamically figure the
-        # real and complex dtypes
-        dtype_real = np.dtype('float64')
-        dtype_complex = np.dtype('complex128')
+        dtype_complex = nfft_plan._dtype
+        dtype_real = np.dtype(dtype_complex.char.lower())
 
-        # convert tuple of litteral precomputation flags to its expected
+        # Convert tuple of literal precomputation flags to its expected
         # C-compatible value. Each flag is a power of 2, which allows to compute
         # this value using BITOR operations.
         cdef unsigned int _flags = 0
         flags_used = ('PRECOMPUTE_WEIGHT', 'PRECOMPUTE_DAMP')
 
-        # sanity checks on user specified flags if any,
+        # Sanity checks on user specified flags if any,
         # else use default ones:
         if flags is not None:
             try:
@@ -89,17 +85,28 @@ cdef class Solver(object):
         else:
             flags_used += ('CGNR',)
 
-        for each_flag in flags_used:
+        for flag in flags_used:
             try:
-                _flags |= solver_flags_dict[each_flag]
+                _flags |= solver_flags_dict[flag]
             except KeyError:
-                raise ValueError('Invalid flag: ' + '\'' +
-                        each_flag + '\' is not a valid flag.')
+                raise ValueError("Invalid flag: '{}'".format(flag))
 
-        # initialize plan
+        # Initialize plan
         try:
-            solver_init_advanced_complex(&self._solver_plan,
-                <nfft_mv_plan_complex*>&(nfft_plan._plan), _flags)
+            if dtype_complex == np.complex64:
+                solverf_init_advanced_complex(
+                    &self._plan_flt, <nfftf_mv_plan_complex*>&(nfft_plan._plan_flt), _flags
+                )
+            elif dtype_complex == np.complex128:
+                solver_init_advanced_complex(
+                    &self._plan_dbl, <nfft_mv_plan_complex*>&(nfft_plan._plan_dbl), _flags
+                )
+            elif dtype_complex == np.complex256:
+                solverl_init_advanced_complex(
+                    &self._plan_ldbl, <nfftl_mv_plan_complex*>&(nfft_plan._plan_ldbl), _flags
+                )
+            else:
+                raise RuntimeError
         except:
             raise MemoryError
 
@@ -119,38 +126,100 @@ cdef class Solver(object):
         for dt in range(d):
             shape_N[dt] = N[dt]
 
-        self._w = np.PyArray_SimpleNewFromData(1, shape_M,
-            np.NPY_FLOAT64, <void *>(self._solver_plan.w))
-        self._w.ravel()[:] = 1  # make sure weights are initialized
+        if dtype_complex == np.complex64:
+            self._w = np.PyArray_SimpleNewFromData(
+                1, shape_M, np.NPY_FLOAT32, <void *>(self._plan_flt.w)
+            )
+            self._w.ravel()[:] = 1  # make sure weights are initialized
+            self._w_hat = np.PyArray_SimpleNewFromData(
+                d, shape_N, np.NPY_FLOAT32, <void *>(self._plan_flt.w_hat)
+            )
+            self._w_hat.ravel()[:] = 1  # make sure weights are initialized
+            self._y = np.PyArray_SimpleNewFromData(
+                1, shape_M, np.NPY_COMPLEX64, <void *>(self._plan_flt.y)
+            )
+            self._f_hat_iter = np.PyArray_SimpleNewFromData(
+                d, shape_N, np.NPY_COMPLEX64, <void *>(self._plan_flt.f_hat_iter)
+            )
+            self._f_hat_iter.ravel()[:] = 0  # default initial guess
+            self._r_iter = np.PyArray_SimpleNewFromData(
+                1, shape_M, np.NPY_COMPLEX64, <void *>(self._plan_flt.r_iter)
+            )
+            self._z_hat_iter = np.PyArray_SimpleNewFromData(
+                d, shape_N, np.NPY_COMPLEX64, <void *>(self._plan_flt.z_hat_iter)
+            )
+            self._p_hat_iter = np.PyArray_SimpleNewFromData(
+                d, shape_N, np.NPY_COMPLEX64, <void *>(self._plan_flt.p_hat_iter)
+            )
+            self._v_iter = np.PyArray_SimpleNewFromData(
+                1, shape_M, np.NPY_COMPLEX64, <void *>(self._plan_flt.v_iter)
+            )
 
-        self._w_hat = np.PyArray_SimpleNewFromData(d, shape_N,
-            np.NPY_FLOAT64, <void *>(self._solver_plan.w_hat))
-        self._w_hat.ravel()[:] = 1  # make sure weights are initialized
+        elif dtype_complex == np.complex128:
+            self._w = np.PyArray_SimpleNewFromData(
+                1, shape_M, np.NPY_FLOAT64, <void *>(self._plan_dbl.w)
+            )
+            self._w.ravel()[:] = 1  # make sure weights are initialized
+            self._w_hat = np.PyArray_SimpleNewFromData(
+                d, shape_N, np.NPY_FLOAT64, <void *>(self._plan_dbl.w_hat)
+            )
+            self._w_hat.ravel()[:] = 1  # make sure weights are initialized
+            self._y = np.PyArray_SimpleNewFromData(
+                1, shape_M, np.NPY_COMPLEX128, <void *>(self._plan_dbl.y)
+            )
+            self._f_hat_iter = np.PyArray_SimpleNewFromData(
+                d, shape_N, np.NPY_COMPLEX128, <void *>(self._plan_dbl.f_hat_iter)
+            )
+            self._f_hat_iter.ravel()[:] = 0  # default initial guess
+            self._r_iter = np.PyArray_SimpleNewFromData(
+                1, shape_M, np.NPY_COMPLEX128, <void *>(self._plan_dbl.r_iter)
+            )
+            self._z_hat_iter = np.PyArray_SimpleNewFromData(
+                d, shape_N, np.NPY_COMPLEX128, <void *>(self._plan_dbl.z_hat_iter)
+            )
+            self._p_hat_iter = np.PyArray_SimpleNewFromData(
+                d, shape_N, np.NPY_COMPLEX128, <void *>(self._plan_dbl.p_hat_iter)
+            )
+            self._v_iter = np.PyArray_SimpleNewFromData(
+                1, shape_M, np.NPY_COMPLEX128, <void *>(self._plan_dbl.v_iter)
+            )
 
-        self._y = np.PyArray_SimpleNewFromData(1, shape_M,
-            np.NPY_COMPLEX128, <void *>(self._solver_plan.y))
+        elif dtype_complex == np.complex256:
+            self._w = np.PyArray_SimpleNewFromData(
+                1, shape_M, np.NPY_FLOAT128, <void *>(self._plan_ldbl.w)
+            )
+            self._w.ravel()[:] = 1  # make sure weights are initialized
+            self._w_hat = np.PyArray_SimpleNewFromData(
+                d, shape_N, np.NPY_FLOAT128, <void *>(self._plan_ldbl.w_hat)
+            )
+            self._w_hat.ravel()[:] = 1  # make sure weights are initialized
+            self._y = np.PyArray_SimpleNewFromData(
+                1, shape_M, np.NPY_COMPLEX256, <void *>(self._plan_ldbl.y)
+            )
+            self._f_hat_iter = np.PyArray_SimpleNewFromData(
+                d, shape_N, np.NPY_COMPLEX256, <void *>(self._plan_ldbl.f_hat_iter)
+            )
+            self._f_hat_iter.ravel()[:] = 0  # default initial guess
+            self._r_iter = np.PyArray_SimpleNewFromData(
+                1, shape_M, np.NPY_COMPLEX256, <void *>(self._plan_ldbl.r_iter)
+            )
+            self._z_hat_iter = np.PyArray_SimpleNewFromData(
+                d, shape_N, np.NPY_COMPLEX256, <void *>(self._plan_ldbl.z_hat_iter)
+            )
+            self._p_hat_iter = np.PyArray_SimpleNewFromData(
+                d, shape_N, np.NPY_COMPLEX256, <void *>(self._plan_ldbl.p_hat_iter)
+            )
+            self._v_iter = np.PyArray_SimpleNewFromData(
+                1, shape_M, np.NPY_COMPLEX256, <void *>(self._plan_ldbl.v_iter)
+            )
 
-        self._f_hat_iter = np.PyArray_SimpleNewFromData(d, shape_N,
-            np.NPY_COMPLEX128, <void *>(self._solver_plan.f_hat_iter))
-        self._f_hat_iter.ravel()[:] = 0  # default initial guess
-
-        self._r_iter = np.PyArray_SimpleNewFromData(1, shape_M,
-            np.NPY_COMPLEX128, <void *>(self._solver_plan.r_iter))
-
-        self._z_hat_iter = np.PyArray_SimpleNewFromData(d, shape_N,
-            np.NPY_COMPLEX128, <void *>(self._solver_plan.z_hat_iter))
-
-        self._p_hat_iter = np.PyArray_SimpleNewFromData(d, shape_N,
-            np.NPY_COMPLEX128, <void *>(self._solver_plan.p_hat_iter))
-
-        self._v_iter = np.PyArray_SimpleNewFromData(1, shape_M,
-            np.NPY_COMPLEX128, <void *>(self._solver_plan.v_iter))
+        else:
+            raise RuntimeError
 
         free(shape_N)
 
         self._dtype = dtype_complex
         self._flags = flags_used
-
 
     def __init__(self, nfft_plan, flags=None):
         '''
@@ -184,7 +253,12 @@ cdef class Solver(object):
         pass
 
     def __dealloc__(self):
-        solver_finalize_complex(&self._solver_plan)
+        if self._dtype == np.complex64:
+            solverf_finalize_complex(&self._plan_flt)
+        elif self._dtype == np.complex128:
+            solver_finalize_complex(&self._plan_dbl)
+        elif self._dtype == np.complex256:
+            solverl_finalize_complex(&self._plan_ldbl)
 
     def before_loop(self):
         '''Initialize the solver internals.'''
@@ -195,40 +269,58 @@ cdef class Solver(object):
         self._loop_one_step()
 
     cdef void _before_loop(self):
-        with nogil:
-            solver_before_loop_complex(&self._solver_plan)
+        if self._dtype == np.complex64:
+            with nogil:
+                solverf_before_loop_complex(&self._plan_flt)
+        elif self._dtype == np.complex128:
+            with nogil:
+                solver_before_loop_complex(&self._plan_dbl)
+        elif self._dtype == np.complex256:
+            with nogil:
+                solverl_before_loop_complex(&self._plan_ldbl)
+        else:
+            raise RuntimeError
 
     cdef void _loop_one_step(self):
-        with nogil:
-            solver_loop_one_step_complex(&self._solver_plan)
+        if self._dtype == np.complex64:
+            with nogil:
+                solverf_loop_one_step_complex(&self._plan_flt)
+        elif self._dtype == np.complex128:
+            with nogil:
+                solver_loop_one_step_complex(&self._plan_dbl)
+        elif self._dtype == np.complex256:
+            with nogil:
+                solverl_loop_one_step_complex(&self._plan_ldbl)
+        else:
+            raise RuntimeError
 
     property w:
-        
+
         '''Weighting factors.'''
-        
+
         def __get__(self):
             return self._w
-        
+
         def __set__(self, array):
             self._w.ravel()[:] = array.ravel()
 
     property w_hat:
-        
+
         '''Damping factors.'''
-        
+
         def __get__(self):
             return self._w_hat
-        
+
         def __set__(self, array):
             self._w_hat.ravel()[:] = array.ravel()
 
     property y:
-        
+
         '''Right hand side, samples.'''
-        
+
         def __get__(self):
             return self._y
-        
+
         def __set__(self, array):
             self._y.ravel()[:] = array.ravel()
 
@@ -265,42 +357,98 @@ cdef class Solver(object):
     @property
     def alpha_iter(self):
         '''Step size for search direction.'''
-        return self._solver_plan.alpha_iter
+        if self._dtype == np.complex64:
+            return self._plan_flt.alpha_iter
+        elif self._dtype == np.complex128:
+            return self._plan_dbl.alpha_iter
+        elif self._dtype == np.complex256:
+            return self._plan_ldbl.alpha_iter
+        else:
+            raise RuntimeError
 
     @property
     def beta_iter(self):
         '''Step size for search direction.'''
-        return self._solver_plan.beta_iter
+        if self._dtype == np.complex64:
+            return self._plan_flt.beta_iter
+        elif self._dtype == np.complex128:
+            return self._plan_dbl.beta_iter
+        elif self._dtype == np.complex256:
+            return self._plan_ldbl.beta_iter
+        else:
+            raise RuntimeError
 
     @property
     def dot_r_iter(self):
         '''Weighted dotproduct of r_iter.'''
-        return self._solver_plan.dot_r_iter
+        if self._dtype == np.complex64:
+            return self._plan_flt.dot_r_iter
+        elif self._dtype == np.complex128:
+            return self._plan_dbl.dot_r_iter
+        elif self._dtype == np.complex256:
+            return self._plan_ldbl.dot_r_iter
+        else:
+            raise RuntimeError
 
     @property
     def dot_r_iter_old(self):
         '''Previous dot_r_iter.'''
-        return self._solver_plan.dot_r_iter_old
+        if self._dtype == np.complex64:
+            return self._plan_flt.dot_r_iter_old
+        elif self._dtype == np.complex128:
+            return self._plan_dbl.dot_r_iter_old
+        elif self._dtype == np.complex256:
+            return self._plan_ldbl.dot_r_iter_old
+        else:
+            raise RuntimeError
 
     @property
     def dot_z_hat_iter(self):
         '''Weighted dotproduct of z_hat_iter.'''
-        return self._solver_plan.dot_z_hat_iter
+        if self._dtype == np.complex64:
+            return self._plan_flt.dot_z_hat_iter
+        elif self._dtype == np.complex128:
+            return self._plan_dbl.dot_z_hat_iter
+        elif self._dtype == np.complex256:
+            return self._plan_ldbl.dot_z_hat_iter
+        else:
+            raise RuntimeError
 
     @property
     def dot_z_hat_iter_old(self):
         '''Previous dot_z_hat_iter.'''
-        return self._solver_plan.dot_z_hat_iter_old
+        if self._dtype == np.complex64:
+            return self._plan_flt.dot_z_hat_iter_old
+        elif self._dtype == np.complex128:
+            return self._plan_dbl.dot_z_hat_iter_old
+        elif self._dtype == np.complex256:
+            return self._plan_ldbl.dot_z_hat_iter_old
+        else:
+            raise RuntimeError
 
     @property
     def dot_p_hat_iter(self):
         '''Weighted dotproduct of p_hat_iter.'''
-        return self._solver_plan.dot_p_hat_iter
+        if self._dtype == np.complex64:
+            return self._plan_flt.dot_p_hat_iter
+        elif self._dtype == np.complex128:
+            return self._plan_dbl.dot_p_hat_iter
+        elif self._dtype == np.complex256:
+            return self._plan_ldbl.dot_p_hat_iter
+        else:
+            raise RuntimeError
 
     @property
     def dot_v_iter(self):
         '''Weighted dotproduct of v_iter.'''
-        return self._solver_plan.dot_v_iter
+        if self._dtype == np.complex64:
+            return self._plan_flt.dot_v_iter
+        elif self._dtype == np.complex128:
+            return self._plan_dbl.dot_v_iter
+        elif self._dtype == np.complex256:
+            return self._plan_ldbl.dot_v_iter
+        else:
+            raise RuntimeError
 
     @property
     def dtype(self):

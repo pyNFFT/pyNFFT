@@ -1,9 +1,9 @@
-``pynfft.solver`` - iterative solver for inverse NFFT
+``pynfft.solver`` - Iterative Solver for Inverse NFFT
 =====================================================
 
 .. automodule:: pynfft.solver
 
-Solver class
+Solver Class
 ------------
 
 .. autoclass:: pynfft.solver.Solver

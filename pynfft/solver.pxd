@@ -18,24 +18,26 @@
 import numpy as np
 cimport numpy as np
 from libc.stdlib cimport malloc, free
-from cnfft3 cimport solver_plan_complex
+from cnfft3 cimport solver_plan_complex, solverf_plan_complex, solverl_plan_complex
 from .nfft cimport NFFT
 
 cdef object solver_flags_dict
 
 cdef class Solver(object):
-    cdef solver_plan_complex _solver_plan
-    cdef NFFT _nfft_plan
-    cdef object _w
-    cdef object _w_hat
-    cdef object _y
-    cdef object _f_hat_iter
-    cdef object _r_iter
-    cdef object _z_hat_iter
-    cdef object _p_hat_iter
-    cdef object _v_iter
-    cdef object _dtype
-    cdef object _flags
-    cdef void _before_loop(self)
-    cdef void _loop_one_step(self)
+    cdef:
+        solverf_plan_complex _plan_flt
+        solver_plan_complex _plan_dbl
+        solverl_plan_complex _plan_ldbl
+        object _w
+        object _w_hat
+        object _y
+        object _f_hat_iter
+        object _r_iter
+        object _z_hat_iter
+        object _p_hat_iter
+        object _v_iter
+        object _dtype
+        object _flags
+        void _before_loop(self)
+        void _loop_one_step(self)
 

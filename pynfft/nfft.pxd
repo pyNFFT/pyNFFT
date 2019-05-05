@@ -15,27 +15,32 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from cnfft3 cimport nfft_plan
+from cnfft3 cimport nfft_plan, nfftf_plan, nfftl_plan
 
-cdef object nfft_flags_dict
-cdef object fftw_flags_dict
-cdef object nfft_supported_flags_tuple
+
+cdef:
+    object nfft_flags_dict
+    object fftw_flags_dict
+    object nfft_supported_flags_tuple
+
 
 cdef class NFFT(object):
-    cdef nfft_plan _plan
-    cdef int _d
-    cdef int _M
-    cdef int _m
-    cdef object _N
-    cdef object _n
-    cdef object _dtype
-    cdef object _flags
-    cdef object _f   
-    cdef object _f_hat
-    cdef object _x
-    cdef void _precompute(self)
-    cdef void _trafo(self)
-    cdef void _trafo_direct(self)    
-    cdef void _adjoint(self)
-    cdef void _adjoint_direct(self)
-
+    cdef:
+        nfftf_plan _plan_flt
+        nfft_plan _plan_dbl
+        nfftl_plan _plan_ldbl
+        int _d
+        int _M
+        int _m
+        object _N
+        object _n
+        object _dtype
+        object _flags
+        object _f
+        object _f_hat
+        object _x
+        void _precompute(self)
+        void _trafo(self)
+        void _trafo_direct(self)
+        void _adjoint(self)
+        void _adjoint_direct(self)

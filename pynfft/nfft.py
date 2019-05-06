@@ -19,7 +19,7 @@ from functools import reduce
 
 import numpy as np
 
-from ._nfft import _NFFT
+from ._nfft import _NFFTDouble, _NFFTFloat, _NFFTLongDouble
 
 NFFT_FLAGS = {
     'PRE_PHI_HUT': 1 << 0,
@@ -110,8 +110,6 @@ class NFFT(object):
 
     def __init__(self, N, M, n=None, m=12, flags=None, prec='double'):
         # Convert and check input parameters
-        assert prec == 'double'  # TODO: remove when supported
-
         try:
             N = tuple(int(Ni) for Ni in N)
         except TypeError:
@@ -193,11 +191,12 @@ class NFFT(object):
             raise ValueError('`prec` {!r} not recognized'.format(prec))
 
         # Create wrapper plan
-        # TODO: adapt for other precision
-        self._plan = _NFFT(d, N, M, n, m, nfft_flags, fftw_flags)
-        # self._plan = _NFFT(
-        #     dtype_complex, d, N_arr, M_arr, n_arr, m_arr, flags
-        # )
+        if dtype_complex == 'complex64':
+            self._plan = _NFFTFloat(d, N, M, n, m, nfft_flags, fftw_flags)
+        elif dtype_complex == 'complex128':
+            self._plan = _NFFTDouble(d, N, M, n, m, nfft_flags, fftw_flags)
+        elif dtype_complex == 'complex256':
+            self._plan = _NFFTLongDouble(d, N, M, n, m, nfft_flags, fftw_flags)
 
         # Set misc member attributes
         self._d = d

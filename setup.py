@@ -174,7 +174,7 @@ def common_extension_args():
             GetInclude(f) for f in (py_include, numpy_include, nfft_include)
         ],
         libraries=fft_libs + ['m'],
-        library_dirs=[],  # TODO: maybe make a guess here?
+        library_dirs=[],
         extra_compile_args=(
             '-O3 -fomit-frame-pointer -fstrict-aliasing -ffast-math'.split()
         ),
@@ -186,7 +186,6 @@ ext_modules = [
     Extension(
         'pynfft._nfft',
         [path.join(package_dir, '_nfft.cpp')],
-        # Path to pybind11 headers
         language='c++',
         **common_extension_args(),
     ),
@@ -212,15 +211,16 @@ def has_flag(compiler, flagname):
 def cpp_flag(compiler):
     """Return the -std=c++[11/14] compiler flag.
 
-    The c++14 is prefered over c++11 (when it is available).
+    The c++14 flag is prefered over c++11 (when it is available).
     """
     if has_flag(compiler, '-std=c++14'):
         return '-std=c++14'
     elif has_flag(compiler, '-std=c++11'):
         return '-std=c++11'
     else:
-        raise RuntimeError('Unsupported compiler -- at least C++11 support '
-                           'is needed!')
+        raise RuntimeError(
+            'Unsupported compiler -- at least C++11 support is needed!'
+        )
 
 
 class BuildExt(build_ext):

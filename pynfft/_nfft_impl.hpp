@@ -60,9 +60,8 @@ struct _NFFT {
   // Property f_hat
   py::array_t<std::complex<FLOAT_T>> f_hat() const {
     // f_hat has shape N and contiguous strides according to FLOAT_T type
-    std::vector<ssize_t> shape = as_size_vector(_N);
-    std::vector<ssize_t> strides = contig_strides<std::complex<FLOAT_T>>(_N);
-    py::array_t<std::complex<FLOAT_T>> arr(shape, strides, reinterpret_cast<std::complex<FLOAT_T> *>(_plan.c_plan.f_hat));
+    std::vector<ssize_t> shape = as_ssize_t_vector(_N);
+    py::array_t<std::complex<FLOAT_T>> arr(shape, reinterpret_cast<std::complex<FLOAT_T> *>(_plan.c_plan.f_hat));
     return arr;
   }
 
@@ -70,8 +69,7 @@ struct _NFFT {
   py::array_t<std::complex<FLOAT_T>> f() const {
     // f has shape (M,) and contiguous strides (sizeof(FLOAT_T),)
     std::vector<ssize_t> shape { _M };
-    std::vector<ssize_t> strides { sizeof(std::complex<FLOAT_T>) };
-    py::array_t<std::complex<FLOAT_T>> arr(shape, strides, reinterpret_cast<std::complex<FLOAT_T> *>(_plan.c_plan.f));
+    py::array_t<std::complex<FLOAT_T>> arr(shape, reinterpret_cast<std::complex<FLOAT_T> *>(_plan.c_plan.f));
     return arr;
   }
 
@@ -80,8 +78,7 @@ struct _NFFT {
     ssize_t d = py::len(_N);
     // x has shape (M, d) and contiguous strides according to FLOAT_T type
     std::vector<ssize_t> shape { _M, d };
-    std::vector<ssize_t> strides = contig_strides<FLOAT_T>(py::make_tuple(_M, d));
-    py::array_t<FLOAT_T> arr(shape, strides, reinterpret_cast<FLOAT_T *>(_plan.c_plan.x));
+    py::array_t<FLOAT_T> arr(shape, reinterpret_cast<FLOAT_T *>(_plan.c_plan.x));
     return arr;
   }
 
@@ -93,31 +90,6 @@ struct _NFFT {
 
 
 // Specializations of constructor and destructor
-
-template <>
-_NFFT<double>::_NFFT(int d,
-                     py::tuple N,
-                     int M,
-                     py::tuple n,
-                     int m,
-                     unsigned int nfft_flags,
-                     unsigned int fftw_flags) : _N(N), _M(M) {
-  assert(d > 0);
-  assert(nfft_flags & MALLOC_X);
-  assert(nfft_flags & MALLOC_F);
-  assert(nfft_flags & MALLOC_F_HAT);
-  std::vector<int> N_(d), n_(d);
-  for(int i = 0; i < d; ++i) {
-    N_[i] = py::cast<int>(N[i]);
-    n_[i] = py::cast<int>(n[i]);
-  }
-  nfft_init_guru(&_plan.c_plan, d, N_.data(), M, n_.data(), m, nfft_flags, fftw_flags);
-}
-
-template <>
-_NFFT<double>::~_NFFT() {
-  nfft_finalize(&_plan.c_plan);
-}
 
 template <>
 _NFFT<float>::_NFFT(int d,
@@ -145,6 +117,31 @@ _NFFT<float>::~_NFFT() {
 }
 
 template <>
+_NFFT<double>::_NFFT(int d,
+                     py::tuple N,
+                     int M,
+                     py::tuple n,
+                     int m,
+                     unsigned int nfft_flags,
+                     unsigned int fftw_flags) : _N(N), _M(M) {
+  assert(d > 0);
+  assert(nfft_flags & MALLOC_X);
+  assert(nfft_flags & MALLOC_F);
+  assert(nfft_flags & MALLOC_F_HAT);
+  std::vector<int> N_(d), n_(d);
+  for(int i = 0; i < d; ++i) {
+    N_[i] = py::cast<int>(N[i]);
+    n_[i] = py::cast<int>(n[i]);
+  }
+  nfft_init_guru(&_plan.c_plan, d, N_.data(), M, n_.data(), m, nfft_flags, fftw_flags);
+}
+
+template <>
+_NFFT<double>::~_NFFT() {
+  nfft_finalize(&_plan.c_plan);
+}
+
+template <>
 _NFFT<long double>::_NFFT(int d,
                           py::tuple N,
                           int M,
@@ -167,6 +164,49 @@ _NFFT<long double>::_NFFT(int d,
 template <>
 _NFFT<long double>::~_NFFT() {
   nfftl_finalize(&_plan.c_plan);
+}
+
+
+// Module-level startup and teardown functions
+
+template <typename FLOAT_T>
+void _nfft_atentry();
+
+template <>
+void _nfft_atentry<float>() {
+  fftwf_init_threads();
+}
+
+template <>
+void _nfft_atentry<double>() {
+  fftw_init_threads();
+}
+
+template <>
+void _nfft_atentry<long double>() {
+  fftwl_init_threads();
+}
+
+
+template <typename FLOAT_T>
+void _nfft_atexit();
+
+template <>
+void _nfft_atexit<float>() {
+  fftwf_cleanup();
+  fftwf_cleanup_threads();
+}
+
+template <>
+void _nfft_atexit<double>() {
+  fftw_cleanup();
+  fftw_cleanup_threads();
+}
+
+template <>
+void _nfft_atexit<long double>() {
+  fftwl_cleanup();
+  fftwl_cleanup_threads();
 }
 
 

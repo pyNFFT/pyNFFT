@@ -7,25 +7,7 @@
 namespace py = pybind11;
 
 
-template <typename T>
-std::vector<ssize_t> contig_strides(py::tuple shape) {
-  // Return a strides for a C-contiguous array with shape
-  // equal to `shape`
-
-  ssize_t d = py::len(shape);
-  std::vector<ssize_t> strides(d);
-
-  ssize_t el_stride = 1;
-  strides[d - 1] = el_stride * sizeof(T);
-  for(ssize_t i = d - 1; i > 0; --i) {
-    el_stride *= py::cast<ssize_t>(shape[i]);
-    strides[i - 1] = el_stride * sizeof(T);
-  }
-  return strides;
-}
-
-
-std::vector<ssize_t> as_size_vector(py::tuple N) {
+std::vector<ssize_t> as_ssize_t_vector(py::tuple N) {
   // Convert tuple of positive integers to a vector of sizes
 
   ssize_t d = py::len(N);

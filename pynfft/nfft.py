@@ -124,8 +124,12 @@ class NFFT(object):
         if M <= 0:
             raise ValueError('`M` must be positive')
 
+        m = int(m)
+        if m <= 0:
+            raise ValueError('`m` must be positive')
+
         if n is None:
-            n = tuple(2 * Ni for Ni in N)
+            n = tuple(max(2 * Ni, m + 1) for Ni in N)
         try:
             n = tuple(int(ni) for ni in n)
         except TypeError:
@@ -138,10 +142,6 @@ class NFFT(object):
         if not all(ni > 0 for ni in n):
             raise ValueError('`n` must be positive')
         n_total = reduce(lambda i, j: i * j, n, 1)
-
-        m = int(m)
-        if m <= 0:
-            raise ValueError('`m` must be positive')
 
         # Safeguard against oversampled grid size being too small
         # for kernel size

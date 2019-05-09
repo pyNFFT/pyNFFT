@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <cassert>
+#include <iostream>
 
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
@@ -27,16 +28,21 @@ struct _NFFTPlan { };
 template <>
 struct _NFFTPlan<double> {
   nfft_plan c_plan;
+  // Needed for lifetime management of the stolen reference to the plan arrays;
+  // To be used in the array creation routine as `base` parameter.
+  py::object refobj;
 };
 
 template <>
 struct _NFFTPlan<float> {
   nfftf_plan c_plan;
+  py::object refobj;
 };
 
 template <>
 struct _NFFTPlan<long double> {
   nfftl_plan c_plan;
+  py::object refobj;
 };
 
 
@@ -61,7 +67,10 @@ struct _NFFT {
   py::array_t<std::complex<FLOAT_T>> f_hat() const {
     // f_hat has shape N and contiguous strides according to FLOAT_T type
     std::vector<ssize_t> shape = as_ssize_t_vector(_N);
-    py::array_t<std::complex<FLOAT_T>> arr(shape, reinterpret_cast<std::complex<FLOAT_T> *>(_plan.c_plan.f_hat));
+    py::array_t<std::complex<FLOAT_T>> arr(shape,
+                                           reinterpret_cast<const std::complex<FLOAT_T> *>(_plan.c_plan.f_hat),
+                                           _plan.refobj);
+    std::cout << arr.data() << std::hex << std::endl;
     return arr;
   }
 
@@ -69,7 +78,10 @@ struct _NFFT {
   py::array_t<std::complex<FLOAT_T>> f() const {
     // f has shape (M,) and contiguous strides (sizeof(FLOAT_T),)
     std::vector<ssize_t> shape { _M };
-    py::array_t<std::complex<FLOAT_T>> arr(shape, reinterpret_cast<std::complex<FLOAT_T> *>(_plan.c_plan.f));
+    py::array_t<std::complex<FLOAT_T>> arr(shape,
+                                           reinterpret_cast<const std::complex<FLOAT_T> *>(_plan.c_plan.f),
+                                           _plan.refobj);
+    std::cout << arr.data() << std::hex << std::endl;
     return arr;
   }
 
@@ -78,7 +90,10 @@ struct _NFFT {
     ssize_t d = py::len(_N);
     // x has shape (M, d) and contiguous strides according to FLOAT_T type
     std::vector<ssize_t> shape { _M, d };
-    py::array_t<FLOAT_T> arr(shape, reinterpret_cast<FLOAT_T *>(_plan.c_plan.x));
+    py::array_t<FLOAT_T> arr(shape,
+                             reinterpret_cast<const FLOAT_T *>(_plan.c_plan.x),
+                             _plan.refobj);
+    std::cout << arr.data() << std::hex << std::endl;
     return arr;
   }
 
@@ -109,6 +124,11 @@ _NFFT<float>::_NFFT(int d,
     n_[i] = py::cast<int>(n[i]);
   }
   nfftf_init_guru(&_plan.c_plan, d, N_.data(), M, n_.data(), m, nfft_flags, fftw_flags);
+  std::cout
+    << "f_hat: " << reinterpret_cast<void *>(_plan.c_plan.f_hat) << std::endl
+    << "f: " << reinterpret_cast<void *>(_plan.c_plan.f) << std::endl
+    << "x: " << reinterpret_cast<void *>(_plan.c_plan.x)  << std::endl
+    << std::endl;
 }
 
 template <>
@@ -134,6 +154,11 @@ _NFFT<double>::_NFFT(int d,
     n_[i] = py::cast<int>(n[i]);
   }
   nfft_init_guru(&_plan.c_plan, d, N_.data(), M, n_.data(), m, nfft_flags, fftw_flags);
+  std::cout
+    << "f_hat: " << reinterpret_cast<void *>(_plan.c_plan.f_hat) << std::endl
+    << "f: " << reinterpret_cast<void *>(_plan.c_plan.f) << std::endl
+    << "x: " << reinterpret_cast<void *>(_plan.c_plan.x)  << std::endl
+    << std::endl;
 }
 
 template <>
@@ -159,6 +184,11 @@ _NFFT<long double>::_NFFT(int d,
     n_[i] = py::cast<int>(n[i]);
   }
   nfftl_init_guru(&_plan.c_plan, d, N_.data(), M, n_.data(), m, nfft_flags, fftw_flags);
+  std::cout
+    << "f_hat: " << reinterpret_cast<void *>(_plan.c_plan.f_hat) << std::endl
+    << "f: " << reinterpret_cast<void *>(_plan.c_plan.f) << std::endl
+    << "x: " << reinterpret_cast<void *>(_plan.c_plan.x)  << std::endl
+    << std::endl;
 }
 
 template <>

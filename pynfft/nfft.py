@@ -15,8 +15,6 @@
 # You should have received a copy of the GNU General Public License
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
-from functools import reduce
-
 import numpy as np
 
 from ._nfft import _NFFTDouble, _NFFTFloat, _NFFTLongDouble
@@ -117,8 +115,6 @@ class NFFT(object):
         if not all(Ni > 0 for Ni in N):
             raise ValueError('`N` must be positive')
         d = len(N)
-        # Use arbitrary-size int vs. np.prod which uses fixed-size integers
-        N_total = reduce(lambda i, j: i * j, N, 1)
 
         M = int(M)
         if M <= 0:
@@ -141,7 +137,6 @@ class NFFT(object):
             )
         if not all(ni > 0 for ni in n):
             raise ValueError('`n` must be positive')
-        n_total = reduce(lambda i, j: i * j, n, 1)
 
         # Safeguard against oversampled grid size being too small
         # for kernel size

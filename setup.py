@@ -199,6 +199,7 @@ def has_flag(compiler, flagname):
     the specified compiler.
     """
     import tempfile
+
     with tempfile.NamedTemporaryFile('w', suffix='.cpp') as f:
         f.write('int main (int argc, char **argv) { return 0; }')
         try:
@@ -224,14 +225,13 @@ def cpp_flag(compiler):
 
 
 class BuildExt(build_ext):
+
     """A custom build extension for adding compiler-specific options."""
-    c_opts = {
-        'msvc': ['/EHsc'],
-        'unix': [],
-    }
+
+    c_opts = {'msvc': ['/EHsc'], 'unix': []}
 
     if sys.platform == 'darwin':
-        c_opts['unix'] += ['-stdlib=libc++', '-mmacosx-version-min=10.7']
+        c_opts['unix'].extend(['-stdlib=libc++', '-mmacosx-version-min=10.7'])
 
     def build_extensions(self):
         ct = self.compiler.compiler_type

@@ -214,10 +214,7 @@ class NFFT(object):
         :returns: the updated :attr:`f` array.
         :rtype: ndarray
         """
-        if use_dft:
-            self._plan._trafo_direct()
-        else:
-            self._plan._trafo()
+        self._plan.trafo(use_dft)
         return self.f
 
     def adjoint(self, use_dft=False):
@@ -228,10 +225,7 @@ class NFFT(object):
         :returns: the updated :attr:`f_hat` array.
         :rtype: ndarray
         """
-        if use_dft:
-            self._plan._adjoint_direct()
-        else:
-            self._plan._adjoint()
+        self._plan.adjoint(use_dft)
         return self.f_hat
 
     # --- Pass-through from C plan --- #

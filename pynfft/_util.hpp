@@ -17,4 +17,4 @@ std::vector<ssize_t> as_ssize_t_vector(py::tuple N) {
   return vec;
 }
 
-#endif // _UTIL_HPP
+#endif  // _UTIL_HPP

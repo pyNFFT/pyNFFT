@@ -1,5 +1,4 @@
 #include "_nfft_impl.hpp"
-#include "_util.hpp"
 #include <pybind11/complex.h>
 #include <pybind11/pybind11.h>
 
@@ -18,8 +17,7 @@ PYBIND11_MODULE(_nfft, m) {
   auto atexit = py::module::import("atexit");
 
   py::class_<_NFFT<float>>(m, "_NFFTFloat")
-      .def(py::init<int,
-                    py::tuple,
+      .def(py::init<py::tuple,
                     int,
                     py::tuple,
                     int,
@@ -34,8 +32,7 @@ PYBIND11_MODULE(_nfft, m) {
   atexit.attr("register")(py::cpp_function(_nfft_atexit<float>));
 
   py::class_<_NFFT<double>>(m, "_NFFTDouble")
-      .def(py::init<int,
-                    py::tuple,
+      .def(py::init<py::tuple,
                     int,
                     py::tuple,
                     int,
@@ -50,8 +47,7 @@ PYBIND11_MODULE(_nfft, m) {
   atexit.attr("register")(py::cpp_function(_nfft_atexit<double>));
 
   py::class_<_NFFT<long double>>(m, "_NFFTLongDouble")
-      .def(py::init<int,
-                    py::tuple,
+      .def(py::init<py::tuple,
                     int,
                     py::tuple,
                     int,

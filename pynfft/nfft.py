@@ -187,11 +187,11 @@ class NFFT(object):
 
         # Create wrapper plan
         if dtype_complex == 'complex64':
-            self._plan = _NFFTFloat(d, N, M, n, m, nfft_flags, fftw_flags)
+            self._plan = _NFFTFloat(N, M, n, m, nfft_flags, fftw_flags)
         elif dtype_complex == 'complex128':
-            self._plan = _NFFTDouble(d, N, M, n, m, nfft_flags, fftw_flags)
+            self._plan = _NFFTDouble(N, M, n, m, nfft_flags, fftw_flags)
         elif dtype_complex == 'complex256':
-            self._plan = _NFFTLongDouble(d, N, M, n, m, nfft_flags, fftw_flags)
+            self._plan = _NFFTLongDouble(N, M, n, m, nfft_flags, fftw_flags)
 
         # Set misc member attributes
         self._d = d

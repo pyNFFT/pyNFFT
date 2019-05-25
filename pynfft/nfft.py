@@ -145,22 +145,26 @@ class NFFT(object):
 
         if flags is None:
             flags = ('PRE_PHI_HUT', 'PRE_PSI')
+
+        try:
+            iter(flags)
+        except TypeError:
+            flags = (str(flags).upper(),)
         else:
-            try:
-                flags = tuple(flags)
-            except:
-                flags = (flags,)
+            flags = tuple(str(flag).upper() for flag in flags)
 
         # Set specific flags unconditionally
         # TODO: allow user control for some?
+
+        # We always automatically allocate memory (but do it ourselves, not
+        # in the plan init function)
+        # TODO: this could be relaxed (i.e., done lazily)
+        flags += ('MALLOC_F', 'MALLOC_F_HAT', 'MALLOC_X')
 
         # FFTW flags
         flags += (
             'FFTW_INIT', 'FFT_OUT_OF_PLACE', 'FFTW_ESTIMATE', 'FFTW_DESTROY_INPUT'
         )
-
-        # Memory allocation flags
-        flags += ('MALLOC_F', 'MALLOC_F_HAT', 'MALLOC_X')
 
         # Parallel computation flag
         flags += ('NFFT_SORT_NODES',)

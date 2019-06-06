@@ -205,10 +205,12 @@ class NFFT(object):
         self._n = n
         self._dtype = dtype_complex
         self._flags = flags
+        self._precomputed = False
 
     def precompute(self):
         """Precompute the NFFT plan internals."""
         self._plan.precompute()
+        self._precomputed = True
 
     def trafo(self, use_dft=False):
         """Perform the forward NFFT.
@@ -218,6 +220,11 @@ class NFFT(object):
         :returns: the updated :attr:`f` array.
         :rtype: ndarray
         """
+        if not self._precomputed:
+            raise RuntimeError(
+                "`precompute()` has not been run yet; it must be run before "
+                "any of the transforms"
+            )
         self._plan.trafo(use_dft)
         return self.f
 
@@ -229,6 +236,11 @@ class NFFT(object):
         :returns: the updated :attr:`f_hat` array.
         :rtype: ndarray
         """
+        if not self._precomputed:
+            raise RuntimeError(
+                "`precompute()` has not been run yet; it must be run before "
+                "any of the transforms"
+            )
         self._plan.adjoint(use_dft)
         return self.f_hat
 

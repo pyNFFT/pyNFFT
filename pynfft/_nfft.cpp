@@ -26,6 +26,7 @@ PYBIND11_MODULE(_nfft, m) {
       .def_property_readonly("f_hat", &_NFFT<float>::f_hat)
       .def_property_readonly("f", &_NFFT<float>::f)
       .def_property_readonly("x", &_NFFT<float>::x)
+      .def("precompute", &_NFFT<float>::precompute)
       .def("trafo", &_NFFT<float>::trafo)
       .def("adjoint", &_NFFT<float>::adjoint);
   _nfft_atentry<float>();
@@ -41,6 +42,7 @@ PYBIND11_MODULE(_nfft, m) {
       .def_property_readonly("f_hat", &_NFFT<double>::f_hat)
       .def_property_readonly("f", &_NFFT<double>::f)
       .def_property_readonly("x", &_NFFT<double>::x)
+      .def("precompute", &_NFFT<double>::precompute)
       .def("trafo", &_NFFT<double>::trafo)
       .def("adjoint", &_NFFT<double>::adjoint);
   _nfft_atentry<double>();
@@ -56,6 +58,7 @@ PYBIND11_MODULE(_nfft, m) {
       .def_property_readonly("f_hat", &_NFFT<long double>::f_hat)
       .def_property_readonly("f", &_NFFT<long double>::f)
       .def_property_readonly("x", &_NFFT<long double>::x)
+      .def("precompute", &_NFFT<long double>::precompute)
       .def("trafo", &_NFFT<long double>::trafo)
       .def("adjoint", &_NFFT<long double>::adjoint);
   _nfft_atentry<long double>();

@@ -208,7 +208,7 @@ class NFFT(object):
 
     def precompute(self):
         """Precompute the NFFT plan internals."""
-        self._plan._precompute()
+        self._plan.precompute()
 
     def trafo(self, use_dft=False):
         """Perform the forward NFFT.

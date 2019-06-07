@@ -1,11 +1,13 @@
-#include "_nfft_impl.hpp"
+// _nfft.cpp -- definition of the `_nfft` Python extension module
+//
+
 #include <pybind11/complex.h>
 #include <pybind11/pybind11.h>
 
+#include "_nfft_impl.hpp"
+
 namespace py = pybind11;
 
-// Definition of the main Python module.
-//
 // NB: The startup functions can just be run as part of the module creation code
 // (PYBIND11_MODULE), whereas the teardown functions need to be registered as
 // callbacks somewhere. We use the approach with the Python `atexit` module, see

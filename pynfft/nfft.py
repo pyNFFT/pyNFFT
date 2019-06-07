@@ -283,7 +283,7 @@ class NFFT(object):
     @property
     def N(self):
         """Multi-bandwidth size."""
-        return self._plan._N
+        return self._N
 
     @property
     def N_total(self):

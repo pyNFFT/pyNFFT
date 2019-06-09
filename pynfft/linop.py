@@ -49,8 +49,5 @@ def as_linop(plan):
         return plan.f_hat.ravel()
 
     return LinearOperator(
-        shape=mat_shape,
-        dtype=plan.dtype,
-        matvec=matvec,
-        rmatvec=rmatvec,
+        shape=mat_shape, dtype=plan.dtype, matvec=matvec, rmatvec=rmatvec
     )

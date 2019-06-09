@@ -19,31 +19,33 @@ import numpy as np
 
 from ._nfft import _NFFTDouble, _NFFTFloat, _NFFTLongDouble
 
+# fmt: off
 NFFT_FLAGS = {
-    'PRE_PHI_HUT': 1 << 0,
-    'FG_PSI': 1 << 1,
-    'PRE_LIN_PSI': 1 << 2,
-    'PRE_FG_PSI': 1 << 3,
-    'PRE_PSI': 1 << 4,
-    'PRE_FULL_PSI': 1 << 5,
-    'MALLOC_X': 1 << 6,
-    'MALLOC_F_HAT': 1 << 7,
-    'MALLOC_F': 1 << 8,
-    'FFT_OUT_OF_PLACE': 1 << 9,
-    'FFTW_INIT': 1 << 10,
-    'NFFT_SORT_NODES': 1 << 11,
-    'NFFT_OMP_BLOCKWISE_ADJOINT': 1 <<12,
+    "PRE_PHI_HUT": 1 << 0,
+    "FG_PSI": 1 << 1,
+    "PRE_LIN_PSI": 1 << 2,
+    "PRE_FG_PSI": 1 << 3,
+    "PRE_PSI": 1 << 4,
+    "PRE_FULL_PSI": 1 << 5,
+    "MALLOC_X": 1 << 6,
+    "MALLOC_F_HAT": 1 << 7,
+    "MALLOC_F": 1 << 8,
+    "FFT_OUT_OF_PLACE": 1 << 9,
+    "FFTW_INIT": 1 << 10,
+    "NFFT_SORT_NODES": 1 << 11,
+    "NFFT_OMP_BLOCKWISE_ADJOINT": 1 << 12,
 }
-NFFT_FLAGS['PRE_ONE_PSI'] = (
-    NFFT_FLAGS['PRE_LIN_PSI']
-    | NFFT_FLAGS['PRE_FG_PSI']
-    | NFFT_FLAGS['PRE_PSI']
-    | NFFT_FLAGS['PRE_FULL_PSI']
+NFFT_FLAGS["PRE_ONE_PSI"] = (
+    NFFT_FLAGS["PRE_LIN_PSI"]
+    | NFFT_FLAGS["PRE_FG_PSI"]
+    | NFFT_FLAGS["PRE_PSI"]
+    | NFFT_FLAGS["PRE_FULL_PSI"]
 )
 FFTW_FLAGS = {
-    'FFTW_DESTROY_INPUT': 1 << 0,
-    'FFTW_ESTIMATE': 1 << 6,
+    "FFTW_DESTROY_INPUT": 1 << 0,
+    "FFTW_ESTIMATE": 1 << 6,
 }
+# fmt: on
 
 
 class NFFT(object):
@@ -106,23 +108,23 @@ class NFFT(object):
     Default set of flags is ``('PRE_PHI_HUT', 'PRE_PSI')``.
     """
 
-    def __init__(self, N, M, n=None, m=12, flags=None, prec='double'):
+    def __init__(self, N, M, n=None, m=12, flags=None, prec="double"):
         # Convert and check input parameters
         try:
             N = tuple(int(Ni) for Ni in N)
         except TypeError:
             N = (int(N),)
         if not all(Ni > 0 for Ni in N):
-            raise ValueError('`N` must be positive')
+            raise ValueError("`N` must be positive")
         d = len(N)
 
         M = int(M)
         if M <= 0:
-            raise ValueError('`M` must be positive')
+            raise ValueError("`M` must be positive")
 
         m = int(m)
         if m <= 0:
-            raise ValueError('`m` must be positive')
+            raise ValueError("`m` must be positive")
 
         if n is None:
             n = tuple(max(2 * Ni, m + 1) for Ni in N)
@@ -132,19 +134,19 @@ class NFFT(object):
             n = (int(n),)
         if len(n) != d:
             raise ValueError(
-                '`n` must have the same length as `N`, but '
-                '{} = len(n) != len(N) = {}'.format(len(n), d)
+                "`n` must have the same length as `N`, but "
+                "{} = len(n) != len(N) = {}".format(len(n), d)
             )
         if not all(ni > 0 for ni in n):
-            raise ValueError('`n` must be positive')
+            raise ValueError("`n` must be positive")
 
         # Safeguard against oversampled grid size being too small
         # for kernel size
         if not all(ni > m for ni in n):
-            raise ValueError('`n` must be larger than `m`')
+            raise ValueError("`n` must be larger than `m`")
 
         if flags is None:
-            flags = ('PRE_PHI_HUT', 'PRE_PSI')
+            flags = ("PRE_PHI_HUT", "PRE_PSI")
 
         try:
             iter(flags)
@@ -159,19 +161,22 @@ class NFFT(object):
         # We always automatically allocate memory (but do it ourselves, not
         # in the plan init function)
         # TODO: this could be relaxed (i.e., done lazily)
-        flags += ('MALLOC_F', 'MALLOC_F_HAT', 'MALLOC_X')
+        flags += ("MALLOC_F", "MALLOC_F_HAT", "MALLOC_X")
 
         # FFTW flags
         flags += (
-            'FFTW_INIT', 'FFT_OUT_OF_PLACE', 'FFTW_ESTIMATE', 'FFTW_DESTROY_INPUT'
+            "FFTW_INIT",
+            "FFT_OUT_OF_PLACE",
+            "FFTW_ESTIMATE",
+            "FFTW_DESTROY_INPUT",
         )
 
         # Parallel computation flag
-        flags += ('NFFT_SORT_NODES',)
+        flags += ("NFFT_SORT_NODES",)
 
         # Parallel computation flag, set only for multivariate transforms
         if d > 1:
-            flags += ('NFFT_OMP_BLOCKWISE_ADJOINT',)
+            flags += ("NFFT_OMP_BLOCKWISE_ADJOINT",)
 
         nfft_flags = 0
         fftw_flags = 0
@@ -181,20 +186,20 @@ class NFFT(object):
             elif flag in FFTW_FLAGS:
                 fftw_flags |= FFTW_FLAGS[flag]
             else:
-                raise ValueError('Unsupported flag: {}'.format(flag))
+                raise ValueError("Unsupported flag: {}".format(flag))
 
         # 'long double' -> 'longdouble' (latter understood by np.dtype)
-        dtype_real = np.dtype(str(prec).replace(' ', ''))
+        dtype_real = np.dtype(str(prec).replace(" ", ""))
         dtype_complex = np.result_type(1j, dtype_real)
-        if dtype_complex not in ('complex64', 'complex128', 'complex256'):
-            raise ValueError('`prec` {!r} not recognized'.format(prec))
+        if dtype_complex not in ("complex64", "complex128", "complex256"):
+            raise ValueError("`prec` {!r} not recognized".format(prec))
 
         # Create wrapper plan
-        if dtype_complex == 'complex64':
+        if dtype_complex == "complex64":
             self._plan = _NFFTFloat(N, M, n, m, nfft_flags, fftw_flags)
-        elif dtype_complex == 'complex128':
+        elif dtype_complex == "complex128":
             self._plan = _NFFTDouble(N, M, n, m, nfft_flags, fftw_flags)
-        elif dtype_complex == 'complex256':
+        elif dtype_complex == "complex256":
             self._plan = _NFFTLongDouble(N, M, n, m, nfft_flags, fftw_flags)
 
         # Set misc member attributes

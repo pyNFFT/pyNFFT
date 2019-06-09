@@ -35,10 +35,9 @@ def random_unit_complex(shape, dtype):
         shape = tuple(int(n) for n in shape)
 
     dtype, dtype_in = np.dtype(dtype), dtype
-    if dtype.kind != 'c':
+    if dtype.kind != "c":
         raise ValueError(
-            '`dtype` must be a complex data type, got {!r}'
-            ''.format(dtype_in)
+            "`dtype` must be a complex data type, got {!r}" "".format(dtype_in)
         )
 
     return (
@@ -62,9 +61,9 @@ def random_unit_shifted(shape, dtype):
         shape = tuple(int(n) for n in shape)
 
     dtype, dtype_in = np.dtype(dtype), dtype
-    if dtype.kind != 'f':
+    if dtype.kind != "f":
         raise ValueError(
-            '`dtype` must be a real floating-point data type, got {!r}'
-            ''.format(dtype_in)
+            "`dtype` must be a real floating-point data type, got {!r}"
+            "".format(dtype_in)
         )
     return np.random.uniform(-0.5, 0.5, size=shape).astype(dtype)

@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright (C) 2013  Ghislain Vaillant
+# Copyright PyNFFT developers and contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
@@ -16,38 +16,37 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 from __future__ import division
+
 import numpy as np
 import pytest
 from numpy import pi
+
 from pynfft.nfft import NFFT
 from pynfft.util import random_unit_complex, random_unit_shifted
-
 
 # --- Test fixtures --- #
 
 
 @pytest.fixture(
-    scope='module',
-    params=[6, 12],
-    ids=[' m={} '.format(p) for p in [6, 12]],
+    scope="module", params=[6, 12], ids=[" m={} ".format(p) for p in [6, 12]]
 )
 def m(request):
     return request.param
 
 
 @pytest.fixture(
-    scope='module',
+    scope="module",
     params=[True, False],
-    ids=[' use_dft={} '.format(p) for p in [True, False]],
+    ids=[" use_dft={} ".format(p) for p in [True, False]],
 )
 def use_dft(request):
     return request.param
 
 
 @pytest.fixture(
-    scope='module',
-    params=['single', 'double', 'long double'],
-    ids=[' prec={!r} '.format(p) for p in ['single', 'double', 'long double']],
+    scope="module",
+    params=["single", "double", "long double"],
+    ids=[" prec={!r} ".format(p) for p in ["single", "double", "long double"]],
 )
 def prec(request):
     return request.param
@@ -69,17 +68,18 @@ shapes = (
     ((16, 16, 16), 16 * 16 * 16),
 )
 
+
 @pytest.fixture(
-    scope='module',
+    scope="module",
     params=shapes,
-    ids=[' shapes={} '.format(arg) for arg in shapes],
+    ids=[" shapes={} ".format(arg) for arg in shapes],
 )
 def plan(request, m, prec):
     N, M = request.param
 
-    if prec == 'single' and m > 6:
+    if prec == "single" and m > 6:
         # Unstable
-        pytest.skip('likely to produce NaN')
+        pytest.skip("likely to produce NaN")
 
     pl = NFFT(N, M, prec=prec, m=m)
     pl.x[:] = random_unit_shifted(pl.x.shape, pl.x.dtype)
@@ -93,16 +93,17 @@ def plan(request, m, prec):
 def fdft(x, f_hat):
     N = f_hat.shape
     d = x.shape[-1]
-    k = np.mgrid[[slice(-Nt/2, Nt/2) for Nt in N]]
+    k = np.mgrid[[slice(-Nt / 2, Nt / 2) for Nt in N]]
     k = k.reshape([d, -1])
     x = x.reshape([-1, d])
     F = np.exp(-2j * pi * np.dot(x, k))
     f_dft = np.dot(F, f_hat.ravel())
     return f_dft
 
+
 def rdft(x, f, N):
     d = x.shape[-1]
-    k = np.mgrid[[slice(-Nt/2, Nt/2) for Nt in N]]
+    k = np.mgrid[[slice(-Nt / 2, Nt / 2) for Nt in N]]
     k = k.reshape([d, -1])
     x = x.reshape([-1, d])
     F = np.exp(-2j * pi * np.dot(x, k))
@@ -115,20 +116,16 @@ def rdft(x, f, N):
 
 
 def test_forward(plan, use_dft):
-    rtol = 1e-3 if plan.dtype == 'complex64' else 1e-7
+    rtol = 1e-3 if plan.dtype == "complex64" else 1e-7
     plan.f_hat[:] = random_unit_complex(plan.f_hat.shape, plan.f_hat.dtype)
-    assert np.allclose(
-        plan.trafo(use_dft=use_dft),
-        fdft(plan.x, plan.f_hat),
-        rtol=rtol,
-    )
+    plan.trafo(use_dft=use_dft)
+    true_fdft = fdft(plan.x, plan.f_hat)
+    assert np.allclose(plan.f, true_fdft, rtol=rtol)
 
 
 def test_adjoint(plan, use_dft):
-    rtol = 1e-3 if plan.dtype == 'complex64' else 1e-7
+    rtol = 1e-3 if plan.dtype == "complex64" else 1e-7
     plan.f[:] = random_unit_complex(plan.f.shape, plan.f.dtype)
-    assert np.allclose(
-        plan.adjoint(use_dft=use_dft),
-        rdft(plan.x, plan.f, plan.N),
-        rtol=rtol,
-    )
+    plan.adjoint(use_dft=use_dft)
+    true_rdft = rdft(plan.x, plan.f, plan.N)
+    assert np.allclose(plan.f_hat, true_rdft, rtol=rtol)

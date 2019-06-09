@@ -18,4 +18,4 @@
 
 from pynfft.version import version as __version__
 from pynfft.nfft import NFFT
-#from pynfft.solver import Solver
+from pynfft.linop import as_linop

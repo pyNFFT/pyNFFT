@@ -1,0 +1,4 @@
+Ghislain Vaillant (@ghisvail): Creator and long-time sole maintainer of the package
+Gregory R. Lee (@grlee77): Maintainer; also maintains the conda-forge package
+Holger Kohr (@kohr-h): Maintainer; author of the pybind11 re-implementation
+Alexander (@aplavin): Contributor; compilation fix

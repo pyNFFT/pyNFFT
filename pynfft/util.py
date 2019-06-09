@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 #
-# Copyright PyNFFT developers and contributors
+# Copyright 2013-2019 PyNFFT developers and contributors
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by

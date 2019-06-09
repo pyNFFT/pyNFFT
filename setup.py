@@ -1,16 +1,33 @@
+# -*- coding: utf-8 -*-
+#
+# Copyright 2013-2019 PyNFFT developers and contributors
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program. If not, see <http://www.gnu.org/licenses/>.
+
 import os
 import shutil
-import sys
-import setuptools
 import subprocess
+import sys
 from itertools import product
 from os import path
-from setuptools import setup, Extension, Command
+
+import setuptools
+from setuptools import Command, Extension, setup
 from setuptools.command.build_ext import build_ext
 
-
 setup_dir = path.dirname(path.abspath(__file__))
-package_dir = path.join(setup_dir, 'pynfft')
+package_dir = path.join(setup_dir, "pynfft")
 
 
 # --- Version info --- #
@@ -20,7 +37,7 @@ MAJOR = 1
 MINOR = 4
 MICRO = 0
 ISRELEASED = True
-VERSION = '{}.{}.{}'.format(MAJOR, MINOR, MICRO)
+VERSION = "{}.{}.{}".format(MAJOR, MINOR, MICRO)
 
 
 # Borrowed from SciPy
@@ -28,22 +45,22 @@ def git_version():
     def _minimal_ext_cmd(cmd):
         # Construct minimal environment
         env = {}
-        for k in ['SYSTEMROOT', 'PATH']:
+        for k in ["SYSTEMROOT", "PATH"]:
             v = os.environ.get(k)
             if v is not None:
                 env[k] = v
         # LANGUAGE is used on win32
-        env['LANGUAGE'] = 'C'
-        env['LANG'] = 'C'
-        env['LC_ALL'] = 'C'
+        env["LANGUAGE"] = "C"
+        env["LANG"] = "C"
+        env["LC_ALL"] = "C"
         out = subprocess.Popen(
             cmd, stdout=subprocess.PIPE, env=env
         ).communicate()[0]
         return out
 
     try:
-        out = _minimal_ext_cmd(['git', 'rev-parse', 'HEAD'])
-        GIT_REVISION = out.strip().decode('ascii')
+        out = _minimal_ext_cmd(["git", "rev-parse", "HEAD"])
+        GIT_REVISION = out.strip().decode("ascii")
     except OSError:
         GIT_REVISION = "Unknown"
 
@@ -53,25 +70,26 @@ def git_version():
 # Borrowed from SciPy
 def get_version_info():
     FULLVERSION = VERSION
-    if path.exists('.git'):
+    if path.exists(".git"):
         GIT_REVISION = git_version()
-    elif path.exists('pynfft/version.py'):
+    elif path.exists("pynfft/version.py"):
         # must be a source distribution, use existing version file
         # load it as a separate module in order not to load __init__.py
         import imp
-        version = imp.load_source('pynfft.version', 'pynfft/version.py')
+
+        version = imp.load_source("pynfft.version", "pynfft/version.py")
         GIT_REVISION = version.git_revision
     else:
         GIT_REVISION = "Unknown"
 
     if not ISRELEASED:
-        FULLVERSION += '.dev-' + GIT_REVISION[:7]
+        FULLVERSION += ".dev-" + GIT_REVISION[:7]
 
     return FULLVERSION, GIT_REVISION
 
 
 # Borrowed from SciPy
-def write_version_py(filename='pynfft/version.py'):
+def write_version_py(filename="pynfft/version.py"):
     version_fmt = """
 # THIS FILE IS GENERATED FROM SETUP.PY
 short_version = '{VERSION}'
@@ -85,7 +103,7 @@ if not release:
 """.lstrip()
     FULLVERSION, GIT_REVISION = get_version_info()
 
-    with open(filename, 'w') as fp:
+    with open(filename, "w") as fp:
         fp.write(version_fmt.format_map(globals()))
 
 
@@ -108,13 +126,19 @@ class CleanCommand(Command):
             for f in files:
                 if f in self._clean_exclude:
                     continue
-                if path.splitext(f)[-1] in ('.pyc', '.so', '.o', '.pyo', '.pyd'):
+                if path.splitext(f)[-1] in (
+                    ".pyc",
+                    ".so",
+                    ".o",
+                    ".pyo",
+                    ".pyd",
+                ):
                     self._clean_me.append(path.join(root, f))
             for d in dirs:
-                if d == '__pycache__':
+                if d == "__pycache__":
                     self._clean_trees.append(path.join(root, d))
         # clean build and sdist directories in root
-        for d in ('build', 'dist'):
+        for d in ("build", "dist"):
             if path.exists(d):
                 self._clean_trees.append(d)
 
@@ -139,11 +163,13 @@ class CleanCommand(Command):
 
 def numpy_include():
     import numpy
+
     return numpy.get_include()
 
 
 def py_include():
     import pybind11
+
     return pybind11.get_include()
 
 
@@ -152,7 +178,6 @@ def nfft_include():
 
 
 class GetInclude(object):
-
     def __init__(self, getter, *args, **kwargs):
         self.getter = getter
         self.args = args
@@ -166,17 +191,17 @@ def common_extension_args():
     fft_libs = [
         pre + suf + thrd_ext
         for pre, suf, thrd_ext in product(
-            ['nfft3', 'fftw3'], ['', 'f', 'l'], ['', '_threads']
+            ["nfft3", "fftw3"], ["", "f", "l"], ["", "_threads"]
         )
     ]
     common_ext_args = dict(
         include_dirs=[
             GetInclude(f) for f in (py_include, numpy_include, nfft_include)
         ],
-        libraries=fft_libs + ['m'],
+        libraries=fft_libs + ["m"],
         library_dirs=[],
         extra_compile_args=(
-            '-O3 -fomit-frame-pointer -fstrict-aliasing -ffast-math'.split()
+            "-O3 -fomit-frame-pointer -fstrict-aliasing -ffast-math".split()
         ),
     )
     return common_ext_args
@@ -184,11 +209,11 @@ def common_extension_args():
 
 ext_modules = [
     Extension(
-        'pynfft._nfft',
-        [path.join(package_dir, '_nfft.cpp')],
-        language='c++',
-        **common_extension_args(),
-    ),
+        "pynfft._nfft",
+        [path.join(package_dir, "_nfft.cpp")],
+        language="c++",
+        **common_extension_args()  # no trailing comma
+    )
 ]
 
 
@@ -200,8 +225,8 @@ def has_flag(compiler, flagname):
     """
     import tempfile
 
-    with tempfile.NamedTemporaryFile('w', suffix='.cpp') as f:
-        f.write('int main (int argc, char **argv) { return 0; }')
+    with tempfile.NamedTemporaryFile("w", suffix=".cpp") as f:
+        f.write("int main (int argc, char **argv) { return 0; }")
         try:
             compiler.compile([f.name], extra_postargs=[flagname])
         except setuptools.distutils.errors.CompileError:
@@ -214,13 +239,13 @@ def cpp_flag(compiler):
 
     The c++14 flag is prefered over c++11 (when it is available).
     """
-    if has_flag(compiler, '-std=c++14'):
-        return '-std=c++14'
-    elif has_flag(compiler, '-std=c++11'):
-        return '-std=c++11'
+    if has_flag(compiler, "-std=c++14"):
+        return "-std=c++14"
+    elif has_flag(compiler, "-std=c++11"):
+        return "-std=c++11"
     else:
         raise RuntimeError(
-            'Unsupported compiler -- at least C++11 support is needed!'
+            "Unsupported compiler -- at least C++11 support is needed!"
         )
 
 
@@ -228,24 +253,26 @@ class BuildExt(build_ext):
 
     """A custom build extension for adding compiler-specific options."""
 
-    c_opts = {'msvc': ['/EHsc'], 'unix': []}
+    c_opts = {"msvc": ["/EHsc"], "unix": []}
 
-    if sys.platform == 'darwin':
-        c_opts['unix'].extend(['-stdlib=libc++', '-mmacosx-version-min=10.7'])
+    if sys.platform == "darwin":
+        c_opts["unix"].extend(["-stdlib=libc++", "-mmacosx-version-min=10.7"])
 
     def build_extensions(self):
         ct = self.compiler.compiler_type
         opts = self.c_opts.get(ct, [])
-        if ct == 'unix':
+        if ct == "unix":
             opts.append(
                 '-DVERSION_INFO="{}"'.format(self.distribution.get_version())
             )
             opts.append(cpp_flag(self.compiler))
-            if has_flag(self.compiler, '-fvisibility=hidden'):
-                opts.append('-fvisibility=hidden')
-        elif ct == 'msvc':
+            if has_flag(self.compiler, "-fvisibility=hidden"):
+                opts.append("-fvisibility=hidden")
+        elif ct == "msvc":
             opts.append(
-                '/DVERSION_INFO=\\"{}\\"'.format(self.distribution.get_version())
+                '/DVERSION_INFO=\\"{}\\"'.format(
+                    self.distribution.get_version()
+                )
             )
         for ext in self.extensions:
             ext.extra_compile_args = opts
@@ -260,7 +287,7 @@ write_version_py()
 
 setup(
     version=FULLVERSION,
-    cmdclass={'build_ext': BuildExt, 'clean': CleanCommand},
+    cmdclass={"build_ext": BuildExt, "clean": CleanCommand},
     ext_modules=ext_modules,
-    tests_require=['pytest'],
+    tests_require=["pytest"],
 )

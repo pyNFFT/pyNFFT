@@ -231,7 +231,6 @@ class NFFT(object):
                 "any of the transforms"
             )
         self._plan.trafo(use_dft)
-        return self.f
 
     def adjoint(self, use_dft=False):
         """Perform the adjoint NFFT.
@@ -247,7 +246,6 @@ class NFFT(object):
                 "any of the transforms"
             )
         self._plan.adjoint(use_dft)
-        return self.f_hat
 
     # --- Pass-through from C plan --- #
 

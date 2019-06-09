@@ -60,7 +60,7 @@ install:
     - conda create -n testenv
     - source activate testenv
     - conda config --env --add channels conda-forge
-    - conda install python=$PYTHON "numpy<1.16.0" nfft cython pytest
+    - conda install python=$PYTHON "numpy<1.16.0" scipy nfft pybind11 pytest
 
     # Doc dependencies
     - if [[ "$BUILD_DOCS" == "true" ]]; then

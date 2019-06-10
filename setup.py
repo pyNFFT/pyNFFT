@@ -104,7 +104,7 @@ if not release:
     FULLVERSION, GIT_REVISION = get_version_info()
 
     with open(filename, "w") as fp:
-        fp.write(version_fmt.format_map(globals()))
+        fp.write(version_fmt.format(**globals()))
 
 
 # --- Cleanup command --- #

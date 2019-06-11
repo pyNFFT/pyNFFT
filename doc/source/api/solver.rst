@@ -1,10 +1,6 @@
-``pynfft.solver`` - iterative solver for inverse NFFT
-=====================================================
+``pynfft.linop`` - Wrapping as ``LinearOperator``
+=================================================
 
-.. automodule:: pynfft.solver
+.. automodule:: pynfft.linop
 
-Solver class
-------------
-
-.. autoclass:: pynfft.solver.Solver
-   :members:
+.. autofunction:: pynfft.linop.as_linop(plan)

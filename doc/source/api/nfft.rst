@@ -1,5 +1,5 @@
-``pynfft.nfft`` - core NFFT functionalities
-===========================================
+``pynfft.nfft`` - Core NFFT Functionality
+=========================================
 
 .. automodule:: pynfft.nfft
 

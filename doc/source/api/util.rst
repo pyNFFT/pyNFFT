@@ -1,24 +1,15 @@
-``pynfft.util`` - Utility functions
+``pynfft.util`` - Utility Functions
 ===================================
 
 .. automodule:: pynfft.util
 
-Functions used for initialization of :class:`pynfft.NFFT` attributes in test
-scripts. For instance::
+Functions used to generate random vectors for :class:`pynfft.NFFT` attributes in test scripts.
+For instance::
 
-   >>> from pynfft.util import vrand_unit_complex, vrand_shifted_unit_double
-   >>> x = np.empty(20, dtype=np.float64)
-   >>> vrand_shifted_unit_double(x)
-   >>> f_hat = np.empty(16, dtype=np.complex128)
-   >>> vrand_unit_complex(f_hat)
+   >>> from pynfft.util import random_unit_complex, random_unit_shifted
+   >>> x = random_unit_shifted(20, dtype='float64')
+   >>> f_hat = random_unit_complex(16, dtype='complex128')
 
-.. autofunction:: pynfft.util.vrand_unit_complex(x)
+.. autofunction:: pynfft.util.random_unit_complex(size, dtype)
 
-.. autofunction:: pynfft.util.vrand_shifted_unit_double(x)
-
-Functions used for computing the density compensation weights necessary for the
-iterative solver and adjoint NFFT.
-
-.. autofunction:: pynfft.util.voronoi_weights_1d(w, x)
-
-.. autofunction:: pynfft.util.voronoi_weights_S2(w, xi)
+.. autofunction:: pynfft.util.random_shifted_unit(size, dtype)

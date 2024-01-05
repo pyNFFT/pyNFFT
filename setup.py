@@ -86,7 +86,7 @@ def get_cython_extensions():
             **common_extension_args
             )
         )
-    return cythonize(ext_modules)
+    return cythonize(ext_modules, language_level=2)
 
 
 # BEFORE importing distutils, remove MANIFEST. distutils doesn't properly
@@ -179,7 +179,7 @@ CLASSIFIERS = [
 ]
 
 MAJOR = 1
-MINOR = 3
+MINOR = 4
 MICRO = 2
 ISRELEASED = True
 VERSION = '%d.%d.%d' % (MAJOR, MINOR, MICRO)

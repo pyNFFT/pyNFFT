@@ -34,7 +34,7 @@ np.import_array()
 fftw_init_threads()
 
 # register cleanup callbacks
-cdef void _cleanup():
+cdef void _cleanup() noexcept:
     fftw_cleanup()
     fftw_cleanup_threads()
 
